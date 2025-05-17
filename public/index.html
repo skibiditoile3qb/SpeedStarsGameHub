@@ -4,17 +4,17 @@
 <meta charset="UTF-8" />
 <title>Skib Games Intro</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --neon: #00fff7;
     --bg: #050505;
     --grid: #222;
+    --accent1: #ff0066;
+    --accent2: #00ff88;
   }
   * {
     box-sizing: border-box;
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
   }
   html, body {
     height: 100%;
@@ -40,6 +40,7 @@
     transform: perspective(600px) rotateX(70deg);
     pointer-events: none;
     opacity: 0.35;
+    transition: opacity 0.6s ease;
   }
   .scanlines:before {
     content: "";
@@ -54,6 +55,7 @@
     text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon);
     position: relative;
     animation: glitch 2s infinite;
+    user-select: none;
   }
   .logo:before, .logo:after {
     content: attr(data-txt);
@@ -65,11 +67,11 @@
   }
   .logo:before {
     animation: glitchTop 2s infinite;
-    color: #ff0066;
+    color: var(--accent1);
   }
   .logo:after {
     animation: glitchBot 2s infinite;
-    color: #00ff88;
+    color: var(--accent2);
   }
   @keyframes glitch {
     0%, 100% { transform: translate(0) }
@@ -88,29 +90,79 @@
   }
   button {
     margin-top: 3rem;
-    padding: 1rem 2.5rem;
+    padding: 1rem 3rem;
     font: inherit;
     font-size: 1rem;
     color: var(--bg);
     background: var(--neon);
     border: none;
-    border-radius: 8px;
-    box-shadow: 0 0 8px var(--neon), 0 0 16px var(--neon);
+    border-radius: 12px;
+    box-shadow: 0 0 12px var(--neon), 0 0 24px var(--neon);
     cursor: pointer;
-    transition: transform .2s;
+    transition: transform .2s, box-shadow .3s;
+    user-select: none;
   }
-  button:hover { transform: scale(1.08) }
-  button:active { transform: scale(.95) }
+  button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px var(--accent1), 0 0 30px var(--accent2);
+  }
+  button:active { transform: scale(0.95) }
+  button:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
   .particle {
     position: absolute;
     width: 4px; height: 4px;
     background: var(--neon);
     opacity: .8;
     animation: particle 1.2s linear infinite;
+    border-radius: 50%;
+    will-change: transform;
   }
   @keyframes particle {
     from { transform: translate(0, 0) scale(1) }
     to { transform: translate(calc(-100vw + 200px), calc(-100vh + 200px)) scale(0) }
+  }
+  /* Progress bar */
+  #progressBarContainer {
+    position: fixed;
+    bottom: 12vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60vw;
+    height: 8px;
+    background: rgba(0, 255, 255, 0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 10px var(--neon);
+  }
+  #progressBar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    width: 0%;
+    transition: width 0.1s ease-out;
+  }
+  /* Burst effect on click */
+  .burst {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--neon);
+    pointer-events: none;
+    animation: burstAnim 0.6s ease forwards;
+    filter: drop-shadow(0 0 4px var(--neon));
+  }
+  @keyframes burstAnim {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(4);
+    }
   }
 </style>
 </head>
@@ -127,18 +179,22 @@
   <!-- Press Start -->
   <button id="startBtn">PRESS&nbsp;START</button>
 
+  <!-- progress bar -->
+  <div id="progressBarContainer" aria-hidden="true">
+    <div id="progressBar"></div>
+  </div>
+
   <!-- music -->
   <audio id="introAudio" src="/audio/intro.mp3" preload="auto"></audio>
 
-  <!-- sparks -->
 <script>
-  // Create sparks
+  // Create sparks randomly scattered
   for (let i = 0; i < 40; i++) {
     const s = document.createElement('div');
     s.className = 'particle';
     s.style.left = Math.random() * 100 + '%';
     s.style.top = Math.random() * 100 + '%';
-    s.style.animationDelay = Math.random() * 1.2 + 's';
+    s.style.animationDelay = (Math.random() * 1.2) + 's';
     document.body.appendChild(s);
   }
 
@@ -147,60 +203,95 @@
   const body = document.body;
   const logo = document.querySelector('.logo');
   const grid = document.querySelector('.grid');
+  const progressBar = document.getElementById('progressBar');
+  const progressContainer = document.getElementById('progressBarContainer');
 
-  btn.addEventListener('click', () => {
-    // play music with fade‑in
+  // Function to create burst sparks on click
+  function createBurst(x, y) {
+    for(let i = 0; i < 15; i++) {
+      const burst = document.createElement('div');
+      burst.className = 'burst';
+      burst.style.left = `${x}px`;
+      burst.style.top = `${y}px`;
+      burst.style.animationDelay = (i * 0.03) + 's';
+      burst.style.transformOrigin = 'center center';
+      burst.style.transform = `rotate(${i * (360 / 15)}deg) translate(20px)`;
+      document.body.appendChild(burst);
+      burst.addEventListener('animationend', () => burst.remove());
+    }
+  }
+
+  btn.addEventListener('click', (e) => {
+    // Disable button immediately
+    btn.disabled = true;
+
+    // Create burst effect where clicked
+    createBurst(e.clientX, e.clientY);
+
+    // Audio fade in (smooth)
     audio.volume = 0;
-    audio.play().catch(e => {
-      console.log("Play prevented:", e);
-      // sometimes browsers block autoplay until user interaction, this is already a click tho
+    audio.play().catch(err => {
+      console.warn("Audio play prevented:", err);
     });
-    const fade = setInterval(() => {
-      if (audio.volume < 0.9) audio.volume += 0.05;
-      else clearInterval(fade);
+
+    const fadeInInterval = setInterval(() => {
+      if (audio.volume < 0.9) {
+        audio.volume = Math.min(audio.volume + 0.05, 0.9);
+      } else {
+        clearInterval(fadeInInterval);
+      }
     }, 100);
 
-    // Disable button
-    btn.disabled = true;
-    btn.style.opacity = 0;
-    btn.style.pointerEvents = 'none';
-
-    // Glitch pulse
+    // Glitch pulse speed up
     logo.style.animation = 'glitch .1s infinite';
-    logo.style.transition = 'transform 1.2s ease, opacity 1.2s ease';
+    logo.style.transition = 'transform 1.5s ease, opacity 1.5s ease';
 
-    // Vortex zoom
-    body.style.transition = 'transform 2s ease-in, filter 1s ease-in';
-    body.style.transform = 'scale(1.3) rotate(10deg)';
+    // Vortex zoom & spin out
+    body.style.transition = 'transform 2s ease-in, filter 1.5s ease-in';
+    body.style.transform = 'scale(1.3) rotate(15deg)';
     body.style.filter = 'brightness(3) saturate(2)';
 
-    // Logo + grid shrink into void
+    // Logo + grid fade & shrink after delay
     setTimeout(() => {
-      logo.style.transform = 'scale(0) rotate(360deg)';
+      logo.style.transform = 'scale(0) rotate(720deg)';
       grid.style.opacity = 0;
-    }, 200);
+      progressContainer.style.opacity = 0;
+    }, 1500);
 
     // Screen flash
     const flash = document.createElement('div');
-    flash.style.position = 'fixed';
-    flash.style.inset = '0';
-    flash.style.background = 'white';
-    flash.style.opacity = 0;
-    flash.style.zIndex = 999;
-    flash.style.pointerEvents = 'none';
-    flash.style.transition = 'opacity 0.5s ease-in-out';
+    Object.assign(flash.style, {
+      position: 'fixed',
+      inset: '0',
+      background: 'white',
+      opacity: 0,
+      zIndex: 9999,
+      pointerEvents: 'none',
+      transition: 'opacity 0.5s ease-in-out'
+    });
     document.body.appendChild(flash);
-
     setTimeout(() => flash.style.opacity = 1, 1600);
     setTimeout(() => {
       flash.style.transition = 'none';
       flash.style.opacity = 0;
     }, 2200);
 
-    // Redirect after 3.5s
+    // Show & update progress bar
+    progressContainer.style.opacity = 1;
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += Math.random() * 7; // speed variance
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(progressInterval);
+      }
+      progressBar.style.width = progress + '%';
+    }, 100);
+
+    // Redirect after ~3.7s
     setTimeout(() => {
       window.location.href = '/home';
-    }, 3500);
+    }, 3700);
   });
 </script>
 
