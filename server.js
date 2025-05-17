@@ -1,6 +1,9 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
+console.log('Starting server.js...');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -12,17 +15,14 @@ const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 // Ensure logs directory exists
 if (!fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR);
-  console.log('Created logs directory');
+  console.log('Created logs directory.');
 }
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
 app.get('/', (req, res) => {
-  console.log('Homepage GET hit'); // Debug log
-
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  console.log('Got IP:', ip); // Debug log
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'Unknown IP';
   const timestamp = new Date().toISOString();
   const logLine = `${timestamp} - ${ip}\n`;
 
@@ -34,11 +34,19 @@ app.get('/', (req, res) => {
     }
   });
 
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.send(`
+    <h1>Welcome to My Test Website 🎉</h1>
+    <p>Your visit has been logged (for testing purposes).</p>
+  `);
 });
 
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'admin.html'));
+  res.send(`
+    <form method="POST" action="/admin">
+      <input type="password" name="password" placeholder="Admin Password" required />
+      <button type="submit">View Logs</button>
+    </form>
+  `);
 });
 
 app.post('/admin', (req, res) => {
@@ -48,7 +56,6 @@ app.post('/admin', (req, res) => {
     try {
       if (!fs.existsSync(LOG_FILE)) {
         fs.writeFileSync(LOG_FILE, ''); // Create the file if it doesn't exist
-        console.log('Created log file');
       }
 
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
