@@ -5,25 +5,66 @@
   <title>Admin Panel</title>
   <style>
     body {
-      font-family: sans-serif;
+      background: linear-gradient(135deg, #ece9f7 0%, #cfd9df 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+    }
+    .login-card {
+      background: #fff;
+      padding: 2.5rem 2rem 2rem 2rem;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px 0 rgba(34, 45, 65, 0.15);
+      min-width: 320px;
+      max-width: 95vw;
       text-align: center;
-      margin-top: 100px;
     }
-    input {
-      padding: 10px;
-      font-size: 16px;
+    .login-card h2 {
+      margin-bottom: 1.5rem;
+      color: #2d3748;
+      font-weight: 500;
+      letter-spacing: 0.5px;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin-left: 10px;
+    .login-card input[type="password"] {
+      width: 90%;
+      padding: 12px;
+      margin-bottom: 1.2rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border 0.2s;
+      outline: none;
+    }
+    .login-card input[type="password"]:focus {
+      border: 1.5px solid #6c63ff;
+      box-shadow: 0 0 0 2px #f0f0ff;
+    }
+    .login-card button {
+      width: 90%;
+      padding: 12px;
+      background: linear-gradient(90deg, #6c63ff 0%, #5edfff 100%);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1.08rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.3rem;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px 0 rgba(92,99,255,0.08);
+    }
+    .login-card button:hover {
+      background: linear-gradient(90deg, #5edfff 0%, #6c63ff 100%);
     }
   </style>
 </head>
 <body>
-  <h2>Enter Admin Password</h2>
-  <form action="/admin" method="post">
-    <input type="password" name="password" placeholder="Password" required />
+  <form class="login-card" action="/admin" method="post">
+    <h2>Admin Login</h2>
+    <input type="password" name="password" placeholder="Enter Password" required />
     <button type="submit">Submit</button>
   </form>
 </body>
