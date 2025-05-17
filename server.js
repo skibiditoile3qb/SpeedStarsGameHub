@@ -29,8 +29,13 @@ app.post('/admin', (req, res) => {
   const { password } = req.body;
 
   if (password === ADMIN_PASS) {
-    const logs = fs.readFileSync('ip-log.txt', 'utf8');
-    res.send(`<pre>${logs}</pre>`);
+    try {
+      const logs = fs.readFileSync('ip-log.txt', 'utf8');
+      res.send(`<pre>${logs}</pre>`);
+    } catch (err) {
+      console.error('Error reading log file:', err);
+      res.status(500).send('Oops, no logs found yet or an error occurred.');
+    }
   } else {
     res.send('Access denied 😤');
   }
