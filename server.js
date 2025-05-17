@@ -4,7 +4,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const ADMIN_PASS = "admin123"; // change this
+const ADMIN_PASS = process.env.ADMIN_PASS || "admin123";
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
