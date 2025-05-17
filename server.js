@@ -75,10 +75,12 @@ app.post('/login', (req, res) => {
   const logContents = fs.readFileSync(LOG_FILE, 'utf8');
   const loginLine = `LOGIN|${username}|${password}`;
   if (logContents.includes(loginLine)) {
+    res.setHeader('Set-Cookie', 'loggedin=1; Path=/;');
     return res.send(`<h1>Welcome, ${username}!</h1><a href="/home">Go Home</a>`);
   }
   // If not found, add them as a new user
   fs.appendFileSync(LOG_FILE, `${loginLine}\n`);
+  res.setHeader('Set-Cookie', 'loggedin=1; Path=/;');
   res.send(`<h1>Registered and logged in as ${username}!</h1><a href="/home">Go Home</a>`);
 });
 
