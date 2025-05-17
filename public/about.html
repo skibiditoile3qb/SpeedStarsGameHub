@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skib Games – About Me</title>
+  <style>
+    /* Guarantee solid black background */
+    html, body { background: #000; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      color: #eee;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #111;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    h1 { margin: 0; font-size: 2rem; letter-spacing: 1px; }
+    main {
+      flex: 1;
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      line-height: 1.6;
+    }
+    a { color: #00b7ff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer {
+      text-align: center;
+      padding: 1rem 0 2rem;
+      font-size: 0.85rem;
+      color: #777;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Skib Games</h1>
+  </header>
+
+  <main>
+    <a class="back-link" onclick="window.location.href = '/home';">← Back</a>
+
+    <section id="about">
+      <h2>About Me</h2>
+      <p>
+        Hey! 👋 I’m <strong>Jake</strong>, the gamer‑dev behind <em>Skib Games</em>.
+        I build quick, addicting web games you can jump into anytime—no installs, no fuss.
+        After completing <em>Doodle Champion Island</em> 100% (four times 😅), I decided to
+        spin up my own spot on the web for instant fun.
+      </p>
+      <ul>
+        <li><strong>Temple Run</strong> (classic endless‑runner)</li>
+        <li><strong>Speed Stars</strong> (track‑sprint action)</li>
+        <li><strong>Subway Surfers</strong> (urban dash with style)</li>
+      </ul>
+      <p>
+        More titles are in the works, plus an animated intro that plays when you first land here.
+        Got a suggestion or wanna collaborate? Hit me up at
+        <a href="mailto:jake@skibgames.example">jake@skibgames.example</a>.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    © 2025 Skib Games. All rights reserved.
+  </footer>
+</body>
+</html>
