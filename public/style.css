@@ -1,0 +1,40 @@
+body {
+  font-family: 'Arial', sans-serif;
+  background: #111;
+  color: #fff;
+  text-align: center;
+  padding: 20px;
+}
+
+.intro-title {
+  font-size: 3rem;
+  animation: pulse 2s infinite;
+}
+
+.intro-subtitle {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); color: #fff; }
+  50% { transform: scale(1.1); color: #ff0; }
+  100% { transform: scale(1); color: #fff; }
+}
+
+.games {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 50px;
+}
+
+.games img {
+  width: 150px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.games img:hover {
+  transform: scale(1.1);
+}
