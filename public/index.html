@@ -1,70 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Skib Games</title>
-  <style>
-    body {
-      background: #121212;
-      color: #eee;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      margin: 0;
-      padding: 2rem;
-    }
-    h1 {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      color: #ffbb00;
-      text-shadow: 0 0 10px #ffbb00;
-    }
-    .games-container {
-      display: flex;
-      justify-content: center;
-      gap: 3rem;
-      margin-top: 2rem;
-    }
-    .game {
-      cursor: pointer;
-      width: 180px;
-      transition: transform 0.3s ease;
-    }
-    .game:hover {
-      transform: scale(1.1);
-      filter: drop-shadow(0 0 10px #ffbb00);
-    }
-    .game img {
-      width: 100%;
-      border-radius: 10px;
-      box-shadow: 0 0 8px rgba(255, 187, 0, 0.7);
-    }
-    .game p {
-      margin-top: 0.5rem;
-      font-weight: bold;
-      font-size: 1.1rem;
-      color: #ffbb00;
-      user-select: none;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Skib Games</title>
+<style>
+  body {
+    background: #222;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    padding: 2rem;
+  }
+  h1 {
+    margin-bottom: 1rem;
+  }
+  .games {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .game {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    width: 180px;
+  }
+  .game:hover {
+    transform: scale(1.05);
+  }
+  .game img {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+  .game p {
+    margin-top: 0.5rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #0ff;
+  }
+</style>
 </head>
 <body>
-  <h1>Welcome to Skib Games!</h1>
-  <div class="games-container">
-    <div class="game" onclick="goToGame()">
-      <img src="/images/temple-run.png" alt="Temple Run" />
+  <h1>Welcome to Skib Games! 🎮</h1>
+  <div class="games">
+    <div class="game" onclick="location.href='/games/templerun'">
+      <img src="/images/templerun.png" alt="Temple Run" />
       <p>Temple Run</p>
     </div>
-    <div class="game" onclick="goToGame()">
-      <img src="/images/speed-stars.png" alt="Speed Stars" />
+    <div class="game" onclick="location.href='/games/speedstars'">
+      <img src="/images/speedstars.png" alt="Speed Stars" />
       <p>Speed Stars</p>
     </div>
+    <div class="game" onclick="location.href='/games/subway'">
+      <img src="/images/subway.png" alt="Subway Surfers" />
+      <p>Subway Surfers</p>
+    </div>
   </div>
-
-  <script>
-    function goToGame() {
-      window.location.href = '/games';
-    }
-  </script>
 </body>
 </html>
