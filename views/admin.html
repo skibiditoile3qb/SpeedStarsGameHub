@@ -1,13 +1,30 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Admin Login</title>
-  </head>
-  <body>
-    <h2>Admin Access</h2>
-    <form method="POST" action="/admin">
-      <input type="password" name="password" placeholder="Enter admin password" required />
-      <button type="submit">Login</button>
-    </form>
-  </body>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      margin-top: 100px;
+    }
+    input {
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Enter Admin Password</h2>
+  <form action="/admin" method="post">
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Submit</button>
+  </form>
+</body>
 </html>
