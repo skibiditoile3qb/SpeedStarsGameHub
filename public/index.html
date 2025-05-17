@@ -6,22 +6,25 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
 
 <style>
-  :root {
+  :root{
     --neon:#00fff7;
     --bg:#050505;
     --grid:#222;
     --accent1:#ff0066;
     --accent2:#00ff88;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  /* 🔥 viewport‑fill, no extra bars */
   html,body{
-    height:100%;background:var(--bg);color:var(--neon);
-    font-family:'Press Start 2P',cursive;
+    margin:0;padding:0;height:100%;width:100%;
+    background:var(--bg);
+    overflow:hidden;
     display:flex;justify-content:center;align-items:center;
-    overflow:hidden;position:relative;scroll-behavior:smooth;
+    color:var(--neon);font-family:'Press Start 2P',cursive;
   }
 
-  /* Synth‑wave grid */
+  *{box-sizing:border-box}
+
+  /* synth grid */
   .grid{
     position:absolute;bottom:-5vh;left:0;width:200%;height:60vh;
     background:
@@ -30,111 +33,94 @@
     transform:perspective(600px) rotateX(70deg);
     opacity:.35;pointer-events:none;transition:opacity .6s;
   }
-
-  /* CRT scan‑lines */
+  /* CRT scanlines */
   .scanlines:before{
     content:"";position:absolute;inset:0;
     background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.12) 2px 4px);
-    mix-blend-mode:overlay;pointer-events:none;
+    pointer-events:none;mix-blend-mode:overlay;
   }
-
-  /* Logo glitch */
-  .logo{
-    font-size:clamp(2rem,5vw,3.5rem);
-    text-shadow:0 0 10px var(--neon),0 0 20px var(--neon);
-    position:relative;animation:glitch 2s infinite;
-    user-select:none;
-  }
-  .logo:before,.logo:after{
-    content:attr(data-txt);position:absolute;left:0;top:0;width:100%;
-    overflow:hidden;clip-path:inset(0);
-  }
+  /* glitch logo */
+  .logo{font-size:clamp(2rem,5vw,3.5rem);text-shadow:0 0 10px var(--neon),0 0 20px var(--neon);
+        position:relative;animation:glitch 2s infinite}
+  .logo:before,.logo:after{content:attr(data-txt);position:absolute;left:0;top:0;width:100%;
+                           overflow:hidden;clip-path:inset(0)}
   .logo:before{animation:glitchTop 2s infinite;color:var(--accent1)}
   .logo:after {animation:glitchBot 2s infinite;color:var(--accent2)}
+  @keyframes glitch{0%,100%{transform:translate(0)}10%{transform:translate(-2px,2px)}
+                    20%{transform:translate(2px,-2px)}30%{transform:translate(-2px,-2px)}
+                    40%{transform:translate(2px,2px)}}
+  @keyframes glitchTop{0%,100%{clip-path:inset(0 0 85% 0)}
+                       50%{clip-path:inset(0 0 30% 0);transform:translate(-3px,-3px)}}
+  @keyframes glitchBot{0%,100%{clip-path:inset(85% 0 0 0)}
+                       50%{clip-path:inset(40% 0 40% 0);transform:translate(3px,3px)}}
 
-  @keyframes glitch{0%,100%{transform:translate(0)}10%{transform:translate(-2px,2px)}20%{transform:translate(2px,-2px)}30%{transform:translate(-2px,-2px)}40%{transform:translate(2px,2px)}}
-  @keyframes glitchTop{0%,100%{clip-path:inset(0 0 85% 0)}50%{clip-path:inset(0 0 30% 0);transform:translate(-3px,-3px)}}
-  @keyframes glitchBot{0%,100%{clip-path:inset(85% 0 0 0)}50%{clip-path:inset(40% 0 40% 0);transform:translate(3px,3px)}}
-
-  /* Button */
-  button{
-    margin-top:3rem;padding:1rem 3rem;font:inherit;font-size:1rem;
-    color:var(--bg);background:var(--neon);border:none;border-radius:12px;
-    box-shadow:0 0 12px var(--neon),0 0 24px var(--neon);
-    cursor:pointer;transition:transform .2s,box-shadow .3s;
-  }
-  button:hover{transform:scale(1.1);box-shadow:0 0 20px var(--accent1),0 0 30px var(--accent2)}
-  button:active{transform:scale(.95)}
+  /* button */
+  button{margin-top:3rem;padding:1rem 3rem;font:inherit;font-size:1rem;
+         color:var(--bg);background:var(--neon);border:none;border-radius:12px;
+         box-shadow:0 0 12px var(--neon),0 0 24px var(--neon);cursor:pointer;
+         transition:transform .2s,box-shadow .3s}
+  button:hover  {transform:scale(1.1);box-shadow:0 0 20px var(--accent1),0 0 30px var(--accent2)}
+  button:active {transform:scale(.95)}
   button:disabled{opacity:0;pointer-events:none}
 
-  /* Random floating particles */
-  .particle{
-    position:absolute;width:4px;height:4px;background:var(--neon);
-    opacity:.8;animation:particle 1.2s linear infinite;border-radius:50%;
-  }
+  /* floating particles */
+  .particle{position:absolute;width:4px;height:4px;border-radius:50%;
+            background:var(--neon);opacity:.8;
+            animation:particle 1.2s linear infinite}
   @keyframes particle{
     from{transform:translate(0,0) scale(1)}
     to  {transform:translate(calc(-100vw + 200px),calc(-100vh + 200px)) scale(0)}
   }
 
-  /* Progress bar */
-  #progressBarContainer{
-    position:fixed;bottom:12vh;left:50%;transform:translateX(-50%);
-    width:60vw;height:8px;background:rgba(0,255,255,.15);
-    border-radius:4px;overflow:hidden;box-shadow:0 0 10px var(--neon);
-  }
-  #progressBar{
-    height:100%;background:linear-gradient(90deg,var(--accent1),var(--accent2));
-    width:0%;transition:width .1s ease-out;
-  }
+  /* progress bar */
+  #progressBarContainer{position:fixed;bottom:12vh;left:50%;transform:translateX(-50%);
+                        width:60vw;height:8px;background:rgba(0,255,255,.15);
+                        border-radius:4px;overflow:hidden;box-shadow:0 0 10px var(--neon)}
+  #progressBar{height:100%;width:0%;
+               background:linear-gradient(90deg,var(--accent1),var(--accent2));
+               transition:width .1s}
 
-  /* Burst sparks on click */
-  .burst{
-    position:absolute;width:10px;height:10px;border-radius:50%;
-    background:var(--neon);pointer-events:none;
-    animation:burstAnim .6s ease forwards;filter:drop-shadow(0 0 4px var(--neon));
-  }
+  /* burst spark */
+  .burst{position:absolute;width:10px;height:10px;border-radius:50%;background:var(--neon);
+         pointer-events:none;filter:drop-shadow(0 0 4px var(--neon));
+         animation:burstAnim .6s ease forwards}
   @keyframes burstAnim{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(4)}}
 </style>
 </head>
-<body class="scanlines">
 
+<body class="scanlines">
   <div class="grid"></div>
 
   <h1 class="logo" data-txt="SKIB GAMES">SKIB GAMES</h1>
 
-  <button id="startBtn">PRESS&nbsp;START</button>
+  <button id="startBtn">PRESS START</button>
 
-  <div id="progressBarContainer" aria-hidden="true"><div id="progressBar"></div></div>
+  <div id="progressBarContainer"><div id="progressBar"></div></div>
 
   <audio id="introAudio" src="/audio/intro.mp3" preload="auto"></audio>
 
 <script>
-  /* --- Generate background particles --- */
-  for (let i = 0; i < 40; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    p.style.left = Math.random()*100 + '%';
-    p.style.top  = Math.random()*100 + '%';
-    p.style.animationDelay = (Math.random()*1.2)+'s';
+  /* particles */
+  for(let i=0;i<40;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';
+    p.style.animationDelay=(Math.random()*1.2)+'s';
     document.body.appendChild(p);
   }
 
-  /* Elements */
-  const btn   = document.getElementById('startBtn');
-  const audio = document.getElementById('introAudio');
-  const logo  = document.querySelector('.logo');
-  const grid  = document.querySelector('.grid');
-  const bar   = document.getElementById('progressBar');
-  const barWrap= document.getElementById('progressBarContainer');
+  const btn  =document.getElementById('startBtn');
+  const logo =document.querySelector('.logo');
+  const grid =document.querySelector('.grid');
+  const bar  =document.getElementById('progressBar');
+  const audio=document.getElementById('introAudio');
 
-  /* Burst spark creator */
+  /* burst sparks */
   function burst(x,y){
     for(let i=0;i<15;i++){
       const b=document.createElement('div');
       b.className='burst';
-      b.style.left=`${x}px`;
-      b.style.top =`${y}px`;
+      b.style.left=`${x}px`;b.style.top=`${y}px`;
       b.style.transform=`rotate(${i*24}deg) translate(20px)`;
       b.style.animationDelay=(i*0.03)+'s';
       document.body.appendChild(b);
@@ -142,36 +128,35 @@
     }
   }
 
-  /* Click handler */
-  btn.addEventListener('click', e=>{
-    burst(e.clientX,e.clientY);          // burst effect
-    btn.disabled=true;                   // hide button
-    audio.volume=0; audio.play();        // play music
-    const vInt=setInterval(()=>{audio.volume=Math.min(audio.volume+0.05,0.9); if(audio.volume>=0.9)clearInterval(vInt);},100);
+  btn.addEventListener('click',e=>{
+    burst(e.clientX,e.clientY);
+    btn.disabled=true;
 
-    /* Speed‑up glitch */
+    /* audio */
+    audio.volume=0;audio.play();
+    const fade=setInterval(()=>{audio.volume=Math.min(audio.volume+0.05,0.9);
+      if(audio.volume>=0.9)clearInterval(fade)},100);
+
+    /* glitch speed‑up */
     logo.style.animation='glitch .12s infinite';
     logo.style.transition='transform 1.4s ease, opacity 1.4s ease';
-    /* Shrink + fade after delay (NO rotation) */
-    setTimeout(()=>{ logo.style.transform='scale(0)'; logo.style.opacity='0'; grid.style.opacity=0; },1400);
 
-    /* Screen flash */
+    /* shrink logo & fade grid (no rotation/zoom) */
+    setTimeout(()=>{logo.style.transform='scale(0)';logo.style.opacity=0;grid.style.opacity=0},1400);
+
+    /* flash */
     const flash=document.createElement('div');
-    Object.assign(flash.style,{position:'fixed',inset:'0',background:'white',opacity:0,zIndex:999,transition:'opacity .5s'});
+    Object.assign(flash.style,{position:'fixed',inset:'0',background:'white',opacity:0,zIndex:9999,transition:'opacity .5s'});
     document.body.appendChild(flash);
     setTimeout(()=>flash.style.opacity=1,1600);
     setTimeout(()=>flash.remove(),2200);
 
-    /* Progress bar */
-    let prog=0; barWrap.style.opacity=1;
-    const pInt=setInterval(()=>{
-      prog+=Math.random()*8;
-      if(prog>=100){prog=100;clearInterval(pInt);}
-      bar.style.width=prog+'%';
-    },90);
+    /* progress bar */
+    let prog=0;
+    const progInt=setInterval(()=>{prog+=Math.random()*8;if(prog>=100){prog=100;clearInterval(progInt);}bar.style.width=prog+'%'},90);
 
-    /* Redirect */
-    setTimeout(()=>{ window.location.href='/home'; },3500);
+    /* redirect */
+    setTimeout(()=>{window.location.href='/home'},3500);
   });
 </script>
 </body>
