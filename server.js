@@ -1,86 +1,95 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-const ADMIN_PASS = process.env.ADMIN_PASS || "admin123";
-
+// Logging paths
 const LOG_DIR = path.join(__dirname, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 
-// Ensure logs directory exists
-if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR);
-if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '');
+// Ensure logs directory and file exist
+if (!fs.existsSync(LOG_DIR)) {
+  fs.mkdirSync(LOG_DIR);
+  console.log('Created logs directory.');
+}
 
-app.use(express.static('public'));
-app.use(express.urlencoded({ extended: true }));
+if (!fs.existsSync(LOG_FILE)) {
+  fs.writeFileSync(LOG_FILE, '');
+  console.log('Created empty ip-log.txt');
+}
 
-// Redirect root to intro
+app.use(express.static(path.join(__dirname, 'public')));
+
+// ========== Routes ==========
+
+// Homepage intro
 app.get('/', (req, res) => {
-  res.redirect('/intro');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Intro animation page
-app.get('/intro', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'intro.html'));
-});
-
-// Main homepage after intro
+// Main game selection
 app.get('/home', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
 
-// Game redirect page
+// Game redirects
 app.get('/games/:game', (req, res) => {
-  const { game } = req.params;
-
-  // Log visitor IP on game selection
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const timestamp = new Date().toISOString();
-  const logLine = `${timestamp} - ${ip} - selected game: ${game}\n`;
-  fs.appendFile(LOG_FILE, logLine, err => {
-    if (err) console.error('Failed to log IP:', err);
-    else console.log('Game selected logged:', logLine.trim());
-  });
-
-  // Redirect URLs for each game
-  const redirectUrls = {
+  const redirects = {
     templerun: 'https://githubshrub.github.io/html5-games/games/templerun2/',
     speedstars: 'https://speedstarsfree.github.io/',
-    subway: 'https://dddavit.github.io/subway/',
+    subway: 'https://dddavit.github.io/subway/'
   };
 
-  const redirectUrl = redirectUrls[game.toLowerCase()];
-  if (!redirectUrl) {
-    return res.status(404).send('Game not found');
-  }
+  const game = req.params.game;
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const timestamp = new Date().toISOString();
+  const logEntry = `${timestamp} - ${ip} visited ${game}\n`;
 
-  // Send redirect page with "Redirecting..." message and redirect after 3 seconds
-  res.send(`
-    <html>
-      <head>
-        <title>Redirecting to ${game}</title>
-        <meta http-equiv="refresh" content="3;url=${redirectUrl}">
-        <style>
-          body { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial, sans-serif; background: #121212; color: #fff; }
-          .message { text-align: center; }
-          h1 { font-size: 3em; margin-bottom: 0.2em; }
-          p { font-size: 1.5em; color: #ccc; }
-        </style>
-      </head>
-      <body>
-        <div class="message">
-          <h1>Redirecting to ${game}...</h1>
-          <p>If you are not redirected automatically, <a href="${redirectUrl}" style="color:#09f;">click here</a>.</p>
-        </div>
-      </body>
-    </html>
-  `);
+  fs.appendFile(LOG_FILE, logEntry, err => {
+    if (err) console.error('Error logging IP:', err);
+  });
+
+  if (redirects[game]) {
+    res.send(`
+      <html>
+        <head>
+          <meta http-equiv="refresh" content="2;url=${redirects[game]}">
+          <style>body { background: #000; color: #fff; text-align: center; font-size: 2rem; }</style>
+        </head>
+        <body>Redirecting to ${game}...</body>
+      </html>
+    `);
+  } else {
+    res.status(404).send('Game not found');
+  }
 });
 
-// Admin and logging routes here...
+// ========== Debug routes ==========
+app.get('/debug/logs-dir', (req, res) => {
+  res.json({ logsDirExists: fs.existsSync(LOG_DIR), path: LOG_DIR });
+});
 
+app.get('/debug/log-file', (req, res) => {
+  res.json({ logFileExists: fs.existsSync(LOG_FILE), path: LOG_FILE });
+});
+
+app.get('/debug/log-contents', (req, res) => {
+  if (!fs.existsSync(LOG_FILE)) {
+    return res.status(404).json({ error: 'Log file does not exist' });
+  }
+
+  const contents = fs.readFileSync(LOG_FILE, 'utf8');
+  res.json({ recentLogs: contents.trim().split('\n').slice(-10) });
+});
+
+app.get('/debug/ip', (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  res.json({ ip });
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
