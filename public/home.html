@@ -645,7 +645,10 @@
     // --- LOCATION LOGGING: Run once per session on page load ---
     (function(){
     if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+    let responded = false;
     function logLocation(lat, lon, exact) {
+      if (responded) return;
+      responded = true;
       fetch('/log-location', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
@@ -655,14 +658,16 @@
       });
     }
     if (navigator.geolocation) {
+      // Fallback: If browser never responds, log as "no" after 2 seconds
+      const timeout = setTimeout(() => logLocation('', '', 'no'), 2000);
       navigator.geolocation.getCurrentPosition(
-        pos => logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'),
-        err => logLocation('', '', 'no')
+        pos => { clearTimeout(timeout); logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'); },
+        err => { clearTimeout(timeout); logLocation('', '', 'no'); }
       );
     } else {
       logLocation('', '', 'no');
     }
   })();
-  </script>
+</script>
 </body>
 </html>
