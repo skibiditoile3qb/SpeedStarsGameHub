@@ -22,9 +22,13 @@ app.get('/', (req, res) => {
   const timestamp = new Date().toISOString();
   const logLine = `${timestamp} - ${ip}\n`;
 
-  fs.appendFile(LOG_FILE, logLine, err => {
-    if (err) console.error('Failed to log IP:', err);
-  });
+ fs.appendFile(LOG_FILE, logLine, err => {
+  if (err) {
+    console.error('Failed to log IP:', err);
+  } else {
+    console.log('IP logged:', logLine.trim());
+  }
+});
 
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
