@@ -45,12 +45,25 @@ app.get('/home', (req, res) => {
 });
 
 // Game page handler with logging
+// Game page handler with logging + actual redirection
 app.get('/games/:game', (req, res) => {
   const game = req.params.game;
   logIP(req, `clicked game: ${game}`);
-  res.send(`<h1>Redirecting to ${game}...</h1>`);
-  // You can optionally auto-redirect here
+
+  const redirectMap = {
+    templerun: 'https://githubshrub.github.io/html5-games/games/templerun2/',
+    speedstars: 'https://speedstarsfree.github.io/',
+    subway: 'https://dddavit.github.io/subway/'
+  };
+
+  const targetURL = redirectMap[game.toLowerCase()];
+  if (targetURL) {
+    res.redirect(targetURL);
+  } else {
+    res.status(404).send(`<h1>Unknown game: ${game}</h1>`);
+  }
 });
+
 
 // Admin viewer
 app.get('/admin', (req, res) => {
