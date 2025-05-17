@@ -645,6 +645,7 @@
     // --- LOCATION LOGGING: Run once per session on page load ---
     (function(){
       if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+      console.log("Estimating location for IP:", ip);
       function logLocation(lat, lon, exact) {
         fetch('/log-location', {
           method: 'POST',
