@@ -30,11 +30,19 @@ app.post('/admin', (req, res) => {
 
   if (password === ADMIN_PASS) {
     try {
+      if (!fs.existsSync('ip-log.txt')) {
+        fs.writeFileSync('ip-log.txt', ''); // create empty if missing
+      }
+
       const logs = fs.readFileSync('ip-log.txt', 'utf8');
+      if (logs.trim().length === 0) {
+        return res.send('No logs yet! Visit the homepage to generate logs.');
+      }
+
       res.send(`<pre>${logs}</pre>`);
     } catch (err) {
-      console.error('Error reading log file:', err);
-      res.status(500).send('Oops, no logs found yet or an error occurred.');
+      console.error('Error reading logs:', err);
+      res.status(500).send('Server error reading logs.');
     }
   } else {
     res.send('Access denied 😤');
