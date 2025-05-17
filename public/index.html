@@ -2,298 +2,177 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Skib Games Intro</title>
+<title>Skib Games Intro</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+
 <style>
   :root {
-    --neon: #00fff7;
-    --bg: #050505;
-    --grid: #222;
-    --accent1: #ff0066;
-    --accent2: #00ff88;
+    --neon:#00fff7;
+    --bg:#050505;
+    --grid:#222;
+    --accent1:#ff0066;
+    --accent2:#00ff88;
   }
-  * {
-    box-sizing: border-box;
-    margin: 0; padding: 0;
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{
+    height:100%;background:var(--bg);color:var(--neon);
+    font-family:'Press Start 2P',cursive;
+    display:flex;justify-content:center;align-items:center;
+    overflow:hidden;position:relative;scroll-behavior:smooth;
   }
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    color: var(--neon);
-    font-family: 'Press Start 2P', cursive;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    position: relative;
-    scroll-behavior: smooth;
-  }
-  .grid {
-    position: absolute;
-    bottom: -5vh;
-    left: 0;
-    width: 200%;
-    height: 60vh;
+
+  /* Synth‑wave grid */
+  .grid{
+    position:absolute;bottom:-5vh;left:0;width:200%;height:60vh;
     background:
-      linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 100% 40px,
-      linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 40px 100%;
-    transform: perspective(600px) rotateX(70deg);
-    pointer-events: none;
-    opacity: 0.35;
-    transition: opacity 0.6s ease;
+      linear-gradient(var(--grid) 1px,transparent 1px)0 0/100% 40px,
+      linear-gradient(90deg,var(--grid)1px,transparent 1px)0 0/40px 100%;
+    transform:perspective(600px) rotateX(70deg);
+    opacity:.35;pointer-events:none;transition:opacity .6s;
   }
-  .scanlines:before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(transparent 0 2px, rgba(0, 0, 0, .12) 2px 4px);
-    pointer-events: none;
-    mix-blend-mode: overlay;
+
+  /* CRT scan‑lines */
+  .scanlines:before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(transparent 0 2px,rgba(0,0,0,.12) 2px 4px);
+    mix-blend-mode:overlay;pointer-events:none;
   }
-  .logo {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon);
-    position: relative;
-    animation: glitch 2s infinite;
-    user-select: none;
+
+  /* Logo glitch */
+  .logo{
+    font-size:clamp(2rem,5vw,3.5rem);
+    text-shadow:0 0 10px var(--neon),0 0 20px var(--neon);
+    position:relative;animation:glitch 2s infinite;
+    user-select:none;
   }
-  .logo:before, .logo:after {
-    content: attr(data-txt);
-    position: absolute;
-    left: 0; top: 0;
-    width: 100%;
-    overflow: hidden;
-    clip-path: inset(0);
+  .logo:before,.logo:after{
+    content:attr(data-txt);position:absolute;left:0;top:0;width:100%;
+    overflow:hidden;clip-path:inset(0);
   }
-  .logo:before {
-    animation: glitchTop 2s infinite;
-    color: var(--accent1);
+  .logo:before{animation:glitchTop 2s infinite;color:var(--accent1)}
+  .logo:after {animation:glitchBot 2s infinite;color:var(--accent2)}
+
+  @keyframes glitch{0%,100%{transform:translate(0)}10%{transform:translate(-2px,2px)}20%{transform:translate(2px,-2px)}30%{transform:translate(-2px,-2px)}40%{transform:translate(2px,2px)}}
+  @keyframes glitchTop{0%,100%{clip-path:inset(0 0 85% 0)}50%{clip-path:inset(0 0 30% 0);transform:translate(-3px,-3px)}}
+  @keyframes glitchBot{0%,100%{clip-path:inset(85% 0 0 0)}50%{clip-path:inset(40% 0 40% 0);transform:translate(3px,3px)}}
+
+  /* Button */
+  button{
+    margin-top:3rem;padding:1rem 3rem;font:inherit;font-size:1rem;
+    color:var(--bg);background:var(--neon);border:none;border-radius:12px;
+    box-shadow:0 0 12px var(--neon),0 0 24px var(--neon);
+    cursor:pointer;transition:transform .2s,box-shadow .3s;
   }
-  .logo:after {
-    animation: glitchBot 2s infinite;
-    color: var(--accent2);
+  button:hover{transform:scale(1.1);box-shadow:0 0 20px var(--accent1),0 0 30px var(--accent2)}
+  button:active{transform:scale(.95)}
+  button:disabled{opacity:0;pointer-events:none}
+
+  /* Random floating particles */
+  .particle{
+    position:absolute;width:4px;height:4px;background:var(--neon);
+    opacity:.8;animation:particle 1.2s linear infinite;border-radius:50%;
   }
-  @keyframes glitch {
-    0%, 100% { transform: translate(0) }
-    10% { transform: translate(-2px, 2px) }
-    20% { transform: translate(2px, -2px) }
-    30% { transform: translate(-2px, -2px) }
-    40% { transform: translate(2px, 2px) }
+  @keyframes particle{
+    from{transform:translate(0,0) scale(1)}
+    to  {transform:translate(calc(-100vw + 200px),calc(-100vh + 200px)) scale(0)}
   }
-  @keyframes glitchTop {
-    0%, 100% { clip-path: inset(0 0 85% 0) }
-    50% { clip-path: inset(0 0 30% 0); transform: translate(-3px, -3px) }
-  }
-  @keyframes glitchBot {
-    0%, 100% { clip-path: inset(85% 0 0 0) }
-    50% { clip-path: inset(40% 0 40% 0); transform: translate(3px, 3px) }
-  }
-  button {
-    margin-top: 3rem;
-    padding: 1rem 3rem;
-    font: inherit;
-    font-size: 1rem;
-    color: var(--bg);
-    background: var(--neon);
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 0 12px var(--neon), 0 0 24px var(--neon);
-    cursor: pointer;
-    transition: transform .2s, box-shadow .3s;
-    user-select: none;
-  }
-  button:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px var(--accent1), 0 0 30px var(--accent2);
-  }
-  button:active { transform: scale(0.95) }
-  button:disabled {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .particle {
-    position: absolute;
-    width: 4px; height: 4px;
-    background: var(--neon);
-    opacity: .8;
-    animation: particle 1.2s linear infinite;
-    border-radius: 50%;
-    will-change: transform;
-  }
-  @keyframes particle {
-    from { transform: translate(0, 0) scale(1) }
-    to { transform: translate(calc(-100vw + 200px), calc(-100vh + 200px)) scale(0) }
-  }
+
   /* Progress bar */
-  #progressBarContainer {
-    position: fixed;
-    bottom: 12vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60vw;
-    height: 8px;
-    background: rgba(0, 255, 255, 0.15);
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 0 10px var(--neon);
+  #progressBarContainer{
+    position:fixed;bottom:12vh;left:50%;transform:translateX(-50%);
+    width:60vw;height:8px;background:rgba(0,255,255,.15);
+    border-radius:4px;overflow:hidden;box-shadow:0 0 10px var(--neon);
   }
-  #progressBar {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent1), var(--accent2));
-    width: 0%;
-    transition: width 0.1s ease-out;
+  #progressBar{
+    height:100%;background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    width:0%;transition:width .1s ease-out;
   }
-  /* Burst effect on click */
-  .burst {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: var(--neon);
-    pointer-events: none;
-    animation: burstAnim 0.6s ease forwards;
-    filter: drop-shadow(0 0 4px var(--neon));
+
+  /* Burst sparks on click */
+  .burst{
+    position:absolute;width:10px;height:10px;border-radius:50%;
+    background:var(--neon);pointer-events:none;
+    animation:burstAnim .6s ease forwards;filter:drop-shadow(0 0 4px var(--neon));
   }
-  @keyframes burstAnim {
-    0% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    100% {
-      opacity: 0;
-      transform: scale(4);
-    }
-  }
+  @keyframes burstAnim{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(4)}}
 </style>
 </head>
 <body class="scanlines">
 
-  <!-- neon synth grid -->
   <div class="grid"></div>
 
-  <!-- logo -->
-  <div id="logoWrapper">
-    <h1 class="logo" data-txt="SKIB GAMES">SKIB GAMES</h1>
-  </div>
+  <h1 class="logo" data-txt="SKIB GAMES">SKIB GAMES</h1>
 
-  <!-- Press Start -->
   <button id="startBtn">PRESS&nbsp;START</button>
 
-  <!-- progress bar -->
-  <div id="progressBarContainer" aria-hidden="true">
-    <div id="progressBar"></div>
-  </div>
+  <div id="progressBarContainer" aria-hidden="true"><div id="progressBar"></div></div>
 
-  <!-- music -->
   <audio id="introAudio" src="/audio/intro.mp3" preload="auto"></audio>
 
 <script>
-  // Create sparks randomly scattered
+  /* --- Generate background particles --- */
   for (let i = 0; i < 40; i++) {
-    const s = document.createElement('div');
-    s.className = 'particle';
-    s.style.left = Math.random() * 100 + '%';
-    s.style.top = Math.random() * 100 + '%';
-    s.style.animationDelay = (Math.random() * 1.2) + 's';
-    document.body.appendChild(s);
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random()*100 + '%';
+    p.style.top  = Math.random()*100 + '%';
+    p.style.animationDelay = (Math.random()*1.2)+'s';
+    document.body.appendChild(p);
   }
 
-  const btn = document.getElementById('startBtn');
+  /* Elements */
+  const btn   = document.getElementById('startBtn');
   const audio = document.getElementById('introAudio');
-  const body = document.body;
-  const logo = document.querySelector('.logo');
-  const grid = document.querySelector('.grid');
-  const progressBar = document.getElementById('progressBar');
-  const progressContainer = document.getElementById('progressBarContainer');
+  const logo  = document.querySelector('.logo');
+  const grid  = document.querySelector('.grid');
+  const bar   = document.getElementById('progressBar');
+  const barWrap= document.getElementById('progressBarContainer');
 
-  // Function to create burst sparks on click
-  function createBurst(x, y) {
-    for(let i = 0; i < 15; i++) {
-      const burst = document.createElement('div');
-      burst.className = 'burst';
-      burst.style.left = `${x}px`;
-      burst.style.top = `${y}px`;
-      burst.style.animationDelay = (i * 0.03) + 's';
-      burst.style.transformOrigin = 'center center';
-      burst.style.transform = `rotate(${i * (360 / 15)}deg) translate(20px)`;
-      document.body.appendChild(burst);
-      burst.addEventListener('animationend', () => burst.remove());
+  /* Burst spark creator */
+  function burst(x,y){
+    for(let i=0;i<15;i++){
+      const b=document.createElement('div');
+      b.className='burst';
+      b.style.left=`${x}px`;
+      b.style.top =`${y}px`;
+      b.style.transform=`rotate(${i*24}deg) translate(20px)`;
+      b.style.animationDelay=(i*0.03)+'s';
+      document.body.appendChild(b);
+      b.addEventListener('animationend',()=>b.remove());
     }
   }
 
-  btn.addEventListener('click', (e) => {
-    // Disable button immediately
-    btn.disabled = true;
+  /* Click handler */
+  btn.addEventListener('click', e=>{
+    burst(e.clientX,e.clientY);          // burst effect
+    btn.disabled=true;                   // hide button
+    audio.volume=0; audio.play();        // play music
+    const vInt=setInterval(()=>{audio.volume=Math.min(audio.volume+0.05,0.9); if(audio.volume>=0.9)clearInterval(vInt);},100);
 
-    // Create burst effect where clicked
-    createBurst(e.clientX, e.clientY);
+    /* Speed‑up glitch */
+    logo.style.animation='glitch .12s infinite';
+    logo.style.transition='transform 1.4s ease, opacity 1.4s ease';
+    /* Shrink + fade after delay (NO rotation) */
+    setTimeout(()=>{ logo.style.transform='scale(0)'; logo.style.opacity='0'; grid.style.opacity=0; },1400);
 
-    // Audio fade in (smooth)
-    audio.volume = 0;
-    audio.play().catch(err => {
-      console.warn("Audio play prevented:", err);
-    });
-
-    const fadeInInterval = setInterval(() => {
-      if (audio.volume < 0.9) {
-        audio.volume = Math.min(audio.volume + 0.05, 0.9);
-      } else {
-        clearInterval(fadeInInterval);
-      }
-    }, 100);
-
-    // Glitch pulse speed up
-    logo.style.animation = 'glitch .1s infinite';
-    logo.style.transition = 'transform 1.5s ease, opacity 1.5s ease';
-
-    // Vortex zoom & spin out
-    body.style.transition = 'transform 2s ease-in, filter 1.5s ease-in';
-    body.style.transform = 'scale(1.3) rotate(15deg)';
-    body.style.filter = 'brightness(3) saturate(2)';
-
-    // Logo + grid fade & shrink after delay
-    setTimeout(() => {
-      logo.style.transform = 'scale(0) rotate(720deg)';
-      grid.style.opacity = 0;
-      progressContainer.style.opacity = 0;
-    }, 1500);
-
-    // Screen flash
-    const flash = document.createElement('div');
-    Object.assign(flash.style, {
-      position: 'fixed',
-      inset: '0',
-      background: 'white',
-      opacity: 0,
-      zIndex: 9999,
-      pointerEvents: 'none',
-      transition: 'opacity 0.5s ease-in-out'
-    });
+    /* Screen flash */
+    const flash=document.createElement('div');
+    Object.assign(flash.style,{position:'fixed',inset:'0',background:'white',opacity:0,zIndex:999,transition:'opacity .5s'});
     document.body.appendChild(flash);
-    setTimeout(() => flash.style.opacity = 1, 1600);
-    setTimeout(() => {
-      flash.style.transition = 'none';
-      flash.style.opacity = 0;
-    }, 2200);
+    setTimeout(()=>flash.style.opacity=1,1600);
+    setTimeout(()=>flash.remove(),2200);
 
-    // Show & update progress bar
-    progressContainer.style.opacity = 1;
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += Math.random() * 7; // speed variance
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(progressInterval);
-      }
-      progressBar.style.width = progress + '%';
-    }, 100);
+    /* Progress bar */
+    let prog=0; barWrap.style.opacity=1;
+    const pInt=setInterval(()=>{
+      prog+=Math.random()*8;
+      if(prog>=100){prog=100;clearInterval(pInt);}
+      bar.style.width=prog+'%';
+    },90);
 
-    // Redirect after ~3.7s
-    setTimeout(() => {
-      window.location.href = '/home';
-    }, 3700);
+    /* Redirect */
+    setTimeout(()=>{ window.location.href='/home'; },3500);
   });
 </script>
-
 </body>
 </html>
