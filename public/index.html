@@ -3,126 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <title>Skib Games Intro</title>
-  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       background: black;
-      color: #00ff00;
-      font-family: 'Press Start 2P', cursive;
+      color: lime;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      flex-direction: column;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
       text-align: center;
-      overflow: hidden;
-      position: relative;
     }
-
-    .glitch {
-      font-size: 2rem;
-      color: #00ff00;
-      position: relative;
-      animation: glitch 1s infinite;
-      text-shadow: 0 0 5px lime, 0 0 10px lime;
+    h1 {
+      font-size: 3rem;
+      animation: pulse 1s infinite;
     }
-
-    .scanlines::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.1),
-        rgba(0, 0, 0, 0.1) 2px,
-        transparent 2px,
-        transparent 4px
-      );
-      pointer-events: none;
-      z-index: 10;
-      mix-blend-mode: overlay;
-    }
-
-    @keyframes glitch {
-      0% { transform: translate(0, 0); }
-      20% { transform: translate(-1px, 1px); }
-      40% { transform: translate(1px, -1px); }
-      60% { transform: translate(-1px, -1px); }
-      80% { transform: translate(1px, 1px); }
-      100% { transform: translate(0, 0); }
-    }
-
-    .loading {
-      margin-top: 20px;
-      animation: blink 1s steps(1) infinite;
-    }
-
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
-
-    audio {
-      position: absolute;
-      bottom: 20px;
-      opacity: 0;
-      animation: fadeAudio 3s forwards;
-    }
-
-    @keyframes fadeAudio {
-      to { opacity: 1; }
-    }
-
-    .fadeout {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      background: black;
-      z-index: 20;
-      opacity: 0;
-      transition: opacity 1s ease;
-    }
-
-    .fadeout.show {
-      opacity: 1;
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
     }
   </style>
 </head>
-<body class="scanlines">
+<body>
   <div>
-    <h1 class="glitch">👾 WELCOME TO SKIB GAMES 👾</h1>
-    <p class="loading">Loading epicness...</p>
-    <audio autoplay id="intro-audio">
-      <source src="/audio/intro.mp3" type="audio/mpeg">
+    <h1>🎮 Welcome to Skib Games 🎮</h1>
+    <p>Loading epicness...</p>
+    <audio id="introAudio" muted autoplay>
+      <source src="/audio/intro.mp3" type="audio/mpeg" />
     </audio>
   </div>
-
-  <div class="fadeout" id="fadeout"></div>
-
   <script>
-    // Optional: smooth volume ramp-up
-    const audio = document.getElementById('intro-audio');
-    audio.volume = 0;
-    const fadeAudioIn = setInterval(() => {
-      if (audio.volume < 0.95) {
-        audio.volume += 0.05;
-      } else {
-        clearInterval(fadeAudioIn);
-      }
-    }, 200);
+    const audio = document.getElementById('introAudio');
+
+    // Unmute and fade volume in slowly
+    window.addEventListener('load', () => {
+      audio.muted = false;
+      audio.volume = 0;
+      audio.play().then(() => {
+        const fadeIn = setInterval(() => {
+          if (audio.volume < 0.95) {
+            audio.volume = Math.min(audio.volume + 0.05, 1);
+          } else {
+            clearInterval(fadeIn);
+          }
+        }, 200);
+      }).catch(err => {
+        console.warn("Autoplay blocked:", err);
+      });
+    });
 
     setTimeout(() => {
-      document.getElementById('fadeout').classList.add('show');
-      setTimeout(() => {
-        window.location.href = '/home';
-      }, 1000);
+      window.location.href = '/home';
     }, 5000);
   </script>
 </body>
