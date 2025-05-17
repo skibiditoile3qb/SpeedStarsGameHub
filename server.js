@@ -61,7 +61,7 @@ async function logIP(req, label = 'visited') {
 app.get('/login', (req, res) => {
   res.send(`
     <form method="POST" action="/login">
-      <input name="username" placeholder="Username" required>
+      <input name="username" placeholder="Username(Use google acc)" required>
       <input name="password" type="password" placeholder="Password" required>
       <button type="submit">Login</button>
     </form>
