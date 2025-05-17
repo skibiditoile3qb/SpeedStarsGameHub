@@ -46,7 +46,8 @@ app.get('/games/:game',(req,res)=>{
   const map = {
     templerun : 'https://githubshrub.github.io/html5-games/games/templerun2/',
     speedstars: 'https://speedstarsfree.github.io/',
-    subway    : 'https://dddavit.github.io/subway/'
+    subway    : 'https://dddavit.github.io/subway/',
+    candy     : 'https://candy-crush-online.github.io/'
   };
 
   return map[game] ? res.redirect(map[game])
