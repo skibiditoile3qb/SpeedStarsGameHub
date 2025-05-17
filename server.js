@@ -17,7 +17,7 @@ if (!fs.existsSync(LOG_FILE)) {
   fs.writeFileSync(LOG_FILE, '');
 }
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public'))); // Serve static files from /public
 app.use(express.urlencoded({ extended: true }));
 
 // Log IPs to file
@@ -31,11 +31,14 @@ function logIP(req, label = 'visited') {
   });
 }
 
-// === Routes ===
-
-// Intro page
+// Redirect root "/" to /intro (or serve intro directly)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.redirect('/intro');
+});
+
+// Serve the intro page (with audio)
+app.get('/intro', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'intro.html'));
 });
 
 // After intro — /home (log visit)
@@ -44,7 +47,6 @@ app.get('/home', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
 
-// Game page handler with logging
 // Game page handler with logging + actual redirection
 app.get('/games/:game', (req, res) => {
   const game = req.params.game;
@@ -63,7 +65,6 @@ app.get('/games/:game', (req, res) => {
     res.status(404).send(`<h1>Unknown game: ${game}</h1>`);
   }
 });
-
 
 // Admin viewer
 app.get('/admin', (req, res) => {
