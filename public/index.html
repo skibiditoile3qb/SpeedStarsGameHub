@@ -1,62 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Skib Games</title>
-<style>
-  body {
-    background: #222;
-    color: white;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center;
-    padding: 2rem;
-  }
-  h1 {
-    margin-bottom: 1rem;
-  }
-  .games {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-  .game {
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    width: 180px;
-  }
-  .game:hover {
-    transform: scale(1.05);
-  }
-  .game img {
-    width: 100%;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-  }
-  .game p {
-    margin-top: 0.5rem;
-    font-weight: bold;
-    font-size: 1.2rem;
-    color: #0ff;
-  }
-</style>
+  <title>Skib Games</title>
+  <link rel="stylesheet" href="style.css">
+  <script>
+    setTimeout(() => {
+      window.location.href = '/home';
+    }, 4000);
+  </script>
 </head>
-<body>
-  <h1>Welcome to Skib Games! 🎮</h1>
-  <div class="games">
-    <div class="game" onclick="location.href='/games/templerun'">
-      <img src="/images/templerun.png" alt="Temple Run" />
-      <p>Temple Run</p>
-    </div>
-    <div class="game" onclick="location.href='/games/speedstars'">
-      <img src="/images/speedstars.png" alt="Speed Stars" />
-      <p>Speed Stars</p>
-    </div>
-    <div class="game" onclick="location.href='/games/subway'">
-      <img src="/images/subway.png" alt="Subway Surfers" />
-      <p>Subway Surfers</p>
-    </div>
-  </div>
+<body class="intro">
+  <h1 class="intro-title">👾 Welcome to Skib Games 👾</h1>
+  <p class="intro-subtitle">The best games on the web!</p>
 </body>
 </html>
