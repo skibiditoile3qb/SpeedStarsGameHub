@@ -1,76 +1,111 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 const ADMIN_PASS = process.env.ADMIN_PASS || "admin123";
 
 const LOG_DIR = path.join(__dirname, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 
-console.log('Starting server.js...');
-
-// Make sure logs directory exists
+// Ensure logs directory exists
 if (!fs.existsSync(LOG_DIR)) {
-  try {
-    fs.mkdirSync(LOG_DIR);
-    console.log('Created logs directory.');
-  } catch (e) {
-    console.error('Failed to create logs directory:', e);
-  }
+  fs.mkdirSync(LOG_DIR);
 }
 
-// Make sure log file exists
+// Ensure log file exists
 if (!fs.existsSync(LOG_FILE)) {
-  try {
-    fs.writeFileSync(LOG_FILE, '');
-    console.log('Created empty log file.');
-  } catch (e) {
-    console.error('Failed to create log file:', e);
-  }
+  fs.writeFileSync(LOG_FILE, '');
 }
 
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// Main homepage route — just show index.html, NO logging here
+// Homepage route - logs IP and serves index.html
 app.get('/', (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const timestamp = new Date().toISOString();
+  const logLine = `${timestamp} - ${ip} visited /\n`;
+
+  fs.appendFile(LOG_FILE, logLine, err => {
+    if (err) console.error('Failed to log IP:', err);
+    else console.log('Logged visit to /:', logLine.trim());
+  });
+
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Logging route — logs IP when visiting /games
+// /games route - logs IP and shows redirecting message
 app.get('/games', (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'UNKNOWN_IP';
+  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const timestamp = new Date().toISOString();
-  const logLine = `${timestamp} - ${ip}\n`;
+  const logLine = `${timestamp} - ${ip} visited /games\n`;
 
-  try {
-    fs.appendFileSync(LOG_FILE, logLine);
-    console.log('IP logged at /games:', logLine.trim());
-  } catch (err) {
-    console.error('Failed to log IP at /games:', err);
-  }
+  fs.appendFile(LOG_FILE, logLine, err => {
+    if (err) console.error('Failed to log IP at /games:', err);
+    else console.log('Logged visit to /games:', logLine.trim());
+  });
 
-  res.send('Welcome to the games page! Your visit has been logged.');
+  res.send(`
+    <html>
+      <head>
+        <title>Redirecting to games...</title>
+        <meta http-equiv="refresh" content="3;url=/games/placeholder" />
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+          h1 { color: #333; }
+          p { font-size: 1.2em; }
+          a { color: #007bff; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <h1>Redirecting to games...</h1>
+        <p>If you are not redirected automatically, <a href="/games/placeholder">click here</a>.</p>
+      </body>
+    </html>
+  `);
 });
 
-// Admin GET - show login page
+// Placeholder route for future game logic
+app.get('/games/placeholder', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <title>Game Placeholder</title>
+        <style>
+          body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+          h1 { color: #444; }
+        </style>
+      </head>
+      <body>
+        <h1>Game logic coming soon! 🚀</h1>
+        <p>Thanks for your patience.</p>
+      </body>
+    </html>
+  `);
+});
+
+// Admin page to view logs (with password)
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
 
-// Admin POST - check password and show logs
 app.post('/admin', (req, res) => {
   const { password } = req.body;
-  console.log('Admin login attempt with password:', password);
 
   if (password === ADMIN_PASS) {
     try {
+      if (!fs.existsSync(LOG_FILE)) {
+        fs.writeFileSync(LOG_FILE, ''); // Create if missing
+      }
+
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
       if (logs.trim().length === 0) {
-        return res.send('No logs yet! Visit /games to generate logs.');
+        return res.send('No logs yet! Visit the homepage to generate logs.');
       }
+
       res.send(`<pre>${logs}</pre>`);
     } catch (err) {
       console.error('Error reading logs:', err);
@@ -78,49 +113,6 @@ app.post('/admin', (req, res) => {
     }
   } else {
     res.send('Access denied 😤');
-  }
-});
-
-// Debug endpoints
-app.get('/debug/check', (req, res) => {
-  res.json({
-    logsDirExists: fs.existsSync(LOG_DIR),
-    logDirPath: LOG_DIR,
-  });
-});
-
-app.get('/debug/log-file-check', (req, res) => {
-  res.json({
-    logFileExists: fs.existsSync(LOG_FILE),
-    logFilePath: LOG_FILE,
-  });
-});
-
-app.get('/debug/log-contents', (req, res) => {
-  try {
-    const logs = fs.readFileSync(LOG_FILE, 'utf8');
-    res.json({ recentLogs: logs.split('\n').slice(-20) });
-  } catch (err) {
-    console.error('Error reading logs:', err);
-    res.status(500).json({ error: 'Failed to read logs.' });
-  }
-});
-
-app.get('/debug/ip', (req, res) => {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'UNKNOWN_IP';
-  console.log('Debug /debug/ip hit:', ip);
-  res.json({ yourIP: ip });
-});
-
-app.get('/debug/test-log-write', (req, res) => {
-  const testLine = `${new Date().toISOString()} - TEST_LOG_LINE\n`;
-  try {
-    fs.appendFileSync(LOG_FILE, testLine);
-    console.log('Test log line written:', testLine.trim());
-    res.send('Test log line successfully written.');
-  } catch (err) {
-    console.error('Failed to write test log line:', err);
-    res.status(500).send('Failed to write test log line.');
   }
 });
 
