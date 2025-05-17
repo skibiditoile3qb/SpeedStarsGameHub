@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
   <title>Admin Login</title>
 </head>
 <body>
   <h1>Admin Panel</h1>
-  <form method="POST" action="/admin">
-    <input type="password" name="password" placeholder="Enter admin password" />
+  <form action="/admin" method="POST">
+    <input type="password" name="password" placeholder="Enter password" required />
     <button type="submit">View Logs</button>
   </form>
 </body>
