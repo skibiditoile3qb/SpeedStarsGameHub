@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Admin Login</title>
-</head>
-<body>
-  <h1>Admin Panel</h1>
-  <form action="/admin" method="POST">
-    <input type="password" name="password" placeholder="Enter password" required />
-    <button type="submit">View Logs</button>
-  </form>
-</body>
+  <head>
+    <title>Admin Login</title>
+  </head>
+  <body>
+    <h2>Admin Access</h2>
+    <form method="POST" action="/admin">
+      <input type="password" name="password" placeholder="Enter admin password" required />
+      <button type="submit">Login</button>
+    </form>
+  </body>
 </html>
