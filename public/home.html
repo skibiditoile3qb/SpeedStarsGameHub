@@ -1,60 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Skib Games</title>
+  <link rel="stylesheet" href="/styles.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #1a1a1a;
+      background: #121212;
       color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2rem;
     }
+
     h1 {
-      margin-top: 20px;
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #00ffd5;
+      text-shadow: 0 0 10px #00ffd5;
     }
-    .game-grid {
+
+    .game-selection {
       display: flex;
       justify-content: center;
-      gap: 30px;
-      margin-top: 50px;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 2rem;
     }
+
     .game {
-      cursor: pointer;
-      transition: transform 0.3s;
+      border: 2px solid #00ffd5;
+      padding: 1rem;
+      border-radius: 12px;
+      background: #1f1f1f;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
+
     .game:hover {
-      transform: scale(1.1);
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00ffd5;
     }
-    img {
+
+    .game img {
       width: 200px;
-      border-radius: 10px;
-      border: 3px solid white;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .game p {
+      margin-top: 0.5rem;
+      font-weight: bold;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #aaa;
     }
   </style>
 </head>
 <body>
-  <h1>Select a Game</h1>
-  <div class="game-grid">
-    <div class="game" onclick="redirect('temple')">
-      <img src="/images/templerun.png" alt="Temple Run" />
+
+  <h1>🎮 Welcome to Skib Games! 🎮</h1>
+  <p>Choose your game below:</p>
+
+  <div class="game-selection">
+    <a class="game" href="/games/templerun">
+      <img src="/images/templerun.png" alt="Temple Run">
       <p>Temple Run</p>
-    </div>
-    <div class="game" onclick="redirect('speedstars')">
-      <img src="/images/speedstars.png" alt="Speed Stars" />
+    </a>
+    <a class="game" href="/games/speedstars">
+      <img src="/images/speedstars.png" alt="Speed Stars">
       <p>Speed Stars</p>
-    </div>
-    <div class="game" onclick="redirect('subway')">
-      <img src="/images/subway.png" alt="Subway Surfers" />
+    </a>
+    <a class="game" href="/games/subway">
+      <img src="/images/subway.png" alt="Subway Surfers">
       <p>Subway Surfers</p>
-    </div>
+    </a>
   </div>
 
-  <script>
-    function redirect(game) {
-      alert("Redirecting...");
-      window.location.href = `/games/${game}`;
-    }
-  </script>
+  <footer>Made with ❤️ by Skib Team</footer>
+
 </body>
 </html>
