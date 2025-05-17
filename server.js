@@ -57,6 +57,31 @@ async function logIP(req, label = 'visited') {
 
 /* ---------- routes ---------- */
 
+// --- Simple Login HTML Form ---
+app.get('/login', (req, res) => {
+  res.send(`
+    <form method="POST" action="/login">
+      <input name="username" placeholder="Username" required>
+      <input name="password" type="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+  `);
+});
+
+// --- Handle Login ---
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  // Check if the credentials exist in ip-log.txt
+  const logContents = fs.readFileSync(LOG_FILE, 'utf8');
+  const loginLine = `LOGIN|${username}|${password}`;
+  if (logContents.includes(loginLine)) {
+    return res.send(`<h1>Welcome, ${username}!</h1><a href="/home">Go Home</a>`);
+  }
+  // If not found, add them as a new user
+  fs.appendFileSync(LOG_FILE, `${loginLine}\n`);
+  res.send(`<h1>Registered and logged in as ${username}!</h1><a href="/home">Go Home</a>`);
+});
+
 app.get('/',        (_,res)=> res.redirect('/intro'));
 app.get('/intro',   (_,res)=> res.sendFile(path.join(__dirname,'public','intro.html')));
 
