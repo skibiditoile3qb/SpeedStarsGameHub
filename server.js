@@ -1,9 +1,9 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const ADMIN_PASS = process.env.ADMIN_PASS || "admin123";
 
 const LOG_DIR = path.join(__dirname, 'logs');
@@ -11,11 +11,8 @@ const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 
 console.log('Starting server.js...');
 
-// Check if logs directory exists
-const logsDirExists = fs.existsSync(LOG_DIR);
-console.log('Logs directory exists:', logsDirExists);
-
-if (!logsDirExists) {
+// Make sure logs directory exists
+if (!fs.existsSync(LOG_DIR)) {
   try {
     fs.mkdirSync(LOG_DIR);
     console.log('Created logs directory.');
@@ -24,54 +21,56 @@ if (!logsDirExists) {
   }
 }
 
-// Check if log file exists
-const logFileExists = fs.existsSync(LOG_FILE);
-console.log('Log file exists:', logFileExists);
+// Make sure log file exists
+if (!fs.existsSync(LOG_FILE)) {
+  try {
+    fs.writeFileSync(LOG_FILE, '');
+    console.log('Created empty log file.');
+  } catch (e) {
+    console.error('Failed to create log file:', e);
+  }
+}
 
-// Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-// Main route - logs IP synchronously for easier debugging
+// Main homepage route — just show index.html, NO logging here
 app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Logging route — logs IP when visiting /games
+app.get('/games', (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'UNKNOWN_IP';
   const timestamp = new Date().toISOString();
   const logLine = `${timestamp} - ${ip}\n`;
 
   try {
     fs.appendFileSync(LOG_FILE, logLine);
-    console.log('IP logged:', logLine.trim());
+    console.log('IP logged at /games:', logLine.trim());
   } catch (err) {
-    console.error('Failed to log IP:', err);
+    console.error('Failed to log IP at /games:', err);
   }
 
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.send('Welcome to the games page! Your visit has been logged.');
 });
 
-// Admin GET route - shows admin login form
+// Admin GET - show login page
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
 
-// Admin POST route - shows logs if password matches
+// Admin POST - check password and show logs
 app.post('/admin', (req, res) => {
   const { password } = req.body;
   console.log('Admin login attempt with password:', password);
 
   if (password === ADMIN_PASS) {
     try {
-      if (!fs.existsSync(LOG_FILE)) {
-        fs.writeFileSync(LOG_FILE, '');
-        console.log('Created empty log file during /admin access');
-      }
-
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
-      console.log('Read logs length:', logs.length);
-
       if (logs.trim().length === 0) {
-        return res.send('No logs yet! Visit the homepage to generate logs.');
+        return res.send('No logs yet! Visit /games to generate logs.');
       }
-
       res.send(`<pre>${logs}</pre>`);
     } catch (err) {
       console.error('Error reading logs:', err);
@@ -82,9 +81,7 @@ app.post('/admin', (req, res) => {
   }
 });
 
-// DEBUG ROUTES
-
-// Check logs directory existence & path
+// Debug endpoints
 app.get('/debug/check', (req, res) => {
   res.json({
     logsDirExists: fs.existsSync(LOG_DIR),
@@ -92,7 +89,6 @@ app.get('/debug/check', (req, res) => {
   });
 });
 
-// Check if log file exists & file path
 app.get('/debug/log-file-check', (req, res) => {
   res.json({
     logFileExists: fs.existsSync(LOG_FILE),
@@ -100,12 +96,8 @@ app.get('/debug/log-file-check', (req, res) => {
   });
 });
 
-// Read log file contents (no auth, for debug only)
 app.get('/debug/log-contents', (req, res) => {
   try {
-    if (!fs.existsSync(LOG_FILE)) {
-      return res.json({ error: 'Log file does not exist.' });
-    }
     const logs = fs.readFileSync(LOG_FILE, 'utf8');
     res.json({ recentLogs: logs.split('\n').slice(-20) });
   } catch (err) {
@@ -114,14 +106,12 @@ app.get('/debug/log-contents', (req, res) => {
   }
 });
 
-// Show current IP from a request
 app.get('/debug/ip', (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'UNKNOWN_IP';
   console.log('Debug /debug/ip hit:', ip);
   res.json({ yourIP: ip });
 });
 
-// Test writing a dummy line to the log file sync
 app.get('/debug/test-log-write', (req, res) => {
   const testLine = `${new Date().toISOString()} - TEST_LOG_LINE\n`;
   try {
