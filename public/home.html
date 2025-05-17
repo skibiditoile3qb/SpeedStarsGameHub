@@ -644,26 +644,25 @@
 
     // --- LOCATION LOGGING: Run once per session on page load ---
     (function(){
-      if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
-      console.log("Estimating location for IP:", ip);
-      function logLocation(lat, lon, exact) {
-        fetch('/log-location', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-          body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
-        }).then(() => {
-          if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
-        });
-      }
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'),
-          err => logLocation('', '', 'no')
-        );
-      } else {
-        logLocation('', '', 'no');
-      }
-    })();
+    if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+    function logLocation(lat, lon, exact) {
+      fetch('/log-location', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
+      }).then(() => {
+        if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
+      });
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'),
+        err => logLocation('', '', 'no')
+      );
+    } else {
+      logLocation('', '', 'no');
+    }
+  })();
   </script>
 </body>
 </html>
