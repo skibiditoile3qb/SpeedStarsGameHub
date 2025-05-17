@@ -12,9 +12,9 @@ const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 // Ensure logs directory exists
 if (!fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR);
-  console.log('Created logs directory');
+  console.log("Logs directory created");
 } else {
-  console.log('Logs directory exists');
+  console.log("Logs directory exists:", true);
 }
 
 app.use(express.static('public'));
@@ -25,6 +25,12 @@ app.get('/', (req, res) => {
   const timestamp = new Date().toISOString();
   const logLine = `${timestamp} - ${ip}\n`;
 
+  // Ensure log file exists before appending
+  if (!fs.existsSync(LOG_FILE)) {
+    fs.writeFileSync(LOG_FILE, '');
+    console.log("Created empty log file");
+  }
+
   fs.appendFile(LOG_FILE, logLine, err => {
     if (err) {
       console.error('Failed to log IP:', err);
@@ -33,25 +39,13 @@ app.get('/', (req, res) => {
     }
   });
 
-  res.sendFile(path.join(__dirname, 'public', 'index.html'), err => {
-    if (err) {
-      console.error('Failed to send index.html:', err);
-      res.status(500).send('Error loading homepage');
-    }
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Admin page (GET)
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'admin.html'), err => {
-    if (err) {
-      console.error('Failed to send admin.html:', err);
-      res.status(500).send('Error loading admin page');
-    }
-  });
+  res.sendFile(path.join(__dirname, 'views', 'admin.html'));
 });
 
-// Admin page (POST) - Password protected to view logs
 app.post('/admin', (req, res) => {
   const { password } = req.body;
 
@@ -59,7 +53,7 @@ app.post('/admin', (req, res) => {
     try {
       if (!fs.existsSync(LOG_FILE)) {
         fs.writeFileSync(LOG_FILE, '');
-        console.log('Created empty log file');
+        console.log("Created empty log file during /admin access");
       }
 
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
@@ -75,30 +69,6 @@ app.post('/admin', (req, res) => {
   } else {
     res.send('Access denied 😤');
   }
-});
-
-// Debug route to check if logs dir and file exist
-app.get('/debug', (req, res) => {
-  try {
-    const dirExists = fs.existsSync(LOG_DIR);
-    const fileExists = fs.existsSync(LOG_FILE);
-    res.send(`Logs directory exists: ${dirExists}\nLog file exists: ${fileExists}`);
-  } catch (err) {
-    res.status(500).send(`Error checking logs: ${err.message}`);
-  }
-});
-
-// Test route to write a test log line
-app.get('/testlog', (req, res) => {
-  const testLine = `Test log at ${new Date().toISOString()}\n`;
-  fs.appendFile(LOG_FILE, testLine, err => {
-    if (err) {
-      console.error('Failed to write test log:', err);
-      return res.status(500).send('Failed to write test log.');
-    }
-    console.log('Test log written!');
-    res.send('Test log written!');
-  });
 });
 
 app.listen(PORT, () => {
