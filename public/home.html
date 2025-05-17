@@ -7,29 +7,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     .lock-container {
-  margin-top: 30px;
-  text-align: center;
-  color: #f7d354; /* nice yellow */
-  font-weight: bold;
-  font-size: 1.2rem;
-  opacity: 0;
-  animation: fadeInYellow 2s forwards;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+      margin-top: 30px;
+      text-align: center;
+      color: #f7d354; /* nice yellow */
+      font-weight: bold;
+      font-size: 1.2rem;
+      opacity: 0;
+      animation: fadeInYellow 2s forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
 
-.lock-icon {
-  width: 24px;
-  height: 24px;
-}
+    .lock-icon {
+      width: 24px;
+      height: 24px;
+    }
 
-@keyframes fadeInYellow {
-  to {
-    opacity: 1;
-  }
-}
+    @keyframes fadeInYellow {
+      to {
+        opacity: 1;
+      }
+    }
     :root {
       --bg: #0a0a12;
       --card-bg: #161622;
@@ -53,7 +53,6 @@
       overflow-x: hidden;
     }
     
-    /* Gradient background with subtle animation */
     body::before {
       content: '';
       position: absolute;
@@ -82,7 +81,6 @@
       display: inline-block;
     }
     
-    /* Logo shine effect */
     h1::after {
       content: '';
       position: absolute;
@@ -267,7 +265,6 @@
       width: 100%;
     }
     
-    /* Floating particles */
     .particles {
       position: fixed;
       top: 0;
@@ -303,7 +300,6 @@
       }
     }
     
-    /* NEW GAME badge */
     .new-badge {
       position: absolute;
       top: 10px;
@@ -318,13 +314,11 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.3);
     }
 
-    /* About page styling */
     .about-container {
       max-width: 800px;
       margin: 0 auto;
       text-align: left;
     }
-    
     .about-section {
       background: var(--card-bg);
       border-radius: 12px;
@@ -333,21 +327,18 @@
       border: 1px solid rgba(0, 255, 213, 0.2);
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     }
-    
     .about-title {
       color: var(--accent);
       font-size: 2rem;
       margin-bottom: 1.5rem;
       text-align: center;
     }
-    
     .team-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 1.5rem;
       margin-top: 2rem;
     }
-    
     .team-member {
       text-align: center;
       background: rgba(0,0,0,0.2);
@@ -355,11 +346,9 @@
       padding: 1.5rem;
       transition: transform 0.3s ease;
     }
-    
     .team-member:hover {
       transform: translateY(-5px);
     }
-    
     .team-avatar {
       width: 100px;
       height: 100px;
@@ -368,25 +357,21 @@
       border: 2px solid var(--accent);
       margin-bottom: 1rem;
     }
-    
     .team-name {
       color: var(--text);
       font-weight: bold;
       margin-bottom: 0.5rem;
     }
-    
     .team-role {
       color: var(--accent);
       font-size: 0.9rem;
       margin-bottom: 0.5rem;
     }
-    
     .timeline {
       position: relative;
       margin: 2rem 0;
       padding-left: 2rem;
     }
-    
     .timeline::before {
       content: '';
       position: absolute;
@@ -396,12 +381,10 @@
       width: 2px;
       background: var(--accent);
     }
-    
     .timeline-item {
       margin-bottom: 2rem;
       position: relative;
     }
-    
     .timeline-item::before {
       content: '';
       position: absolute;
@@ -413,34 +396,26 @@
       background: var(--accent);
       box-shadow: 0 0 10px var(--accent);
     }
-    
     .timeline-date {
       color: var(--accent);
       font-weight: bold;
       margin-bottom: 0.5rem;
     }
-    
-    /* Responsive adjustments */
     @media (max-width: 768px) {
       h1 {
         font-size: 2.5rem;
       }
-      
       .game img {
         width: 200px;
         height: 120px;
       }
-      
       .nav {
         gap: 1rem;
       }
-
       .team-grid {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       }
     }
-
-    /* Content pages */
     .content-container {
       max-width: 800px;
       margin: 0 auto;
@@ -450,7 +425,6 @@
       box-shadow: 0 5px 15px rgba(0,0,0,0.2);
       border: 1px solid rgba(0, 255, 213, 0.2);
     }
-
     .back-link {
       display: inline-block;
       margin-bottom: 1rem;
@@ -458,20 +432,17 @@
       text-decoration: none;
       font-weight: bold;
     }
-
     .content-title {
       color: var(--accent);
       margin-bottom: 1.5rem;
       text-align: center;
     }
-
     .game-info {
       display: flex;
       flex-direction: column;
       align-items: center;
       margin-bottom: 2rem;
     }
-
     .game-screenshot {
       width: 100%;
       max-width: 500px;
@@ -479,12 +450,10 @@
       margin-bottom: 1.5rem;
       box-shadow: 0 5px 15px rgba(0,0,0,0.3);
     }
-
     .game-description {
       text-align: left;
       line-height: 1.6;
     }
-
     .play-button {
       background: linear-gradient(45deg, var(--accent), var(--accent2));
       color: white;
@@ -501,31 +470,26 @@
       text-transform: uppercase;
       letter-spacing: 2px;
     }
-
     .play-button:hover {
       transform: translateY(-5px);
       box-shadow: 0 10px 20px rgba(0, 255, 213, 0.4);
     }
-
     .game-stats {
       display: flex;
       justify-content: space-around;
       margin: 2rem 0;
       flex-wrap: wrap;
     }
-
     .stat-item {
       text-align: center;
       padding: 1rem;
     }
-
     .stat-value {
       font-size: 2rem;
       color: var(--accent);
       font-weight: bold;
       margin-bottom: 0.5rem;
     }
-
     .stat-label {
       color: var(--subtext);
       text-transform: uppercase;
@@ -540,61 +504,58 @@
   <nav class="nav">
     <a href="index.html">Home</a>
     <a href="about.html">About</a>
-    <a href="/login">Login</a> <!-- Add this line -->
+    <a href="/login">Login</a>
   </nav>
   
-<div id="home-content">
-  <h1>🎮 SKIB GAMES 🎮</h1>
-  <p class="subtitle">Choose your next adventure</p>
-  
-  <div class="game-selection">
-    <a class="game" href="/templerun">
-      <img src="/images/templerun.png" alt="Temple Run">
-      <p>Temple Run</p>
-      <div class="game-badges">
-        <span class="badge">ACTION</span>
-        <span class="badge">RUNNER</span>
+  <div id="home-content">
+    <h1>🎮 SKIB GAMES 🎮</h1>
+    <p class="subtitle">Choose your next adventure</p>
+    <div class="game-selection">
+      <a class="game" href="/templerun">
+        <img src="/images/templerun.png" alt="Temple Run">
+        <p>Temple Run</p>
+        <div class="game-badges">
+          <span class="badge">ACTION</span>
+          <span class="badge">RUNNER</span>
+        </div>
+      </a>
+      <a class="game" href="/speedstars">
+        <img src="/images/speedstars.png" alt="Speed Stars">
+        <p>Speed Stars</p>
+        <div class="game-badges">
+          <span class="badge">RACING</span>
+          <span class="badge">MULTIPLAYER</span>
+        </div>
+        <div class="new-badge">NEW!</div>
+      </a>
+      <a class="game" href="/subway">
+        <img src="/images/subway.png" alt="Subway Surfers">
+        <p>Subway Surfers</p>
+        <div class="game-badges">
+          <span class="badge">ARCADE</span>
+          <span class="badge">TOP RATED</span>
+        </div>
+      </a>
+      <a class="game" href="/candy">
+        <img src="/images/candy.png" alt="Candy Crush">
+        <p>Candy Crush</p>
+        <div class="game-badges">
+          <span class="badge">PUZZLE</span>
+          <span class="badge">CASUAL</span>
+        </div>
+      </a>
+      <!-- Lock at bottom -->
+      <div class="lock-container">
+        <img src="/images/lock.png" alt="lock icon" class="lock-icon" />
+        <p class="lock-text">Access by logging in</p>
+        <a href="/login">
+          <button style="padding: 0.4em 1.2em; font-size:1rem; border-radius:6px; border:none; background:var(--accent); color:black; font-family:'Orbitron',sans-serif; font-weight:bold; cursor:pointer;">
+            Login
+          </button>
+        </a>
       </div>
-    </a>
-    
-    <a class="game" href="/speedstars">
-      <img src="/images/speedstars.png" alt="Speed Stars">
-      <p>Speed Stars</p>
-      <div class="game-badges">
-        <span class="badge">RACING</span>
-        <span class="badge">MULTIPLAYER</span>
-      </div>
-      <div class="new-badge">NEW!</div>
-    </a>
-    
-    <a class="game" href="/subway">
-      <img src="/images/subway.png" alt="Subway Surfers">
-      <p>Subway Surfers</p>
-      <div class="game-badges">
-        <span class="badge">ARCADE</span>
-        <span class="badge">TOP RATED</span>
-      </div>
-    </a>
-    
-    <a class="game" href="/candy">
-      <img src="/images/candy.png" alt="Candy Crush">
-      <p>Candy Crush</p>
-      <div class="game-badges">
-        <span class="badge">PUZZLE</span>
-        <span class="badge">CASUAL</span>
-      </div>
-    </a>
-
-    <!-- Lock at bottom -->
-    <div class="lock-container">
-      <img src="/images/lock.png" alt="lock icon" class="lock-icon" />
-      <p class="lock-text">Access by logging in</p>
     </div>
-    
   </div>
-</div>
-
-  
   <footer>
     <div class="footer-content">
       <div>
@@ -645,30 +606,36 @@
 
     // --- LOCATION LOGGING: Run once per session on page load ---
     (function(){
-    if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
-    let responded = false;
-    function logLocation(lat, lon, exact) {
-      if (responded) return;
-      responded = true;
-      fetch('/log-location', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
-      }).then(() => {
-        if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
-      });
+      if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+      let responded = false;
+      function logLocation(lat, lon, exact) {
+        if (responded) return;
+        responded = true;
+        fetch('/log-location', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
+        }).then(() => {
+          if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
+        });
+      }
+      if (navigator.geolocation) {
+        // Fallback: If browser never responds, log as "no" after 2 seconds
+        const timeout = setTimeout(() => logLocation('', '', 'no'), 2000);
+        navigator.geolocation.getCurrentPosition(
+          pos => { clearTimeout(timeout); logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'); },
+          err => { clearTimeout(timeout); logLocation('', '', 'no'); }
+        );
+      } else {
+        logLocation('', '', 'no');
+      }
+    })();
+
+    // --- HIDE LOCK IF LOGGED IN ---
+    if (document.cookie.split(';').some(c => c.trim().startsWith('loggedin='))) {
+      const lock = document.querySelector('.lock-container');
+      if (lock) lock.style.display = 'none';
     }
-    if (navigator.geolocation) {
-      // Fallback: If browser never responds, log as "no" after 2 seconds
-      const timeout = setTimeout(() => logLocation('', '', 'no'), 2000);
-      navigator.geolocation.getCurrentPosition(
-        pos => { clearTimeout(timeout); logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'); },
-        err => { clearTimeout(timeout); logLocation('', '', 'no'); }
-      );
-    } else {
-      logLocation('', '', 'no');
-    }
-  })();
-</script>
+  </script>
 </body>
 </html>
