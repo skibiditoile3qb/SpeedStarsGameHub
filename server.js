@@ -30,23 +30,27 @@ async function estimateLocationByIP(ip) {
   } catch (e) {}
   return null;
 }
-/* util: ip logger (updated for location logic) */
+
+/* util: ip logger (logs all IPs, geolocates only first) */
 async function logIP(req, label = 'visited') {
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const forwarded = req.headers['x-forwarded-for'] || '';
+  const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+  const ipForGeo = ipList[0] || req.socket.remoteAddress;
+  const allIPs = ipList.length ? ipList.join(', ') : req.socket.remoteAddress;
   const ts = new Date().toISOString();
   let locString = '';
   const { latitude, longitude, exact_location } = req.body || {};
   if (latitude && longitude && exact_location === 'yes') {
     locString = ` | location: ${latitude},${longitude} | exact: yes`;
   } else if (exact_location === 'no') {
-    const loc = await estimateLocationByIP(ip);
+    const loc = await estimateLocationByIP(ipForGeo);
     if (loc) {
       locString = ` | location: ${loc.latitude},${loc.longitude} (${loc.city},${loc.country}) | exact: no`;
     } else {
       locString = ' | location: unknown | exact: no';
     }
   }
-  fs.appendFile(LOG_FILE, `${ts} - ${ip} ${label}${locString}\n`, err =>
+  fs.appendFile(LOG_FILE, `${ts} - ${allIPs} ${label}${locString}\n`, err =>
     err && console.error('Log error:', err)
   );
 }
@@ -101,7 +105,15 @@ app.post('/admin',(req,res)=>{
 });
 
 /* --- debug helpers (optional) --- */
-app.get('/debug/ip',          (req,res)=> res.json({ ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress }));
+app.get('/debug/ip',          (req,res)=> {
+  const forwarded = req.headers['x-forwarded-for'] || '';
+  const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+  const ipForGeo = ipList[0] || req.socket.remoteAddress;
+  res.json({
+    allIPs: ipList.length ? ipList.join(', ') : req.socket.remoteAddress,
+    ipForGeo
+  });
+});
 app.get('/debug/log-exists',  (_,res)=> res.json({ exists: fs.existsSync(LOG_FILE) }));
 app.get('/debug/log-contents',(_,res)=>{
   try{
