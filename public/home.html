@@ -1,15 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Choose Your Game</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Skib Games</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #1a1a1a;
+      color: #fff;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    .game-grid {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 50px;
+    }
+    .game {
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .game:hover {
+      transform: scale(1.1);
+    }
+    img {
+      width: 200px;
+      border-radius: 10px;
+      border: 3px solid white;
+    }
+  </style>
 </head>
 <body>
-  <h1>Choose a Game</h1>
-  <div class="games">
-    <a href="/games/templerun"><img src="images/temple.png" alt="Temple Run"></a>
-    <a href="/games/speedstars"><img src="images/speedstars.png" alt="Speed Stars"></a>
-    <a href="/games/subway"><img src="images/subway.png" alt="Subway Surfers"></a>
+  <h1>Select a Game</h1>
+  <div class="game-grid">
+    <div class="game" onclick="redirect('temple')">
+      <img src="/images/templerun.png" alt="Temple Run" />
+      <p>Temple Run</p>
+    </div>
+    <div class="game" onclick="redirect('speedstars')">
+      <img src="/images/speedstars.png" alt="Speed Stars" />
+      <p>Speed Stars</p>
+    </div>
+    <div class="game" onclick="redirect('subway')">
+      <img src="/images/subway.png" alt="Subway Surfers" />
+      <p>Subway Surfers</p>
+    </div>
   </div>
+
+  <script>
+    function redirect(game) {
+      alert("Redirecting...");
+      window.location.href = `/games/${game}`;
+    }
+  </script>
 </body>
 </html>
