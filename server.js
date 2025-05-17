@@ -12,9 +12,17 @@ const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 // Ensure logs directory exists
 if (!fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR);
-  console.log("Logs directory created");
+  console.log('Created logs directory');
 } else {
-  console.log("Logs directory exists:", true);
+  console.log('Logs directory exists');
+}
+
+// Ensure log file exists
+if (!fs.existsSync(LOG_FILE)) {
+  fs.writeFileSync(LOG_FILE, '');
+  console.log('Created ip-log.txt file');
+} else {
+  console.log('Log file exists');
 }
 
 app.use(express.static('public'));
@@ -24,12 +32,6 @@ app.get('/', (req, res) => {
   const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
   const timestamp = new Date().toISOString();
   const logLine = `${timestamp} - ${ip}\n`;
-
-  // Ensure log file exists before appending
-  if (!fs.existsSync(LOG_FILE)) {
-    fs.writeFileSync(LOG_FILE, '');
-    console.log("Created empty log file");
-  }
 
   fs.appendFile(LOG_FILE, logLine, err => {
     if (err) {
@@ -51,11 +53,6 @@ app.post('/admin', (req, res) => {
 
   if (password === ADMIN_PASS) {
     try {
-      if (!fs.existsSync(LOG_FILE)) {
-        fs.writeFileSync(LOG_FILE, '');
-        console.log("Created empty log file during /admin access");
-      }
-
       const logs = fs.readFileSync(LOG_FILE, 'utf8');
       if (logs.trim().length === 0) {
         return res.send('No logs yet! Visit the homepage to generate logs.');
