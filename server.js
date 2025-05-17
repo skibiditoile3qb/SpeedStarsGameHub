@@ -14,15 +14,15 @@ if (!fs.existsSync(LOG_DIR)) {
   fs.mkdirSync(LOG_DIR);
   console.log('Created logs directory');
 } else {
-  console.log('Logs directory exists');
+  console.log('Logs directory exists:', true);
 }
 
 // Ensure log file exists
 if (!fs.existsSync(LOG_FILE)) {
   fs.writeFileSync(LOG_FILE, '');
-  console.log('Created ip-log.txt file');
+  console.log('Created empty log file');
 } else {
-  console.log('Log file exists');
+  console.log('Log file exists:', true);
 }
 
 app.use(express.static('public'));
@@ -57,7 +57,6 @@ app.post('/admin', (req, res) => {
       if (logs.trim().length === 0) {
         return res.send('No logs yet! Visit the homepage to generate logs.');
       }
-
       res.send(`<pre>${logs}</pre>`);
     } catch (err) {
       console.error('Error reading logs:', err);
