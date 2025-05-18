@@ -5,7 +5,8 @@ const path    = require('path');
 const app     = express();
 
 // Block specific IP(s)
-const BLOCKED_IPS = ['172.59.75.235'];
+const BLOCKED_IPS = (process.env.BLOCKED_IPS || '').split(',').map(ip => ip.trim()).filter(Boolean);
+
 app.use((req, res, next) => {
   const forwarded = req.headers['x-forwarded-for'] || '';
   const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
