@@ -71,7 +71,6 @@
       h1 { font-size: 1.3em; }
       .button { font-size: 1em; padding: 8px 16px;}
     }
-    /* Nice glow border for the background */
     body:before {
       content: "";
       position: fixed;
@@ -222,21 +221,14 @@
       });
     }
 
+    // AI MOVES - FINAL LOGIC AS REQUESTED
     function aiMove() {
-      // AI: scan all legal moves (on player/white squares)
+      // 1. Gather all possible moves with their benefit
       let moves = [];
-      for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
-        if(board[y][x]===0) moves.push({x,y});
-      // For each, calculate "benefit"
-      let ranked = moves.map(move=>{
-        let benefit = calcBenefit(move.x,move.y,1);
-        return { ...move, benefit };
-      });
-      ranked.sort((a,b)=>b.benefit-a.benefit); // higher first
-
-      let move;
-      if (ranked.length === 0) {
-        // No valid move
+      for (let y = 0; y < SIZE; ++y)
+        for (let x = 0; x < SIZE; ++x)
+          if (board[y][x] === 0) moves.push({ x, y });
+      if (moves.length === 0) {
         movesLeft--;
         playerTurn = true;
         updateUI();
@@ -244,23 +236,41 @@
         return;
       }
 
-      if (difficulty==="hard") {
-        let maxBenefit = ranked[0].benefit;
-        let bestMoves = ranked.filter(m => m.benefit === maxBenefit);
-        move = bestMoves[Math.floor(Math.random() * bestMoves.length)];
-      } else if (difficulty==="medium") {
-        const top = ranked.slice(0, Math.min(12, ranked.length));
-        let maxBenefit = top[0].benefit;
-        let topBest = top.filter(m => m.benefit === maxBenefit);
-        move = topBest[Math.floor(Math.random() * topBest.length)];
-      } else { // easy
-        const top = ranked.slice(0, Math.min(20, ranked.length));
-        let maxBenefit = top[0].benefit;
-        let topBest = top.filter(m => m.benefit === maxBenefit);
-        move = topBest[Math.floor(Math.random() * topBest.length)];
+      // 2. Calculate benefit for all moves
+      moves = moves.map(move => ({
+        ...move,
+        benefit: calcBenefit(move.x, move.y, 1)
+      }));
+
+      // 3. Sort moves by benefit (descending), but keep original order for ties
+      moves.sort((a, b) => b.benefit - a.benefit);
+
+      // 4. Assign ranks (1 = best, 2 = next, etc.) - ties share the same rank
+      let rankedMoves = [];
+      let currentRank = 1;
+      for (let i = 0; i < moves.length; ++i) {
+        if (i > 0 && moves[i].benefit < moves[i - 1].benefit) currentRank = i + 1;
+        rankedMoves.push({ ...moves[i], rank: currentRank });
       }
-      if (move) {
-        animateFlip(move.x, move.y, 1, ()=>{
+
+      // 5. Pick a move according to difficulty
+      let chosen = null;
+      if (difficulty === "hard") {
+        // Pick randomly among all moves with rank 1 (best benefit)
+        let bestMoves = rankedMoves.filter(m => m.rank === 1);
+        chosen = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+      } else if (difficulty === "medium") {
+        // Pick randomly among moves with rank 1 to 12
+        let mediumMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 12);
+        chosen = mediumMoves[Math.floor(Math.random() * mediumMoves.length)];
+      } else {
+        // Easy: rank 1 to 25
+        let easyMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 25);
+        chosen = easyMoves[Math.floor(Math.random() * easyMoves.length)];
+      }
+
+      if (chosen) {
+        animateFlip(chosen.x, chosen.y, 1, () => {
           movesLeft--;
           playerTurn = true;
           updateUI();
