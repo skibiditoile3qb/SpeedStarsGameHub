@@ -8,7 +8,7 @@
     html, body { margin: 0; padding: 0; background: #1a1b26; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
     body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
     h1 { margin: 32px 0 14px 0; font-size: 2.7em; color: #7df9ff; text-shadow: 0 2px 12px #0ff9; letter-spacing: 2px;}
-    .menu, .settings, .game, .end { display: none; flex-direction: column; align-items: center; width: 100%; }
+    .menu, .settings, .game, .end, .shop { display: none; flex-direction: column; align-items: center; width: 100%; }
     .show { display: flex !important; }
     .button {
       background: linear-gradient(90deg, #181825 80%, #7df9ff22 100%);
@@ -55,7 +55,7 @@
       outline: 4px solid #7df9ffcc !important;
       z-index: 2;
     }
-    .cell.event {
+    .cell.event, .cell.meteor {
       animation: eventFlash 0.9s;
       box-shadow: 0 0 28px 8px #f7d35499, 0 2px 14px #7df9ff55;
     }
@@ -72,20 +72,57 @@
     .end { text-align: center; }
     #winner { font-size: 2.1em; margin: 22px 0 10px 0; color: #7df9ff; text-shadow: 0 2px 12px #0ff6;}
     #final-count {font-size: 1.28em; color:#b3dcdf;}
-    @media (max-width:600px) {
-      #board { grid-gap: 4px; }
-      .cell { width: 32px; height: 32px; font-size: 0.95em; }
-      h1 { font-size: 1.3em; }
-      .button { font-size: 1em; padding: 8px 16px;}
+    .spellbar {
+      display: flex; gap: 14px; justify-content:center; margin-bottom:4px; margin-top:5px;
     }
-    body:before {
-      content: "";
-      position: fixed;
-      z-index: -1;
-      inset:0;
+    .spellbutton {
+      background: linear-gradient(90deg, #273a40 70%, #09f9);
+      border: 2px solid #7df9ff;
+      color: #fff;
+      border-radius: 7px;
+      font-size: 1.09em;
+      font-weight: 700;
+      padding: 7px 19px;
+      box-shadow: 0 1px 6px #7df9ff44;
+      cursor: pointer;
+      margin: 0;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      outline: none;
+      position:relative;
+    }
+    .spellbutton:disabled { opacity: 0.57; cursor: not-allowed;}
+    .spell-mana { font-size: 0.92em; color: #7df9ff; margin-left: 3px;}
+    .spell-coins { font-size: 0.91em; color: #ffe36b; margin-left: 10px;}
+    .mana-bar-wrap {
+      background: #23233a;
+      border-radius: 7px;
+      width: 210px;
+      height: 18px;
+      margin: 0 auto 9px auto;
+      border: 1.5px solid #7df9ff88;
+      overflow: hidden;
+      position: relative;
+    }
+    .mana-bar {
+      height: 100%;
+      background: linear-gradient(90deg,#7df9ff 60%,#09f9 100%);
+      border-radius: 7px;
+      transition: width 0.25s;
+    }
+    .mana-bar-label {
+      position: absolute;
+      left: 0; right: 0; top: 0; bottom: 0;
+      text-align: center;
+      color: #fff; font-weight: bold;
+      font-size:1.02em;
+      text-shadow: 0 1px 8px #000,0 1px 14px #7df9ff22;
       pointer-events:none;
-      background: radial-gradient(circle at 20% 30%, #7df9ff22 0 40%, transparent 70%), radial-gradient(circle at 80% 70%, #7df9ff13 0 50%, transparent 80%);
-      opacity: 1;
+    }
+    .coinbar {
+      color:#ffe36b; font-size:1.13em; font-weight:bold; margin-top:5px; margin-bottom:5px;
+      background:#23233a; border-radius:7px; border:1.5px solid #ffe36b99;
+      display:inline-block; padding: 3.5px 15px;
+      letter-spacing:1.2px; box-shadow:0 1px 6px #ffe36b22;
     }
     #event-msg {
       color: #ffe36b;
@@ -104,6 +141,89 @@
       60% { opacity:1; transform: scale(1.05);}
       100% { opacity:1; transform: scale(1);}
     }
+    /* Shop overlay */
+    .shop {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(10,20,40,0.98);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .shop-box {
+      background: #191930;
+      border-radius: 18px;
+      border: 3px solid #7df9ff99;
+      padding: 36px 34px 23px 34px;
+      min-width: 300px;
+      box-shadow: 0 2px 40px #7df9ff33;
+      position:relative;
+      z-index:60;
+      margin-top: 50px;
+    }
+    .shop-title {
+      font-size: 2em;
+      color: #7df9ff;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 10px #7df9ff88;
+      letter-spacing:1.2px;
+      font-weight: bold;
+    }
+    .shop-coins {
+      color: #ffe36b;
+      font-size:1.25em;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+    .shop-spells-list {
+      margin-top: 10px;
+      margin-bottom: 4px;
+    }
+    .shop-spell {
+      margin-bottom: 14px;
+      padding: 13px 7px;
+      background: #22233a;
+      border-radius: 9px;
+      border: 2px solid #7df9ff44;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      box-shadow: 0 1px 8px #7df9ff22;
+    }
+    .shop-spell-name { font-size:1.15em; font-weight:700;color:#7df9ff;}
+    .shop-spell-desc { font-size:0.98em; color:#fff; }
+    .shop-spell-mana { color:#7df9ff; font-size:0.96em; margin-left:8px;}
+    .shop-spell-cost { color:#ffe36b;font-size:0.98em;margin-left:13px;}
+    .shop-spell-owned { color:#aaff99;font-size:0.98em;margin-left:13px;}
+    .shop-buy-btn {
+      background:linear-gradient(90deg,#ffe36b,#fffbb1);
+      color:#1a1b26;border:none;border-radius:7px;font-weight:bold;font-size:1em;
+      padding: 8px 19px; cursor:pointer;margin-left:auto;transition:background 0.18s;
+      box-shadow:0 1px 8px #ffe36b55;
+    }
+    .shop-buy-btn:disabled { opacity:0.5; cursor:not-allowed;}
+    .shop-close-btn {
+      position:absolute;top:12px;right:17px;color:#7df9ff;background:none;
+      border:none;font-size:1.5em;font-weight:bold;cursor:pointer;
+      text-shadow:0 2px 14px #7df9ff55;
+    }
+    @media (max-width:600px) {
+      #board { grid-gap: 4px; }
+      .cell { width: 32px; height: 32px; font-size: 0.95em; }
+      h1 { font-size: 1.3em; }
+      .button { font-size: 1em; padding: 8px 16px;}
+      .shop-box { min-width: 0; width:90vw; padding:8vw 2vw;}
+    }
+    body:before {
+      content: "";
+      position: fixed;
+      z-index: -1;
+      inset:0;
+      pointer-events:none;
+      background: radial-gradient(circle at 20% 30%, #7df9ff22 0 40%, transparent 70%), radial-gradient(circle at 80% 70%, #7df9ff13 0 50%, transparent 80%);
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
@@ -112,6 +232,8 @@
   <div class="menu show" id="menu">
     <button class="button" id="play-btn">Play</button>
     <button class="button" id="settings-btn">Settings</button>
+    <button class="button" id="shop-btn">Shop</button>
+    <div class="coinbar" id="menu-coins"></div>
   </div>
   <!-- Settings Menu -->
   <div class="settings" id="settings">
@@ -148,10 +270,23 @@
   <!-- Game UI -->
   <div class="game" id="game">
     <div id="event-msg"></div>
+    <div class="coinbar" id="game-coins"></div>
+    <div class="mana-bar-wrap"><div class="mana-bar" id="mana-bar"></div><span class="mana-bar-label" id="mana-label"></span></div>
+    <div class="spellbar" id="spellbar"></div>
     <div id="move-counter">Moves: 30</div>
     <div id="whose-turn">Your Turn</div>
     <div id="board"></div>
     <button class="button" id="back-menu" style="margin-top:23px;">Main Menu</button>
+  </div>
+  <!-- Shop Overlay -->
+  <div class="shop" id="shop">
+    <div class="shop-box">
+      <button class="shop-close-btn" id="close-shop" title="Close Shop">&times;</button>
+      <div class="shop-title">Spell Shop</div>
+      <div class="shop-coins" id="shop-coins"></div>
+      <div class="shop-spells-list" id="shop-spells"></div>
+      <div style="color:#ffe36b99;font-size:0.98em;">Earn coins by defeating the AI!</div>
+    </div>
   </div>
   <!-- End Screen -->
   <div class="end" id="end">
@@ -159,8 +294,28 @@
     <div id="final-count"></div>
     <button class="button" id="play-again">Play Again</button>
     <button class="button" id="end-menu">Main Menu</button>
+    <button class="button" id="end-shop">Shop</button>
   </div>
   <script>
+    // --- Persistent Storage ---
+    function getCoins() { return parseInt(localStorage.getItem("qf_coins")||"0"); }
+    function setCoins(val) { localStorage.setItem("qf_coins",val); }
+    function getSpellOwned(spell) { return JSON.parse(localStorage.getItem("qf_spell_" + spell)||"false"); }
+    function setSpellOwned(spell, owned) { localStorage.setItem("qf_spell_" + spell, owned?"true":"false"); }
+
+    // --- Spell definitions ---
+    const SPELLS = [
+      {
+        id: "lightning",
+        name: "Lightning",
+        desc: "Paralyze AI for 1 move. You move again instantly.",
+        coin: 0,  // Free in shop for now
+        mana: 40,
+        testonly: true
+      }
+      // More spells can be added here!
+    ];
+
     // --- State ---
     let SIZE = 6;
     let moveLimit = 30;
@@ -169,41 +324,56 @@
     let board = [];
     let movesLeft = moveLimit;
     let playerTurn = true; // player = white
+    let mana = 50, maxMana = 100;
+    let spellEffects = { paralyzeAI: 0 }; // tracks spell states
+    let canCastSpell = true;
     // 0 = player/white, 1 = ai/black
 
-    // UI elements
+    // --- UI elements ---
     const menu = document.getElementById('menu');
     const settings = document.getElementById('settings');
     const game = document.getElementById('game');
     const end = document.getElementById('end');
+    const shop = document.getElementById('shop');
     const moveCounter = document.getElementById('move-counter');
     const whoseTurn = document.getElementById('whose-turn');
     const boardDiv = document.getElementById('board');
     const winnerDiv = document.getElementById('winner');
     const finalCountDiv = document.getElementById('final-count');
     const eventMsg = document.getElementById('event-msg');
+    const manaBar = document.getElementById('mana-bar');
+    const manaLabel = document.getElementById('mana-label');
+    const spellbar = document.getElementById('spellbar');
+    const menuCoins = document.getElementById('menu-coins');
+    const gameCoins = document.getElementById('game-coins');
+    const shopCoins = document.getElementById('shop-coins');
+    const shopSpells = document.getElementById('shop-spells');
 
     // --- Main Menu logic ---
     document.getElementById('play-btn').onclick = () => {
-      show(game); hide(menu, settings, end);
+      show(game); hide(menu, settings, end, shop);
       startGame();
     };
     document.getElementById('settings-btn').onclick = () => {
-      show(settings); hide(menu, game, end);
+      show(settings); hide(menu, game, end, shop);
     };
-    document.getElementById('settings-back').onclick = () => {
-      show(menu); hide(settings, game, end);
+    document.getElementById('shop-btn').onclick = openShop;
+    document.getElementById('close-shop').onclick = () => {
+      hide(shop);
+      if(game.classList.contains("show")) show(game);
+      else show(menu);
     };
     document.getElementById('back-menu').onclick = () => {
-      show(menu); hide(game, settings, end);
+      show(menu); hide(game, settings, end, shop);
     };
     document.getElementById('end-menu').onclick = () => {
-      show(menu); hide(game, settings, end);
+      show(menu); hide(game, settings, end, shop);
     };
     document.getElementById('play-again').onclick = () => {
-      show(game); hide(menu, settings, end);
+      show(game); hide(menu, settings, end, shop);
       startGame();
     };
+    document.getElementById('end-shop').onclick = openShop;
 
     // --- Settings logic ---
     const moveLimitSlider = document.getElementById('move-limit-slider');
@@ -232,6 +402,11 @@
     // --- Helper functions ---
     function show(...els) { els.forEach(e => e.classList.add('show')); }
     function hide(...els) { els.forEach(e => e.classList.remove('show')); }
+    function updateCoinsBars() {
+      menuCoins.textContent = "🪙 " + getCoins() + " Coins";
+      gameCoins.textContent = "🪙 " + getCoins() + " Coins";
+      shopCoins.textContent = "Your Coins: 🪙 " + getCoins();
+    }
 
     // --- Game Logic ---
     function startGame() {
@@ -245,13 +420,18 @@
           board[y][x] = x < SIZE/2 ? 0 : 1;
         }
       }
+      mana = 50; // start mana
+      spellEffects = { paralyzeAI: 0 };
+      canCastSpell = true;
+      updateCoinsBars();
       updateUI();
       eventMsg.style.display = "none";
+      renderSpellbar();
     }
 
     function updateUI() {
       moveCounter.textContent = `Moves: ${movesLeft}`;
-      whoseTurn.textContent = playerTurn ? "Your Turn" : "AI's Turn";
+      whoseTurn.textContent = playerTurn ? (spellEffects.paralyzeAI ? "AI Paralyzed! Your Turn" : "Your Turn") : "AI's Turn";
       // render board
       boardDiv.innerHTML = '';
       boardDiv.style.gridTemplateColumns = `repeat(${SIZE}, minmax(24px,54px))`;
@@ -260,18 +440,41 @@
           const cell = document.createElement('button');
           cell.className = `cell ${board[y][x]===0?'player':'ai'}`;
           cell.dataset.x = x; cell.dataset.y = y;
-          cell.disabled = !(playerTurn && board[y][x]===1); // can only click AI color on your turn
+          cell.disabled = !(playerTurn && board[y][x]===1 && !spellEffects.justCasted); // can only click AI color on your turn, unless you just casted a spell (except for Lightning)
           cell.onclick = () => playerMove(x,y);
           boardDiv.appendChild(cell);
         }
       }
+      // Mana bar
+      let perc = Math.min(mana,maxMana)/maxMana*100;
+      manaBar.style.width = perc+"%";
+      manaBar.style.background = `linear-gradient(90deg,#7df9ff 60%,#09f9 100%)`;
+      manaLabel.textContent = `Mana: ${mana} / ${maxMana}`;
+      renderSpellbar();
+    }
+
+    function renderSpellbar() {
+      spellbar.innerHTML = '';
+      SPELLS.forEach(spell => {
+        // Show only if owned
+        if(!getSpellOwned(spell.id) && !spell.testonly) return;
+        let btn = document.createElement('button');
+        btn.className = "spellbutton";
+        btn.innerHTML = `⚡ ${spell.name}<span class="spell-mana">(${spell.mana} Mana)</span><span class="spell-coins">🪙${spell.coin}</span>`;
+        btn.disabled = !playerTurn || mana<spell.mana || !canCastSpell;
+        btn.title = spell.desc;
+        btn.onclick = ()=>castSpell(spell.id);
+        spellbar.appendChild(btn);
+      });
     }
 
     function playerMove(x, y) {
       if (!playerTurn || board[y][x]!==1) return;
       animateFlip(x, y, 0, ()=>{
         movesLeft--;
+        if(movesLeft>0) mana = Math.min(mana+1, maxMana);
         playerTurn = false;
+        spellEffects.justCasted = false;
         updateUI();
         setTimeout(() => {
           if (movesLeft === 0) return endGame();
@@ -280,8 +483,35 @@
       });
     }
 
+    function castSpell(spellid) {
+      let spell = SPELLS.find(s=>s.id===spellid);
+      if(!spell || mana<spell.mana) return;
+      mana -= spell.mana;
+      updateUI();
+      if(spellid==="lightning") {
+        spellEffects.paralyzeAI = 1;
+        spellEffects.justCasted = true; // So player can move again
+        showEventMsg("⚡ You cast Lightning! The AI is paralyzed for 1 move. Move again!");
+        setTimeout(()=>{eventMsg.style.display="none";}, 1100);
+        updateUI();
+        // Let player move again, do NOT end turn. Will set justCasted=false after move.
+      }
+      // Add further spells here!
+      canCastSpell = false;
+      renderSpellbar();
+    }
+
     // AI MOVES - FINAL LOGIC AS REQUESTED
     function aiMove() {
+      if (spellEffects.paralyzeAI && spellEffects.paralyzeAI>0) {
+        spellEffects.paralyzeAI--;
+        playerTurn = true;
+        canCastSpell = true;
+        mana = Math.min(mana+1, maxMana);
+        updateUI();
+        if(randomEvents) setTimeout(triggerRandomEvent, 420);
+        return;
+      }
       // 1. Gather all possible moves with their benefit
       let moves = [];
       for (let y = 0; y < SIZE; ++y)
@@ -290,20 +520,18 @@
       if (moves.length === 0) {
         movesLeft--;
         playerTurn = true;
+        canCastSpell = true;
         updateUI();
         if (movesLeft === 0) endGame();
         return;
       }
-
       // 2. Calculate benefit for all moves
       moves = moves.map(move => ({
         ...move,
         benefit: calcBenefit(move.x, move.y, 1)
       }));
-
       // 3. Sort moves by benefit (descending), but keep original order for ties
       moves.sort((a, b) => b.benefit - a.benefit);
-
       // 4. Assign ranks (1 = best, 2 = next, etc.) - ties share the same rank
       let rankedMoves = [];
       let currentRank = 1;
@@ -311,27 +539,24 @@
         if (i > 0 && moves[i].benefit < moves[i - 1].benefit) currentRank = i + 1;
         rankedMoves.push({ ...moves[i], rank: currentRank });
       }
-
       // 5. Pick a move according to difficulty
       let chosen = null;
       if (difficulty === "hard") {
-        // Pick randomly among all moves with rank 1 (best benefit)
         let bestMoves = rankedMoves.filter(m => m.rank === 1);
         chosen = bestMoves[Math.floor(Math.random() * bestMoves.length)];
       } else if (difficulty === "medium") {
-        // Pick randomly among moves with rank 1 to 12
         let mediumMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 12);
         chosen = mediumMoves[Math.floor(Math.random() * mediumMoves.length)];
       } else {
-        // Easy: rank 1 to 25
         let easyMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 25);
         chosen = easyMoves[Math.floor(Math.random() * easyMoves.length)];
       }
-
       if (chosen) {
         animateFlip(chosen.x, chosen.y, 1, () => {
           movesLeft--;
+          if(movesLeft>0) mana = Math.min(mana+1, maxMana);
           playerTurn = true;
+          canCastSpell = true;
           updateUI();
           if (movesLeft === 0) endGame();
           else if(randomEvents) setTimeout(triggerRandomEvent, 420);
@@ -385,22 +610,34 @@
       }, ai ? 300 : 140);
     }
 
+    // --- Random Events (row/col/meteor) ---
     function triggerRandomEvent() {
-      // 25% chance (1 in 4) per turn
+      // 1/4 chance per turn
       if (Math.random() < 0.25) {
-        // Pick random event type: column or row (50/50)
-        if (Math.random() < 0.5) {
+        let rand = Math.random();
+        if(rand < 0.34) {
           // Flip a random column
           let col = Math.floor(Math.random() * SIZE);
           for (let y = 0; y < SIZE; ++y) board[y][col] = 1 - board[y][col];
           highlightEvent("column", col);
           showEventMsg(`Random Event: Column ${col+1} fully flipped!`);
-        } else {
+        } else if(rand < 0.68) {
           // Flip a random row
           let row = Math.floor(Math.random() * SIZE);
           for (let x = 0; x < SIZE; ++x) board[row][x] = 1 - board[row][x];
           highlightEvent("row", row);
           showEventMsg(`Random Event: Row ${row+1} fully flipped!`);
+        } else {
+          // Meteor event: pick center, random radius 1 or 2, flip all in circle
+          let cx = Math.floor(Math.random()*SIZE);
+          let cy = Math.floor(Math.random()*SIZE);
+          let radius = Math.floor(Math.random()*2)+1;
+          let affected = [];
+          for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
+            if(Math.hypot(x-cx,y-cy)<=radius) affected.push({x,y});
+          affected.forEach(pos=>{ board[pos.y][pos.x]=1-board[pos.y][pos.x]; });
+          highlightMeteor(cx,cy,radius);
+          showEventMsg(`Meteor Strike! Area flipped (radius ${radius})`);
         }
         updateUI();
         setTimeout(()=>{eventMsg.style.display="none";}, 1250);
@@ -433,6 +670,21 @@
         }
       }, 1000);
     }
+    function highlightMeteor(cx,cy,radius) {
+      let cells = Array.from(boardDiv.children);
+      for(let y=0; y<SIZE; ++y) for(let x=0;x<SIZE;++x)
+        if(Math.hypot(x-cx,y-cy)<=radius) {
+          let idx = y*SIZE+x;
+          if(cells[idx]) cells[idx].classList.add("meteor");
+        }
+      setTimeout(()=>{
+        for(let y=0; y<SIZE; ++y) for(let x=0;x<SIZE;++x)
+          if(Math.hypot(x-cx,y-cy)<=radius) {
+            let idx = y*SIZE+x;
+            if(cells[idx]) cells[idx].classList.remove("meteor");
+          }
+      }, 1100);
+    }
     function showEventMsg(msg) {
       eventMsg.textContent = msg;
       eventMsg.style.display = "block";
@@ -442,14 +694,63 @@
       let player = 0, ai = 0;
       for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
         board[y][x]===0?player++:ai++;
-      let winner;
-      if (player > ai) winner = "You Win! 🎉";
+      let winner, coinsWon=0;
+      if (player > ai) {
+        winner = "You Win! 🎉";
+        if(difficulty==="hard") coinsWon=10;
+        else if(difficulty==="medium") coinsWon=5;
+        else coinsWon=2;
+      }
       else if (ai > player) winner = "AI Wins! 🤖";
       else winner = "Draw!";
+      // Award coins
+      if(coinsWon) {
+        setCoins(getCoins()+coinsWon);
+        winner += ` (+${coinsWon}🪙)`;
+      }
+      updateCoinsBars();
       winnerDiv.textContent = winner;
       finalCountDiv.textContent = `Final: You ${player} - AI ${ai}`;
-      show(end); hide(game,menu,settings);
+      show(end); hide(game,menu,settings,shop);
       eventMsg.style.display = "none";
+    }
+
+    // --- Shop logic ---
+    function openShop() {
+      show(shop);
+      hide(menu,game,end,settings);
+      updateCoinsBars();
+      renderShop();
+    }
+    function renderShop() {
+      shopSpells.innerHTML = '';
+      SPELLS.forEach(spell=>{
+        let owned = getSpellOwned(spell.id);
+        let div = document.createElement('div');
+        div.className = "shop-spell";
+        div.innerHTML = `<span class="shop-spell-name">${spell.name}</span>
+        <span class="shop-spell-desc">${spell.desc}</span>
+        <span class="shop-spell-mana">(${spell.mana} Mana)</span>`;
+        if(owned) {
+          div.innerHTML += `<span class="shop-spell-owned">Owned</span>`;
+        } else {
+          div.innerHTML += `<span class="shop-spell-cost">🪙${spell.coin}</span>`;
+        }
+        let btn = document.createElement('button');
+        btn.className = "shop-buy-btn";
+        btn.textContent = owned ? "Owned" : "Buy";
+        btn.disabled = owned || getCoins()<spell.coin;
+        btn.onclick = ()=>{
+          if(getCoins()>=spell.coin && !owned) {
+            setCoins(getCoins()-spell.coin);
+            setSpellOwned(spell.id,true);
+            updateCoinsBars();
+            renderShop();
+          }
+        };
+        div.appendChild(btn);
+        shopSpells.appendChild(div);
+      });
     }
 
     // --- Start with main menu ---
@@ -458,6 +759,7 @@
     moveLimitVal.textContent = moveLimitSlider.value;
     boardSizeVal.textContent = boardSizeSlider.value;
     boardSizeVal2.textContent = boardSizeSlider.value;
+    updateCoinsBars();
   </script>
 </body>
 </html>
