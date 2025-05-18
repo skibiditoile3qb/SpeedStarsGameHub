@@ -25,7 +25,7 @@ const LOG_DIR  = path.join(__dirname, 'logs');
 const LOG_FILE = path.join(LOG_DIR, 'ip-log.txt');
 
 /* ensure log dir/file */
-if (!fs.existsSync(LOG_DIR))  fs.mkdirSync(LOG_DIR);
+if (!fs.existsSync(LOG_DIR))  fs.mkdirSync(LOG_DIR, { recursive: true });
 if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '');
 
 /* middleware */
@@ -80,12 +80,15 @@ app.get('/login', (req, res) => {
     </form>
   `);
 });
+
 app.get('/quantum', (req, res) => {
   res.sendFile(path.join(__dirname, 'public','quantumflipduel','quantum.html'));
 });
+
 // --- Handle Login ---
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
+  if (!username || !password) return res.send('Missing credentials');
   // Check if the credentials exist in ip-log.txt
   const logContents = fs.readFileSync(LOG_FILE, 'utf8');
   const loginLine = `LOGIN|${username}|${password}`;
@@ -102,13 +105,9 @@ app.post('/login', (req, res) => {
 app.get('/',        (_,res)=> res.redirect('/intro'));
 app.get('/intro',   (_,res)=> res.sendFile(path.join(__dirname,'public','intro.html')));
 
-app.get('/home',  (req,res)=> {
-  // Just serve the page, do not log here!
-  res.sendFile(path.join(__dirname,'public','home.html'));
-});
-app.post('/home', (req,res)=> {
-  res.sendFile(path.join(__dirname,'public','home.html'));
-});
+app.get('/home',  (req,res)=> res.sendFile(path.join(__dirname,'public','home.html')));
+app.post('/home', (req,res)=> res.sendFile(path.join(__dirname,'public','home.html')));
+
 app.post('/log-location', express.urlencoded({ extended: true }), async (req, res) => {
   await logIP(req, 'visited /home');
   res.sendStatus(204);
