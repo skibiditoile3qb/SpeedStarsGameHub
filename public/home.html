@@ -6,8 +6,496 @@
   <title>Skib Games</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
-    /* ...existing styles unchanged... */
-    /* Add styles for quantum game if needed */
+    .lock-container {
+      margin-top: 30px;
+      text-align: center;
+      color: #f7d354; /* nice yellow */
+      font-weight: bold;
+      font-size: 1.2rem;
+      opacity: 0;
+      animation: fadeInYellow 2s forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .lock-icon {
+      width: 24px;
+      height: 24px;
+    }
+
+    @keyframes fadeInYellow {
+      to {
+        opacity: 1;
+      }
+    }
+    :root {
+      --bg: #0a0a12;
+      --card-bg: #161622;
+      --accent: #00ffd5;
+      --accent2: #ff0066;
+      --text: #ffffff;
+      --subtext: #a0a0a0;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Orbitron', 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 2rem;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60vh;
+      background: radial-gradient(circle at 50% 0%, rgba(0, 255, 213, 0.15), transparent 70%);
+      z-index: -1;
+      animation: pulse 8s ease-in-out infinite alternate;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 0.5; transform: scale(1); }
+      100% { opacity: 0.7; transform: scale(1.1); }
+    }
+    
+    h1 {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent);
+      letter-spacing: 3px;
+      font-weight: 900;
+      position: relative;
+      display: inline-block;
+    }
+    
+    h1::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -150%;
+      width: 100%;
+      height: 100%;
+      transform: skewX(-20deg);
+      background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 10%, 
+        rgba(255,255,255,0.2) 50%, 
+        rgba(255,255,255,0) 90%);
+      animation: shine 3s infinite;
+    }
+    
+    @keyframes shine {
+      0% { left: -150%; }
+      50%, 100% { left: 150%; }
+    }
+    
+    .subtitle {
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: var(--subtext);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .game-selection {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin: 2rem auto;
+      max-width: 1200px;
+    }
+    
+    .game {
+      border: 2px solid var(--accent);
+      padding: 1.2rem;
+      border-radius: 12px;
+      background: var(--card-bg);
+      transition: all 0.3s ease;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .game::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border-radius: 12px;
+      background: linear-gradient(45deg, var(--accent), var(--accent2), var(--accent));
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .game:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0, 255, 213, 0.2);
+    }
+    
+    .game:hover::before {
+      opacity: 1;
+    }
+    
+    .game img {
+      width: 250px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    
+    .game:hover img {
+      transform: scale(1.05);
+    }
+    
+    .game p {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: var(--text);
+      font-size: 1.2rem;
+      transition: color 0.3s ease;
+    }
+    
+    .game:hover p {
+      color: var(--accent);
+    }
+    
+    .game-badges {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .badge {
+      background: rgba(0, 255, 213, 0.2);
+      color: var(--accent);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    
+    footer {
+      margin-top: auto;
+      padding: 2rem 0;
+      font-size: 0.9rem;
+      color: var(--subtext);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      width: 90%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .footer-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .social-links a {
+      color: var(--subtext);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    
+    .social-links a:hover {
+      color: var(--accent);
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin: 1rem 0;
+    }
+    
+    .nav a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s ease;
+      position: relative;
+      padding: 0.5rem 0;
+    }
+    
+    .nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    
+    .nav a:hover {
+      color: var(--accent);
+    }
+    
+    .nav a:hover::after {
+      width: 100%;
+    }
+    
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .particle {
+      position: absolute;
+      background-color: var(--accent);
+      border-radius: 50%;
+      opacity: 0.5;
+      animation: float 15s infinite linear;
+    }
+    
+    @keyframes float {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0;
+      }
+      10% {
+        opacity: 0.5;
+      }
+      90% {
+        opacity: 0.5;
+      }
+      100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    
+    .new-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--accent2);
+      color: white;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      transform: rotate(5deg);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .about-container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .about-section {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid rgba(0, 255, 213, 0.2);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .about-title {
+      color: var(--accent);
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .team-member {
+      text-align: center;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: transform 0.3s ease;
+    }
+    .team-member:hover {
+      transform: translateY(-5px);
+    }
+    .team-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--accent);
+      margin-bottom: 1rem;
+    }
+    .team-name {
+      color: var(--text);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .team-role {
+      color: var(--accent);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .timeline {
+      position: relative;
+      margin: 2rem 0;
+      padding-left: 2rem;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 2px;
+      background: var(--accent);
+    }
+    .timeline-item {
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -2.5rem;
+      top: 0.5rem;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+    }
+    .timeline-date {
+      color: var(--accent);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      .game img {
+        width: 200px;
+        height: 120px;
+      }
+      .nav {
+        gap: 1rem;
+      }
+      .team-grid {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      }
+    }
+    .content-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      border: 1px solid rgba(0, 255, 213, 0.2);
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .content-title {
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .game-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .game-screenshot {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .game-description {
+      text-align: left;
+      line-height: 1.6;
+    }
+    .play-button {
+      background: linear-gradient(45deg, var(--accent), var(--accent2));
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      margin: 2rem 0;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 255, 213, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .play-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 255, 213, 0.4);
+    }
+    .game-stats {
+      display: flex;
+      justify-content: space-around;
+      margin: 2rem 0;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+    }
+    .stat-value {
+      font-size: 2rem;
+      color: var(--accent);
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      color: var(--subtext);
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+    }
   </style>
 </head>
 <body id="page-content">
@@ -22,7 +510,7 @@
   <div id="home-content">
     <h1>🎮 SKIB GAMES 🎮</h1>
     <p class="subtitle">Choose your next adventure</p>
-    <div class="game-selection" id="game-selection">
+    <div class="game-selection">
       <a class="game" href="/templerun">
         <img src="/images/templerun.png" alt="Temple Run">
         <p>Temple Run</p>
@@ -56,18 +544,17 @@
           <span class="badge">CASUAL</span>
         </div>
       </a>
-      <!-- Quantum Flip (hidden by default, shown if logged in) -->
-      <a class="game" href="/quantum" id="quantum-game" style="display:none;">
-        <img src="/images/quantum.png" alt="Quantum Flip Duel">
-        <p>Quantum Flip Duel</p>
-        <div class="game-badges">
-          <span class="badge">ORIGINAL</span>
-          <span class="badge">STRATEGY</span>
-        </div>
-        <div class="new-badge">NEW!</div>
-      </a>
+  <a class="game" href="/quantum" id="quantum-game" style="display:none;">
+  <img src="/images/quantum.png" alt="Quantum Flip Duel">
+  <p>Quantum Flip Duel</p>
+  <div class="game-badges">
+    <span class="badge">ORIGINAL</span>
+    <span class="badge">STRATEGY</span>
+  </div>
+  <div class="new-badge">NEW!</div>
+</a>
       <!-- Lock at bottom -->
-      <div class="lock-container" id="lock-container">
+      <div class="lock-container">
         <img src="/images/lock.png" alt="lock icon" class="lock-icon" />
         <p class="lock-text">Access by logging in</p>
         <a href="/login">
@@ -153,16 +640,16 @@
       }
     })();
 
-    // --- HIDE LOCK IF LOGGED IN, SHOW QUANTUM IF LOGGED IN ---
-    function isLoggedIn() {
-      return document.cookie.split(';').some(c => c.trim().startsWith('loggedin='));
-    }
-    if (isLoggedIn()) {
-      const lock = document.getElementById('lock-container');
+    // --- HIDE LOCK IF LOGGED IN ---
+    if (document.cookie.split(';').some(c => c.trim().startsWith('loggedin='))) {
+      const lock = document.querySelector('.lock-container');
       if (lock) lock.style.display = 'none';
-      const quantum = document.getElementById('quantum-game');
-      if (quantum) quantum.style.display = '';
     }
+    // --- SHOW QUANTUM IF LOGGED IN ---
+if (document.cookie.split(';').some(c => c.trim().startsWith('loggedin='))) {
+  const quantum = document.getElementById('quantum-game');
+  if (quantum) quantum.style.display = '';
+}
   </script>
 </body>
 </html>
