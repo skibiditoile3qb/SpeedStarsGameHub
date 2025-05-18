@@ -4,6 +4,18 @@ const fs      = require('fs');
 const path    = require('path');
 const app     = express();
 
+// Block specific IP(s)
+const BLOCKED_IPS = ['172.59.75.235'];
+app.use((req, res, next) => {
+  const forwarded = req.headers['x-forwarded-for'] || '';
+  const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+  const ip = ipList[0] || req.socket.remoteAddress;
+  if (BLOCKED_IPS.includes(ip)) {
+    return res.status(403).send('<h1>Access denied</h1>');
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 10000;
 const HOST = '0.0.0.0';
 
@@ -91,11 +103,9 @@ app.get('/home',  (req,res)=> {
   // Just serve the page, do not log here!
   res.sendFile(path.join(__dirname,'public','home.html'));
 });
-// Don't POST to /home for logging, just serve the page if you need POST for form use-cases
 app.post('/home', (req,res)=> {
   res.sendFile(path.join(__dirname,'public','home.html'));
 });
-// Logging endpoint for background JS
 app.post('/log-location', express.urlencoded({ extended: true }), async (req, res) => {
   await logIP(req, 'visited /home');
   res.sendStatus(204);
