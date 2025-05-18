@@ -5,6 +5,7 @@
   <title>Quantum Flip Duel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* All your existing CSS, unchanged. */
     html, body { margin: 0; padding: 0; background: #1a1b26; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
     body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
     h1 { margin: 32px 0 14px 0; font-size: 2.7em; color: #7df9ff; text-shadow: 0 2px 12px #0ff9; letter-spacing: 2px;}
@@ -234,12 +235,7 @@
       border:none;font-size:1.5em;font-weight:bold;cursor:pointer;
       text-shadow:0 2px 14px #7df9ff55;
     }
-    /* Save game feature */
-    .savegame-wrap {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-    }
+    .savegame-wrap { margin-top: 12px; display: flex; gap: 8px; }
     .savegame-btn {
       background: linear-gradient(90deg, #273a40 70%, #09f9);
       border: 2px solid #7df9ff;
@@ -275,108 +271,46 @@
       80% { opacity: 1; }
       100% { opacity: 0; }
     }
-    
-    /* Tutorial */
     .tutorial {
-      text-align: center;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+      text-align: center; max-width: 600px; margin: 0 auto; padding: 20px;
     }
-    .tutorial-content {
-      color: #d0ebf0;
-      font-size: 1.1em;
-      line-height: 1.5;
-      margin-bottom: 20px;
-      text-align: left;
-    }
-    .tutorial-highlight {
-      color: #7df9ff;
-      font-weight: bold;
-    }
-    .tutorial-step {
-      margin-bottom: 25px;
-      background: rgba(0,20,40,0.3);
-      padding: 15px;
-      border-radius: 10px;
-      border: 1px solid #7df9ff44;
-    }
-    .tutorial-step h3 {
-      color: #7df9ff;
-      margin-top: 0;
-    }
-    .tutorial-navigation {
-      display: flex;
-      justify-content: space-between;
-      width: 100%;
-      margin-top: 10px;
-    }
-    .tutorial-img {
-      max-width: 100%;
-      border-radius: 8px;
-      margin: 10px 0;
-      border: 2px solid #7df9ff66;
-    }
-    
-    /* New animations */
+    .tutorial-content { color: #d0ebf0; font-size: 1.1em; line-height: 1.5; margin-bottom: 20px; text-align: left; }
+    .tutorial-highlight { color: #7df9ff; font-weight: bold; }
+    .tutorial-step { margin-bottom: 25px; background: rgba(0,20,40,0.3); padding: 15px; border-radius: 10px; border: 1px solid #7df9ff44; }
+    .tutorial-step h3 { color: #7df9ff; margin-top: 0; }
+    .tutorial-navigation { display: flex; justify-content: space-between; width: 100%; margin-top: 10px; }
+    .tutorial-img { max-width: 100%; border-radius: 8px; margin: 10px 0; border: 2px solid #7df9ff66; }
     @keyframes flipCell {
       0% { transform: rotateY(0deg); }
       50% { transform: rotateY(90deg); }
       100% { transform: rotateY(0deg); }
     }
-    .cell.flipping {
-      animation: flipCell 0.4s;
-    }
+    .cell.flipping { animation: flipCell 0.4s; }
     .flash-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: transparent;
-      pointer-events: none;
-      z-index: 100;
-      opacity: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: transparent; pointer-events: none; z-index: 100; opacity: 0;
     }
-    
-    /* Spell effects */
     .flash-frost {
       background: rgba(125, 249, 255, 0.3);
       animation: flashFrost 1s forwards;
     }
-    @keyframes flashFrost {
-      0% { opacity: 0; }
-      50% { opacity: 0.5; }
-      100% { opacity: 0; }
-    }
+    @keyframes flashFrost { 0% { opacity: 0; } 50% { opacity: 0.5; } 100% { opacity: 0; } }
     .flash-fire {
       background: rgba(255, 100, 50, 0.3);
       animation: flashFire 1s forwards;
     }
-    @keyframes flashFire {
-      0% { opacity: 0; }
-      50% { opacity: 0.5; }
-      100% { opacity: 0; }
-    }
+    @keyframes flashFire { 0% { opacity: 0; } 50% { opacity: 0.5; } 100% { opacity: 0; } }
     .flash-void {
       background: rgba(128, 0, 255, 0.4);
       animation: flashVoid 1.2s forwards;
     }
-    @keyframes flashVoid {
-      0% { opacity: 0; }
-      50% { opacity: 0.7; }
-      100% { opacity: 0; }
-    }
+    @keyframes flashVoid { 0% { opacity: 0; } 50% { opacity: 0.7; } 100% { opacity: 0; } }
     .frost-effect {
-      position: absolute;
-      width: 100%;
-      height: 100%;
+      position: absolute; width: 100%; height: 100%;
       background: radial-gradient(circle, #7df9ff33 30%, transparent 70%);
       border-radius: 12px;
       animation: frostPulse 2s infinite;
-      top: 0;
-      left: 0;
-      pointer-events: none;
+      top: 0; left: 0; pointer-events: none;
     }
     @keyframes frostPulse {
       0% { opacity: 0.3; transform: scale(0.9); }
@@ -384,22 +318,17 @@
       100% { opacity: 0.3; transform: scale(0.9); }
     }
     .fire-effect {
-      position: absolute;
-      width: 100%;
-      height: 100%;
+      position: absolute; width: 100%; height: 100%;
       background: radial-gradient(circle, #ff640033 30%, transparent 70%);
       border-radius: 12px;
       animation: firePulse 1.5s infinite;
-      top: 0;
-      left: 0;
-      pointer-events: none;
+      top: 0; left: 0; pointer-events: none;
     }
     @keyframes firePulse {
       0% { opacity: 0.4; transform: scale(0.9); }
       50% { opacity: 0.7; transform: scale(1.1); }
       100% { opacity: 0.4; transform: scale(0.9); }
     }
-    
     @media (max-width:600px) {
       #board { grid-gap: 4px; }
       .cell { width: 32px; height: 32px; font-size: 0.95em; }
@@ -716,37 +645,29 @@ function renderBoard() {
   const boardElement = document.getElementById('board');
   boardElement.innerHTML = '';
   boardElement.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
-  
+
   for (let i = 0; i < SIZE; i++) {
     for (let j = 0; j < SIZE; j++) {
       const cell = document.createElement('button');
       cell.className = 'cell';
       cell.setAttribute('data-row', i);
       cell.setAttribute('data-col', j);
-      
-      // Set cell state
-      if (board[i][j] === 1) {
-        cell.classList.add('player');
-      } else if (board[i][j] === 2) {
-        cell.classList.add('ai');
-      }
-      
-      // Check if cell is frozen
-     const isFrozen = spellEffects.frozenTiles.some(tile => 
-  tile.row === i && tile.col === j && tile.duration > 0
-);
-      
+
+      if (board[i][j] === 1) cell.classList.add('player');
+      else if (board[i][j] === 2) cell.classList.add('ai');
+
+      // Use correct variables here:
+      const isFrozen = spellEffects.frozenTiles.some(tile =>
+        tile.row === i && tile.col === j && tile.duration > 0
+      );
       if (isFrozen) {
         const frostEffect = document.createElement('div');
         frostEffect.className = 'frost-effect';
         cell.appendChild(frostEffect);
       }
-      
-      // Mark recent move
       if (lastMove && lastMove.row === i && lastMove.col === j) {
         cell.classList.add('recent-move');
       }
-      
       cell.addEventListener('click', () => makeMove(i, j));
       boardElement.appendChild(cell);
     }
@@ -808,29 +729,31 @@ function isValidMove(row, col) {
 function executeMove(row, col, isPlayer) {
   const tileValue = isPlayer ? 1 : 2;
   const opponentValue = isPlayer ? 2 : 1;
-  
-  // Check if this is a frozen tile
-  const isFrozen = spellEffects.frozenTiles.some(tile => 
-  tile.row === row && tile.col === col && tile.duration > 0
-);
+
+  // Use correct variables here:
+  const isFrozen = spellEffects.frozenTiles.some(tile =>
+    tile.row === row && tile.col === col && tile.duration > 0
+  );
   if (isFrozen) return false;
-  
-  // Place tile or flip
+
   if (board[row][col] === 0) {
-    // Empty cell, place new tile
     board[row][col] = tileValue;
     animateFlip(row, col);
   } else if (board[row][col] === opponentValue) {
-    // Opponent's tile, flip it
     board[row][col] = tileValue;
     animateFlip(row, col);
-    
-    // Also flip adjacent opponent tiles if Fire Burst is active
+
     if (isPlayer && spellEffects.fireBurst) {
       flipAdjacentTiles(row, col);
       spellEffects.fireBurst = false;
     }
   }
+  movesLeft--;
+  if (isPlayer) {
+    mana = Math.min(maxMana, mana + 8);
+  }
+  return true;
+}
   
   // Decrement moves
   movesLeft--;
