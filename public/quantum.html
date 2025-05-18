@@ -733,7 +733,7 @@ function renderBoard() {
       
       // Check if cell is frozen
      const isFrozen = spellEffects.frozenTiles.some(tile => 
-  tile.row === row && tile.col === col && tile.duration > 0
+  tile.row === i && tile.col === j && tile.duration > 0
 );
       
       if (isFrozen) {
@@ -811,9 +811,8 @@ function executeMove(row, col, isPlayer) {
   
   // Check if this is a frozen tile
   const isFrozen = spellEffects.frozenTiles.some(tile => 
-    tile.row === row && tile.col === j && tile.duration > 0
-  );
-  
+  tile.row === row && tile.col === col && tile.duration > 0
+);
   if (isFrozen) return false;
   
   // Place tile or flip
