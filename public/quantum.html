@@ -32,7 +32,7 @@
     .slider-wrap { display: flex; align-items: center; margin-bottom: 24px; }
     .slider { margin: 0 10px; accent-color: #7df9ff; }
     .select { font-size: 1.13em; padding: 4px 12px; border-radius: 7px; border: 1.5px solid #7df9ff; color: #7df9ff; background: #23233a; }
-    #board { display: grid; grid-template-columns: repeat(6, 54px); grid-gap: 10px; margin: 32px 0 12px 0; }
+    #board { display: grid; grid-gap: 10px; margin: 32px 0 12px 0; }
     .cell {
       width: 54px; height: 54px; border-radius: 12px; border: none; outline: none;
       cursor: pointer; font-size: 1.5em; transition: background 0.16s, box-shadow 0.17s, color 0.15s;
@@ -55,10 +55,17 @@
       outline: 4px solid #7df9ffcc !important;
       z-index: 2;
     }
-    .cell:disabled {
-      opacity: 0.73;
-      cursor: not-allowed;
-      filter: grayscale(0.25);
+    .cell.event {
+      animation: eventFlash 0.9s;
+      box-shadow: 0 0 28px 8px #f7d35499, 0 2px 14px #7df9ff55;
+    }
+    @keyframes eventFlash {
+      0% { box-shadow: 0 0 28px 8px #f7d35499,0 2px 14px #7df9ff55;}
+      40% { box-shadow: 0 0 44px 18px #ffe36b,0 2px 14px #7df9ff55;}
+      100% { box-shadow: 0 0 28px 8px #f7d35499,0 2px 14px #7df9ff55;}
+    }
+    .settings-opt {
+      margin-bottom: 18px;
     }
     #move-counter { font-size: 1.25em; margin-bottom: 6px; color: #7df9ff; font-weight: 600;}
     #whose-turn { margin-bottom: 16px; color: #7df9ff; font-size: 1.09em; }
@@ -66,7 +73,7 @@
     #winner { font-size: 2.1em; margin: 22px 0 10px 0; color: #7df9ff; text-shadow: 0 2px 12px #0ff6;}
     #final-count {font-size: 1.28em; color:#b3dcdf;}
     @media (max-width:600px) {
-      #board { grid-template-columns: repeat(6, 32px); grid-gap: 4px; }
+      #board { grid-gap: 4px; }
       .cell { width: 32px; height: 32px; font-size: 0.95em; }
       h1 { font-size: 1.3em; }
       .button { font-size: 1em; padding: 8px 16px;}
@@ -80,6 +87,23 @@
       background: radial-gradient(circle at 20% 30%, #7df9ff22 0 40%, transparent 70%), radial-gradient(circle at 80% 70%, #7df9ff13 0 50%, transparent 80%);
       opacity: 1;
     }
+    #event-msg {
+      color: #ffe36b;
+      background: #2c2c11;
+      border: 2px solid #ffe36b;
+      border-radius: 10px;
+      font-size: 1.2em;
+      padding: 10px 18px;
+      margin-bottom: 11px;
+      box-shadow: 0 0 14px #ffe36b66;
+      animation: eventMsg 1.1s;
+      display:none;
+    }
+    @keyframes eventMsg {
+      0% { opacity:0; transform: scale(0.7);}
+      60% { opacity:1; transform: scale(1.05);}
+      100% { opacity:1; transform: scale(1);}
+    }
   </style>
 </head>
 <body>
@@ -91,21 +115,39 @@
   </div>
   <!-- Settings Menu -->
   <div class="settings" id="settings">
-    <div class="label">Move Limit:</div>
-    <div class="slider-wrap">
-      <span id="move-limit-val">30</span>
-      <input id="move-limit-slider" class="slider" type="range" min="10" max="60" value="30">
+    <div class="settings-opt">
+      <div class="label">Move Limit:</div>
+      <div class="slider-wrap">
+        <span id="move-limit-val">30</span>
+        <input id="move-limit-slider" class="slider" type="range" min="5" max="100" value="30">
+      </div>
     </div>
-    <div class="label">AI Difficulty:</div>
-    <select id="difficulty" class="select">
-      <option value="easy">Easy</option>
-      <option value="medium">Medium</option>
-      <option value="hard" selected>Hard</option>
-    </select>
+    <div class="settings-opt">
+      <div class="label">AI Difficulty:</div>
+      <select id="difficulty" class="select">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard" selected>Hard</option>
+      </select>
+    </div>
+    <div class="settings-opt">
+      <div class="label">Board Size: <span id="board-size-val">6</span> x <span id="board-size-val2">6</span></div>
+      <div class="slider-wrap">
+        <input id="board-size-slider" class="slider" type="range" min="4" max="10" value="6">
+      </div>
+    </div>
+    <div class="settings-opt">
+      <label style="color:#ffe36b;font-weight:bold;font-size:1.09em;">
+        <input type="checkbox" id="random-events" style="margin-right:8px; accent-color:#ffe36b;">
+        Enable Random Events
+      </label>
+      <div style="font-size:0.94em;color:#ffe36b99;margin-top:2px;">(Surprise board flips at random!)</div>
+    </div>
     <button class="button" id="settings-back" style="margin-top:22px;">Back</button>
   </div>
   <!-- Game UI -->
   <div class="game" id="game">
+    <div id="event-msg"></div>
     <div id="move-counter">Moves: 30</div>
     <div id="whose-turn">Your Turn</div>
     <div id="board"></div>
@@ -120,9 +162,10 @@
   </div>
   <script>
     // --- State ---
-    const SIZE = 6;
+    let SIZE = 6;
     let moveLimit = 30;
     let difficulty = "hard";
+    let randomEvents = false;
     let board = [];
     let movesLeft = moveLimit;
     let playerTurn = true; // player = white
@@ -138,6 +181,7 @@
     const boardDiv = document.getElementById('board');
     const winnerDiv = document.getElementById('winner');
     const finalCountDiv = document.getElementById('final-count');
+    const eventMsg = document.getElementById('event-msg');
 
     // --- Main Menu logic ---
     document.getElementById('play-btn').onclick = () => {
@@ -171,6 +215,19 @@
     document.getElementById('difficulty').onchange = (e) => {
       difficulty = e.target.value;
     };
+    // Board size
+    const boardSizeSlider = document.getElementById('board-size-slider');
+    const boardSizeVal = document.getElementById('board-size-val');
+    const boardSizeVal2 = document.getElementById('board-size-val2');
+    boardSizeSlider.oninput = () => {
+      boardSizeVal.textContent = boardSizeSlider.value;
+      boardSizeVal2.textContent = boardSizeSlider.value;
+      SIZE = parseInt(boardSizeSlider.value);
+    };
+    // Random events
+    document.getElementById('random-events').onchange = (e) => {
+      randomEvents = e.target.checked;
+    };
 
     // --- Helper functions ---
     function show(...els) { els.forEach(e => e.classList.add('show')); }
@@ -189,6 +246,7 @@
         }
       }
       updateUI();
+      eventMsg.style.display = "none";
     }
 
     function updateUI() {
@@ -196,6 +254,7 @@
       whoseTurn.textContent = playerTurn ? "Your Turn" : "AI's Turn";
       // render board
       boardDiv.innerHTML = '';
+      boardDiv.style.gridTemplateColumns = `repeat(${SIZE}, minmax(24px,54px))`;
       for(let y=0; y<SIZE; ++y) {
         for(let x=0; x<SIZE; ++x) {
           const cell = document.createElement('button');
@@ -275,6 +334,7 @@
           playerTurn = true;
           updateUI();
           if (movesLeft === 0) endGame();
+          else if(randomEvents) setTimeout(triggerRandomEvent, 420);
         }, true);
       }
     }
@@ -282,11 +342,9 @@
     // Returns how many cells will be flipped to ai/player color if move is made
     function calcBenefit(x, y, forColor) {
       let flips = 0;
-      // only if cell is the opposite color
       if (board[y][x] !== forColor) {
         flips++;
       }
-      // Adjacent (not corners)
       [[0,1],[1,0],[-1,0],[0,-1]].forEach(([dx,dy])=>{
         let nx=x+dx, ny=y+dy;
         if(nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE)
@@ -297,14 +355,12 @@
 
     // Flips and animates (adds .selected class), then calls cb when done
     function animateFlip(x, y, which, cb, ai=false) {
-      // Gather all to be flipped
       let toFlip = [{x, y}];
       [[0,1],[1,0],[-1,0],[0,-1]].forEach(([dx,dy])=>{
         let nx=x+dx, ny=y+dy;
         if(nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE)
           toFlip.push({x:nx, y:ny});
       });
-      // Animate
       let cells = Array.from(boardDiv.children);
       toFlip.forEach(pos=>{
         let idx = pos.y*SIZE+pos.x;
@@ -329,6 +385,59 @@
       }, ai ? 300 : 140);
     }
 
+    function triggerRandomEvent() {
+      // 25% chance (1 in 4) per turn
+      if (Math.random() < 0.25) {
+        // Pick random event type: column or row (50/50)
+        if (Math.random() < 0.5) {
+          // Flip a random column
+          let col = Math.floor(Math.random() * SIZE);
+          for (let y = 0; y < SIZE; ++y) board[y][col] = 1 - board[y][col];
+          highlightEvent("column", col);
+          showEventMsg(`Random Event: Column ${col+1} fully flipped!`);
+        } else {
+          // Flip a random row
+          let row = Math.floor(Math.random() * SIZE);
+          for (let x = 0; x < SIZE; ++x) board[row][x] = 1 - board[row][x];
+          highlightEvent("row", row);
+          showEventMsg(`Random Event: Row ${row+1} fully flipped!`);
+        }
+        updateUI();
+        setTimeout(()=>{eventMsg.style.display="none";}, 1250);
+      }
+    }
+    function highlightEvent(type, idx) {
+      let cells = Array.from(boardDiv.children);
+      if(type==="column") {
+        for(let y=0; y<SIZE; ++y) {
+          let cell = cells[y*SIZE+idx];
+          if(cell) cell.classList.add("event");
+        }
+      } else {
+        for(let x=0; x<SIZE; ++x) {
+          let cell = cells[idx*SIZE+x];
+          if(cell) cell.classList.add("event");
+        }
+      }
+      setTimeout(()=>{
+        if(type==="column") {
+          for(let y=0; y<SIZE; ++y) {
+            let cell = cells[y*SIZE+idx];
+            if(cell) cell.classList.remove("event");
+          }
+        } else {
+          for(let x=0; x<SIZE; ++x) {
+            let cell = cells[idx*SIZE+x];
+            if(cell) cell.classList.remove("event");
+          }
+        }
+      }, 1000);
+    }
+    function showEventMsg(msg) {
+      eventMsg.textContent = msg;
+      eventMsg.style.display = "block";
+    }
+
     function endGame() {
       let player = 0, ai = 0;
       for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
@@ -340,10 +449,15 @@
       winnerDiv.textContent = winner;
       finalCountDiv.textContent = `Final: You ${player} - AI ${ai}`;
       show(end); hide(game,menu,settings);
+      eventMsg.style.display = "none";
     }
 
     // --- Start with main menu ---
     show(menu);
+    // Set initial visuals for sliders
+    moveLimitVal.textContent = moveLimitSlider.value;
+    boardSizeVal.textContent = boardSizeSlider.value;
+    boardSizeVal2.textContent = boardSizeSlider.value;
   </script>
 </body>
 </html>
