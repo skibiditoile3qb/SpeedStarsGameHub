@@ -81,7 +81,7 @@ app.get('/login', (req, res) => {
   `);
 });
 app.get('/quantum', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'quantum.html'));
+  res.sendFile(path.join(__dirname, 'public','quantumflipduel','quantum.html'));
 });
 // --- Handle Login ---
 app.post('/login', (req, res) => {
