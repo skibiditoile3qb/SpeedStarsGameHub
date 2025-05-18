@@ -4,14 +4,104 @@
   <meta charset="UTF-8">
   <title>Quantum Flip Duel</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- CSS is now in a separate file -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- All your HTML: NO <style> or <script> blocks here! -->
   <h1>Quantum Flip Duel</h1>
-  <!-- ...everything from your Main Menu to End Screen, overlays etc... -->
-  <!-- ...do NOT include <style> or <script> tags here... -->
+  <!-- Main Menu -->
+  <div class="menu show" id="menu">
+    <button class="button" id="play-btn">Play</button>
+    <button class="button" id="continue-btn" style="display: none;">Continue Game</button>
+    <button class="button" id="settings-btn">Settings</button>
+    <button class="button" id="shop-btn">Shop</button>
+    <button class="button" id="tutorial-btn">How To Play</button>
+    <div class="coinbar" id="menu-coins"></div>
+  </div>
+  <!-- Settings Menu -->
+  <div class="settings" id="settings">
+    <div class="settings-opt">
+      <div class="label">Move Limit:</div>
+      <div class="slider-wrap">
+        <span id="move-limit-val">30</span>
+        <input id="move-limit-slider" class="slider" type="range" min="5" max="100" value="30">
+      </div>
+    </div>
+    <div class="settings-opt">
+      <div class="label">AI Difficulty:</div>
+      <select id="difficulty" class="select">
+        <option value="easy">Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard" selected>Hard</option>
+      </select>
+    </div>
+    <div class="settings-opt">
+      <div class="label">Board Size: <span id="board-size-val">6</span> x <span id="board-size-val2">6</span></div>
+      <div class="slider-wrap">
+        <input id="board-size-slider" class="slider" type="range" min="4" max="10" value="6">
+      </div>
+    </div>
+    <div class="settings-opt">
+      <label style="color:#ffe36b;font-weight:bold;font-size:1.09em;">
+        <input type="checkbox" id="random-events" style="margin-right:8px; accent-color:#ffe36b;">
+        Enable Random Events
+      </label>
+      <div style="font-size:0.94em;color:#ffe36b99;margin-top:2px;">(Surprise board flips at random!)</div>
+    </div>
+    <div class="settings-opt">
+      <label style="color:#7df9ff;font-weight:bold;font-size:1.09em;">
+        <input type="checkbox" id="block-recent-move" style="margin-right:8px; accent-color:#7df9ff;" checked>
+        Block Recent Move Spaces
+      </label>
+      <div style="font-size:0.94em;color:#7df9ff99;margin-top:2px;">(AI can't flip the space you just flipped)</div>
+    </div>
+    <button class="button" id="settings-back" style="margin-top:22px;">Back</button>
+  </div>
+  <!-- Game UI -->
+  <div class="game" id="game">
+    <div id="event-msg"></div>
+    <div class="coinbar" id="game-coins"></div>
+    <div class="mana-bar-wrap"><div class="mana-bar" id="mana-bar"></div><span class="mana-bar-label" id="mana-label"></span></div>
+    <div class="spellbar" id="spellbar"></div>
+    <div id="move-counter">Moves: 30</div>
+    <div id="whose-turn">Your Turn</div>
+    <div id="board"></div>
+    <div class="savegame-wrap">
+      <button class="savegame-btn" id="save-game">Save Game</button>
+      <button class="savegame-btn" id="load-game">Load Game</button>
+    </div>
+    <button class="button" id="back-menu" style="margin-top:23px;">Main Menu</button>
+  </div>
+  <!-- Shop Overlay -->
+  <div class="shop" id="shop">
+    <div class="shop-box">
+      <button class="shop-close-btn" id="close-shop" title="Close Shop">&times;</button>
+      <div class="shop-title">Spell Shop</div>
+      <div class="shop-coins" id="shop-coins"></div>
+      <div class="shop-spells-list" id="shop-spells"></div>
+      <div style="color:#ffe36b99;font-size:0.98em;">Earn coins by defeating the AI!</div>
+    </div>
+  </div>
+  <!-- Tutorial -->
+  <div class="tutorial" id="tutorial">
+    <h2 style="color:#7df9ff">How To Play Quantum Flip Duel</h2>
+    <div id="tutorial-content"></div>
+    <div class="tutorial-navigation">
+      <button class="button" id="tutorial-prev" style="display:none">Previous</button>
+      <button class="button" id="tutorial-next">Next</button>
+      <button class="button" id="tutorial-close" style="display:none">Close Tutorial</button>
+    </div>
+  </div>
+  <!-- End Screen -->
+  <div class="end" id="end">
+    <div id="winner"></div>
+    <div id="final-count"></div>
+    <button class="button" id="play-again">Play Again</button>
+    <button class="button" id="end-menu">Main Menu</button>
+    <button class="button" id="end-shop">Shop</button>
+  </div>
+  <!-- Visual Effects Overlays -->
+  <div class="flash-overlay" id="flash-overlay"></div>
+  <div id="save-status"></div>
   <script src="quantum.js"></script>
 </body>
 </html>
