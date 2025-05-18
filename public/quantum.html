@@ -1,752 +1,1743 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Quantum Flip Duel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    html, body { margin: 0; padding: 0; background: #1a1b26; color: #fff; font-family: 'Segoe UI', Arial, sans-serif; }
-    body { min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
-    h1 { margin: 32px 0 14px 0; font-size: 2.7em; color: #7df9ff; text-shadow: 0 2px 12px #0ff9; letter-spacing: 2px;}
-    .menu, .settings, .game, .end, .shop { display: none; flex-direction: column; align-items: center; width: 100%; }
-    .show { display: flex !important; }
-    .button {
-      background: linear-gradient(90deg, #181825 80%, #7df9ff22 100%);
-      border: 2.2px solid #7df9ff;
-      color: #7df9ff;
-      border-radius: 8px;
-      font-size: 1.25em;
-      font-weight: 600;
-      padding: 13px 38px;
-      margin: 15px 0 0 0;
-      cursor: pointer;
-      transition: background .17s, box-shadow .17s;
-      text-align: center;
-      box-shadow: 0 2px 16px #7df9ff22, 0 2px 20px #0002;
-      outline: none;
-    }
-    .button:active {
-      background: linear-gradient(90deg, #23233a 80%, #7df9ff33 100%);
-    }
-    .label { color: #7df9ff; font-weight: bold; margin-bottom: 4px; font-size: 1.1em;}
-    .slider-wrap { display: flex; align-items: center; margin-bottom: 24px; }
-    .slider { margin: 0 10px; accent-color: #7df9ff; }
-    .select { font-size: 1.13em; padding: 4px 12px; border-radius: 7px; border: 1.5px solid #7df9ff; color: #7df9ff; background: #23233a; }
-    #board { display: grid; grid-gap: 10px; margin: 32px 0 12px 0; }
-    .cell {
-      width: 54px; height: 54px; border-radius: 12px; border: none; outline: none;
-      cursor: pointer; font-size: 1.5em; transition: background 0.16s, box-shadow 0.17s, color 0.15s;
-      box-shadow: 0 3px 14px #0ff3, 0 1px 9px #0009;
-      margin: 0; position: relative;
-    }
-    .cell.player {
-      background: linear-gradient(145deg, #ecf6ff 70%, #bdf3fa 100%);
-      color: #1a1b26;
-      box-shadow: 0 0 12px #7df9ff88, 0 2px 14px #7df9ff55;
-      border: 2px solid #7df9ff99;
-    }
-    .cell.ai {
-      background: linear-gradient(145deg, #23233a 80%, #0a0a13 100%);
-      color: #7df9ff;
-      box-shadow: 0 1px 9px #0009;
-      border: 2px solid #222638;
-    }
-    .cell.selected {
-      outline: 4px solid #7df9ffcc !important;
-      z-index: 2;
-    }
-    .cell.event, .cell.meteor {
-      animation: eventFlash 0.9s;
-      box-shadow: 0 0 28px 8px #f7d35499, 0 2px 14px #7df9ff55;
-    }
-    @keyframes eventFlash {
-      0% { box-shadow: 0 0 28px 8px #f7d35499,0 2px 14px #7df9ff55;}
-      40% { box-shadow: 0 0 44px 18px #ffe36b,0 2px 14px #7df9ff55;}
-      100% { box-shadow: 0 0 28px 8px #f7d35499,0 2px 14px #7df9ff55;}
-    }
-    .settings-opt {
-      margin-bottom: 18px;
-    }
-    #move-counter { font-size: 1.25em; margin-bottom: 6px; color: #7df9ff; font-weight: 600;}
-    #whose-turn { margin-bottom: 16px; color: #7df9ff; font-size: 1.09em; }
-    .end { text-align: center; }
-    #winner { font-size: 2.1em; margin: 22px 0 10px 0; color: #7df9ff; text-shadow: 0 2px 12px #0ff6;}
-    #final-count {font-size: 1.28em; color:#b3dcdf;}
-    .spellbar {
-      display: flex; gap: 14px; justify-content:center; margin-bottom:4px; margin-top:5px;
-    }
-    .spellbutton {
-      background: linear-gradient(90deg, #273a40 70%, #09f9);
-      border: 2px solid #7df9ff;
-      color: #fff;
-      border-radius: 7px;
-      font-size: 1.09em;
-      font-weight: 700;
-      padding: 7px 19px;
-      box-shadow: 0 1px 6px #7df9ff44;
-      cursor: pointer;
-      margin: 0;
-      transition: background 0.2s, color 0.2s, border 0.2s;
-      outline: none;
-      position:relative;
-    }
-    .spellbutton:disabled { opacity: 0.57; cursor: not-allowed;}
-    .spell-mana { font-size: 0.92em; color: #7df9ff; margin-left: 3px;}
-    .spell-coins { font-size: 0.91em; color: #ffe36b; margin-left: 10px;}
-    .mana-bar-wrap {
-      background: #23233a;
-      border-radius: 7px;
-      width: 210px;
-      height: 18px;
-      margin: 0 auto 9px auto;
-      border: 1.5px solid #7df9ff88;
-      overflow: hidden;
-      position: relative;
-    }
-    .mana-bar {
-      height: 100%;
-      background: linear-gradient(90deg,#7df9ff 60%,#09f9 100%);
-      border-radius: 7px;
-      transition: width 0.25s;
-    }
-    .mana-bar-label {
-      position: absolute;
-      left: 0; right: 0; top: 0; bottom: 0;
-      text-align: center;
-      color: #fff; font-weight: bold;
-      font-size:1.02em;
-      text-shadow: 0 1px 8px #000,0 1px 14px #7df9ff22;
-      pointer-events:none;
-    }
-    .coinbar {
-      color:#ffe36b; font-size:1.13em; font-weight:bold; margin-top:5px; margin-bottom:5px;
-      background:#23233a; border-radius:7px; border:1.5px solid #ffe36b99;
-      display:inline-block; padding: 3.5px 15px;
-      letter-spacing:1.2px; box-shadow:0 1px 6px #ffe36b22;
-    }
-    #event-msg {
-      color: #ffe36b;
-      background: #2c2c11;
-      border: 2px solid #ffe36b;
-      border-radius: 10px;
-      font-size: 1.2em;
-      padding: 10px 18px;
-      margin-bottom: 11px;
-      box-shadow: 0 0 14px #ffe36b66;
-      animation: eventMsg 1.1s;
-      display:none;
-    }
-    @keyframes eventMsg {
-      0% { opacity:0; transform: scale(0.7);}
-      60% { opacity:1; transform: scale(1.05);}
-      100% { opacity:1; transform: scale(1);}
-    }
-    /* Shop overlay */
-    .shop {
-      position: fixed;
-      top:0; left:0; right:0; bottom:0;
-      background: rgba(10,20,40,0.98);
-      z-index: 50;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-    .shop-box {
-      background: #191930;
-      border-radius: 18px;
-      border: 3px solid #7df9ff99;
-      padding: 36px 34px 23px 34px;
-      min-width: 300px;
-      box-shadow: 0 2px 40px #7df9ff33;
-      position:relative;
-      z-index:60;
-      margin-top: 50px;
-    }
-    .shop-title {
-      font-size: 2em;
-      color: #7df9ff;
-      margin-bottom: 8px;
-      text-shadow: 0 2px 10px #7df9ff88;
-      letter-spacing:1.2px;
-      font-weight: bold;
-    }
-    .shop-coins {
-      color: #ffe36b;
-      font-size:1.25em;
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-    .shop-spells-list {
-      margin-top: 10px;
-      margin-bottom: 4px;
-    }
-    .shop-spell {
-      margin-bottom: 14px;
-      padding: 13px 7px;
-      background: #22233a;
-      border-radius: 9px;
-      border: 2px solid #7df9ff44;
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      box-shadow: 0 1px 8px #7df9ff22;
-    }
-    .shop-spell-name { font-size:1.15em; font-weight:700;color:#7df9ff;}
-    .shop-spell-desc { font-size:0.98em; color:#fff; }
-    .shop-spell-mana { color:#7df9ff; font-size:0.96em; margin-left:8px;}
-    .shop-spell-cost { color:#ffe36b;font-size:0.98em;margin-left:13px;}
-    .shop-spell-owned { color:#aaff99;font-size:0.98em;margin-left:13px;}
-    .shop-buy-btn {
-      background:linear-gradient(90deg,#ffe36b,#fffbb1);
-      color:#1a1b26;border:none;border-radius:7px;font-weight:bold;font-size:1em;
-      padding: 8px 19px; cursor:pointer;margin-left:auto;transition:background 0.18s;
-      box-shadow:0 1px 8px #ffe36b55;
-    }
-    .shop-buy-btn:disabled { opacity:0.5; cursor:not-allowed;}
-    .shop-close-btn {
-      position:absolute;top:12px;right:17px;color:#7df9ff;background:none;
-      border:none;font-size:1.5em;font-weight:bold;cursor:pointer;
-      text-shadow:0 2px 14px #7df9ff55;
-    }
-    @media (max-width:600px) {
-      #board { grid-gap: 4px; }
-      .cell { width: 32px; height: 32px; font-size: 0.95em; }
-      h1 { font-size: 1.3em; }
-      .button { font-size: 1em; padding: 8px 16px;}
-      .shop-box { min-width: 0; width:90vw; padding:8vw 2vw;}
-    }
-    body:before {
-      content: "";
-      position: fixed;
-      z-index: -1;
-      inset:0;
-      pointer-events:none;
-      background: radial-gradient(circle at 20% 30%, #7df9ff22 0 40%, transparent 70%), radial-gradient(circle at 80% 70%, #7df9ff13 0 50%, transparent 80%);
-      opacity: 1;
-    }
-  </style>
-</head>
-<body>
-  <h1>Quantum Flip Duel</h1>
-  <!-- Main Menu -->
-  <div class="menu show" id="menu">
-    <button class="button" id="play-btn">Play</button>
-    <button class="button" id="settings-btn">Settings</button>
-    <button class="button" id="shop-btn">Shop</button>
-    <div class="coinbar" id="menu-coins"></div>
-  </div>
-  <!-- Settings Menu -->
-  <div class="settings" id="settings">
-    <div class="settings-opt">
-      <div class="label">Move Limit:</div>
-      <div class="slider-wrap">
-        <span id="move-limit-val">30</span>
-        <input id="move-limit-slider" class="slider" type="range" min="5" max="100" value="30">
-      </div>
-    </div>
-    <div class="settings-opt">
-      <div class="label">AI Difficulty:</div>
-      <select id="difficulty" class="select">
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard" selected>Hard</option>
-      </select>
-    </div>
-    <div class="settings-opt">
-      <div class="label">Board Size: <span id="board-size-val">6</span> x <span id="board-size-val2">6</span></div>
-      <div class="slider-wrap">
-        <input id="board-size-slider" class="slider" type="range" min="4" max="10" value="6">
-      </div>
-    </div>
-    <div class="settings-opt">
-      <label style="color:#ffe36b;font-weight:bold;font-size:1.09em;">
-        <input type="checkbox" id="random-events" style="margin-right:8px; accent-color:#ffe36b;">
-        Enable Random Events
-      </label>
-      <div style="font-size:0.94em;color:#ffe36b99;margin-top:2px;">(Surprise board flips at random!)</div>
-    </div>
-    <button class="button" id="settings-back" style="margin-top:22px;">Back</button>
-  </div>
-  <!-- Game UI -->
-  <div class="game" id="game">
-    <div id="event-msg"></div>
-    <div class="coinbar" id="game-coins"></div>
-    <div class="mana-bar-wrap"><div class="mana-bar" id="mana-bar"></div><span class="mana-bar-label" id="mana-label"></span></div>
-    <div class="spellbar" id="spellbar"></div>
-    <div id="move-counter">Moves: 30</div>
-    <div id="whose-turn">Your Turn</div>
-    <div id="board"></div>
-    <button class="button" id="back-menu" style="margin-top:23px;">Main Menu</button>
-  </div>
-  <!-- Shop Overlay -->
-  <div class="shop" id="shop">
-    <div class="shop-box">
-      <button class="shop-close-btn" id="close-shop" title="Close Shop">&times;</button>
-      <div class="shop-title">Spell Shop</div>
-      <div class="shop-coins" id="shop-coins"></div>
-      <div class="shop-spells-list" id="shop-spells"></div>
-      <div style="color:#ffe36b99;font-size:0.98em;">Earn coins by defeating the AI!</div>
-    </div>
-  </div>
-  <!-- End Screen -->
-  <div class="end" id="end">
-    <div id="winner"></div>
-    <div id="final-count"></div>
-    <button class="button" id="play-again">Play Again</button>
-    <button class="button" id="end-menu">Main Menu</button>
-    <button class="button" id="end-shop">Shop</button>
-  </div>
-  <script>
-    // --- Persistent Storage ---
-    function getCoins() { return parseInt(localStorage.getItem("qf_coins")||"0"); }
-    function setCoins(val) { localStorage.setItem("qf_coins",val); }
-    function getSpellOwned(spell) { return JSON.parse(localStorage.getItem("qf_spell_" + spell)||"false"); }
-    function setSpellOwned(spell, owned) { localStorage.setItem("qf_spell_" + spell, owned?"true":"false"); }
+// --- Tutorial Content ---
+const TUTORIAL_STEPS = [
+  {
+    title: "Welcome to Quantum Flip Duel",
+    content: `<p>Quantum Flip Duel is a strategic board game where you compete against the AI to claim the most tiles.</p>
+              <p>The goal is simple: <span class="tutorial-highlight">have more tiles in your color when the game ends</span>.</p>
+              <p>The game ends when all moves are used up or when there are no valid moves left.</p>`
+  },
+  {
+    title: "Making Moves",
+    content: `<p>Players take turns flipping tiles on the board.</p>
+              <p>When you click an empty tile, it becomes yours (white).</p>
+              <p>When you click on <span class="tutorial-highlight">any adjacent opponent's tile</span>, it flips to your color!</p>
+              <p>This is the key to victory - strategic flipping to convert your opponent's tiles.</p>`
+  },
+  {
+    title: "Spells & Mana",
+    content: `<p>As you play, you gain <span class="tutorial-highlight">mana</span> that can be used to cast powerful spells.</p>
+              <p>Spells give you special abilities like freezing tiles, converting adjacent opponent tiles, and more.</p>
+              <p>You can buy new spells in the shop using coins earned from victories.</p>`
+  },
+  {
+    title: "Strategic Tips",
+    content: `<p>To win consistently:</p>
+              <ul>
+                <li>Focus on <span class="tutorial-highlight">controlling the center</span> of the board</li>
+                <li>Try to create patterns that are difficult for the AI to flip</li>
+                <li>Save your spells for critical moments</li>
+                <li>Watch out for random events when enabled!</li>
+              </ul>`
+  }
+];
 
-    // --- Spell definitions ---
-    const SPELLS = [
-      {
-        id: "lightning",
-        name: "Lightning",
-        desc: "Paralyze AI for 1 move. You move again instantly.",
-        coin: 0,  // Free in shop for now
-        mana: 40,
-        testonly: true
+// --- Game Initialization ---
+function initializeBoard() {
+  board = [];
+  for (let i = 0; i < SIZE; i++) {
+    board[i] = [];
+    for (let j = 0; j < SIZE; j++) {
+      board[i][j] = 0; // 0 = empty, 1 = player, 2 = AI
+    }
+  }
+
+  // Place initial pieces
+  const mid = Math.floor(SIZE / 2);
+  board[mid-1][mid-1] = 1; // Player
+  board[mid][mid] = 1; // Player
+  board[mid-1][mid] = 2; // AI
+  board[mid][mid-1] = 2; // AI
+}
+
+function renderBoard() {
+  const boardElement = document.getElementById('board');
+  boardElement.innerHTML = '';
+  boardElement.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+  
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.setAttribute('data-row', i);
+      cell.setAttribute('data-col', j);
+      
+      // Set cell state
+      if (board[i][j] === 1) {
+        cell.classList.add('player');
+      } else if (board[i][j] === 2) {
+        cell.classList.add('ai');
       }
-      // More spells can be added here!
-    ];
-
-    // --- State ---
-    let SIZE = 6;
-    let moveLimit = 30;
-    let difficulty = "hard";
-    let randomEvents = false;
-    let board = [];
-    let movesLeft = moveLimit;
-    let playerTurn = true; // player = white
-    let mana = 50, maxMana = 100;
-    let spellEffects = { paralyzeAI: 0 }; // tracks spell states
-    let canCastSpell = true;
-    // 0 = player/white, 1 = ai/black
-
-    // --- UI elements ---
-    const menu = document.getElementById('menu');
-    const settings = document.getElementById('settings');
-    const game = document.getElementById('game');
-    const end = document.getElementById('end');
-    const shop = document.getElementById('shop');
-    const moveCounter = document.getElementById('move-counter');
-    const whoseTurn = document.getElementById('whose-turn');
-    const boardDiv = document.getElementById('board');
-    const winnerDiv = document.getElementById('winner');
-    const finalCountDiv = document.getElementById('final-count');
-    const eventMsg = document.getElementById('event-msg');
-    const manaBar = document.getElementById('mana-bar');
-    const manaLabel = document.getElementById('mana-label');
-    const spellbar = document.getElementById('spellbar');
-    const menuCoins = document.getElementById('menu-coins');
-    const gameCoins = document.getElementById('game-coins');
-    const shopCoins = document.getElementById('shop-coins');
-    const shopSpells = document.getElementById('shop-spells');
-
-    // --- Main Menu logic ---
-    document.getElementById('play-btn').onclick = () => {
-      show(game); hide(menu, settings, end, shop);
-      startGame();
-    };
-    document.getElementById('settings-btn').onclick = () => {
-      show(settings); hide(menu, game, end, shop);
-    };
-    document.getElementById('shop-btn').onclick = openShop;
-    document.getElementById('close-shop').onclick = () => {
-      hide(shop);
-      if(game.classList.contains("show")) show(game);
-      else show(menu);
-    };
-    document.getElementById('back-menu').onclick = () => {
-      show(menu); hide(game, settings, end, shop);
-    };
-    document.getElementById('settings-back').onclick = () => {
-      show(menu); hide(settings, game, end, shop);
-    };
-    document.getElementById('end-menu').onclick = () => {
-      show(menu); hide(game, settings, end, shop);
-    };
-    document.getElementById('play-again').onclick = () => {
-      show(game); hide(menu, settings, end, shop);
-      startGame();
-    };
-    document.getElementById('end-shop').onclick = openShop;
-
-    // --- Settings logic ---
-    const moveLimitSlider = document.getElementById('move-limit-slider');
-    const moveLimitVal = document.getElementById('move-limit-val');
-    moveLimitSlider.oninput = () => {
-      moveLimitVal.textContent = moveLimitSlider.value;
-      moveLimit = parseInt(moveLimitSlider.value);
-    };
-    document.getElementById('difficulty').onchange = (e) => {
-      difficulty = e.target.value;
-    };
-    // Board size
-    const boardSizeSlider = document.getElementById('board-size-slider');
-    const boardSizeVal = document.getElementById('board-size-val');
-    const boardSizeVal2 = document.getElementById('board-size-val2');
-    boardSizeSlider.oninput = () => {
-      boardSizeVal.textContent = boardSizeSlider.value;
-      boardSizeVal2.textContent = boardSizeSlider.value;
-      SIZE = parseInt(boardSizeSlider.value);
-    };
-    // Random events
-    document.getElementById('random-events').onchange = (e) => {
-      randomEvents = e.target.checked;
-    };
-
-    // --- Helper functions ---
-    function show(...els) { els.forEach(e => e.classList.add('show')); }
-    function hide(...els) { els.forEach(e => e.classList.remove('show')); }
-    function updateCoinsBars() {
-      menuCoins.textContent = "🪙 " + getCoins() + " Coins";
-      gameCoins.textContent = "🪙 " + getCoins() + " Coins";
-      shopCoins.textContent = "Your Coins: 🪙 " + getCoins();
+      
+      // Check if cell is frozen
+      const isFrozen = spellEffects.frozenTiles.some(tile => 
+        tile.row === i && tile.col === j && tile.duration > 0
+      );
+      
+      if (isFrozen) {
+        const frostEffect = document.createElement('div');
+        frostEffect.className = 'frost-effect';
+        cell.appendChild(frostEffect);
+      }
+      
+      // Mark recent move
+      if (lastMove && lastMove.row === i && lastMove.col === j) {
+        cell.classList.add('recent-move');
+      }
+      
+      cell.addEventListener('click', () => makeMove(i, j));
+      boardElement.appendChild(cell);
     }
+  }
+}
 
-    // --- Game Logic ---
-    function startGame() {
-      movesLeft = moveLimit;
-      playerTurn = true;
-      // Fill left half with 0 (player/white), right half 1 (ai/black)
-      board = [];
-      for(let y=0; y<SIZE; ++y) {
-        board[y] = [];
-        for(let x=0; x<SIZE; ++x) {
-          board[y][x] = x < SIZE/2 ? 0 : 1;
-        }
-      }
-      mana = 50; // start mana
-      spellEffects = { paralyzeAI: 0 };
-      canCastSpell = true;
-      updateCoinsBars();
-      updateUI();
-      eventMsg.style.display = "none";
-      renderSpellbar();
+// --- Core Game Functions ---
+function makeMove(row, col) {
+  if (!playerTurn || movesLeft <= 0) return;
+  
+  // Check if move is valid
+  if (!isValidMove(row, col)) return;
+  
+  // Execute the move
+  executeMove(row, col, true);
+  
+  // Update last move
+  lastMove = { row, col };
+  recentPlayerMoves.unshift({ row, col });
+  if (recentPlayerMoves.length > 3) recentPlayerMoves.pop();
+  
+  // Check for random events
+  if (randomEvents && Math.random() < 0.08) {
+    triggerRandomEvent();
+  }
+  
+  // Check for game end
+  if (movesLeft <= 0 || isBoardFull()) {
+    endGame();
+    return;
+  }
+  
+  // Switch turns
+  playerTurn = false;
+  updateUI();
+  
+  // Check if AI is paralyzed
+  if (spellEffects.paralyzeAI > 0) {
+    spellEffects.paralyzeAI--;
+    playerTurn = true;
+    updateUI();
+  } else {
+    // AI's turn
+    setTimeout(aiMove, 600);
+  }
+}
+
+function isValidMove(row, col) {
+  // Check if cell is empty or can be flipped
+  if (board[row][col] === 0) {
+    return true; // Can place on empty cell
+  } else if (board[row][col] === 2) {
+    // Check if there's an adjacent player's tile
+    return hasAdjacentTile(row, col, 1);
+  }
+  return false;
+}
+
+function executeMove(row, col, isPlayer) {
+  const tileValue = isPlayer ? 1 : 2;
+  const opponentValue = isPlayer ? 2 : 1;
+  
+  // Check if this is a frozen tile
+  const isFrozen = spellEffects.frozenTiles.some(tile => 
+    tile.row === row && tile.col === j && tile.duration > 0
+  );
+  
+  if (isFrozen) return false;
+  
+  // Place tile or flip
+  if (board[row][col] === 0) {
+    // Empty cell, place new tile
+    board[row][col] = tileValue;
+    animateFlip(row, col);
+  } else if (board[row][col] === opponentValue) {
+    // Opponent's tile, flip it
+    board[row][col] = tileValue;
+    animateFlip(row, col);
+    
+    // Also flip adjacent opponent tiles if Fire Burst is active
+    if (isPlayer && spellEffects.fireBurst) {
+      flipAdjacentTiles(row, col);
+      spellEffects.fireBurst = false;
     }
+  }
+  
+  // Decrement moves
+  movesLeft--;
+  
+  // Gain mana for player
+  if (isPlayer) {
+    mana = Math.min(maxMana, mana + 8);
+  }
+  
+  return true;
+}
 
-    function updateUI() {
-      moveCounter.textContent = `Moves: ${movesLeft}`;
-      whoseTurn.textContent = playerTurn ? (spellEffects.paralyzeAI ? "AI Paralyzed! Your Turn" : "Your Turn") : "AI's Turn";
-      // render board
-      boardDiv.innerHTML = '';
-      boardDiv.style.gridTemplateColumns = `repeat(${SIZE}, minmax(24px,54px))`;
-      for(let y=0; y<SIZE; ++y) {
-        for(let x=0; x<SIZE; ++x) {
-          const cell = document.createElement('button');
-          cell.className = `cell ${board[y][x]===0?'player':'ai'}`;
-          cell.dataset.x = x; cell.dataset.y = y;
-          cell.disabled = !(playerTurn && board[y][x]===1 && !spellEffects.justCasted);
-          cell.onclick = () => playerMove(x,y);
-          boardDiv.appendChild(cell);
-        }
-      }
-      // Mana bar
-      let perc = Math.min(mana,maxMana)/maxMana*100;
-      manaBar.style.width = perc+"%";
-      manaBar.style.background = `linear-gradient(90deg,#7df9ff 60%,#09f9 100%)`;
-      manaLabel.textContent = `Mana: ${mana} / ${maxMana}`;
-      renderSpellbar();
-    }
-
-    function renderSpellbar() {
-      spellbar.innerHTML = '';
-      SPELLS.forEach(spell => {
-        if(!getSpellOwned(spell.id) && !spell.testonly) return;
-        let btn = document.createElement('button');
-        btn.className = "spellbutton";
-        btn.innerHTML = `⚡ ${spell.name}<span class="spell-mana">(${spell.mana} Mana)</span><span class="spell-coins">🪙${spell.coin}</span>`;
-        btn.disabled = !playerTurn || mana<spell.mana || !canCastSpell;
-        btn.title = spell.desc;
-        btn.onclick = ()=>castSpell(spell.id);
-        spellbar.appendChild(btn);
-      });
-    }
-
-    function playerMove(x, y) {
-      if (!playerTurn || board[y][x]!==1) return;
-      animateFlip(x, y, 0, ()=>{
-        movesLeft--;
-        if(movesLeft>0) mana = Math.min(mana+1, maxMana);
-        playerTurn = false;
-        spellEffects.justCasted = false;
-        updateUI();
-        setTimeout(() => {
-          if (movesLeft === 0) return endGame();
-          aiMove();
-        }, 550);
-      });
-    }
-
-    function castSpell(spellid) {
-      let spell = SPELLS.find(s=>s.id===spellid);
-      if(!spell || mana<spell.mana) return;
-      mana -= spell.mana;
-      updateUI();
-      if(spellid==="lightning") {
-        spellEffects.paralyzeAI = 1;
-        spellEffects.justCasted = false; // allow move
-        canCastSpell = false; // block further spell use until next turn
-        showEventMsg("⚡ You cast Lightning! The AI is paralyzed for 1 move. Move again!");
-        setTimeout(()=>{eventMsg.style.display="none";}, 1100);
-        updateUI();
-      }
-      // Add further spells here!
-      // For other spells, use:
-      // spellEffects.justCasted = true; canCastSpell = false;
-      renderSpellbar();
-    }
-
-    // AI MOVES - FINAL LOGIC AS REQUESTED
-    function aiMove() {
-      if (spellEffects.paralyzeAI && spellEffects.paralyzeAI>0) {
-        spellEffects.paralyzeAI--;
-        playerTurn = true;
-        canCastSpell = true;
-        mana = Math.min(mana+1, maxMana);
-        updateUI();
-        if(randomEvents) setTimeout(triggerRandomEvent, 420);
-        return;
-      }
-      let moves = [];
-      for (let y = 0; y < SIZE; ++y)
-        for (let x = 0; x < SIZE; ++x)
-          if (board[y][x] === 0) moves.push({ x, y });
-      if (moves.length === 0) {
-        movesLeft--;
-        playerTurn = true;
-        canCastSpell = true;
-        updateUI();
-        if (movesLeft === 0) endGame();
-        return;
-      }
-      moves = moves.map(move => ({
-        ...move,
-        benefit: calcBenefit(move.x, move.y, 1)
-      }));
-      moves.sort((a, b) => b.benefit - a.benefit);
-      let rankedMoves = [];
-      let currentRank = 1;
-      for (let i = 0; i < moves.length; ++i) {
-        if (i > 0 && moves[i].benefit < moves[i - 1].benefit) currentRank = i + 1;
-        rankedMoves.push({ ...moves[i], rank: currentRank });
-      }
-      let chosen = null;
-      if (difficulty === "hard") {
-        let bestMoves = rankedMoves.filter(m => m.rank === 1);
-        chosen = bestMoves[Math.floor(Math.random() * bestMoves.length)];
-      } else if (difficulty === "medium") {
-        let mediumMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 12);
-        chosen = mediumMoves[Math.floor(Math.random() * mediumMoves.length)];
-      } else {
-        let easyMoves = rankedMoves.filter(m => m.rank >= 1 && m.rank <= 25);
-        chosen = easyMoves[Math.floor(Math.random() * easyMoves.length)];
-      }
-      if (chosen) {
-        animateFlip(chosen.x, chosen.y, 1, () => {
-          movesLeft--;
-          if(movesLeft>0) mana = Math.min(mana+1, maxMana);
-          playerTurn = true;
-          canCastSpell = true;
-          updateUI();
-          if (movesLeft === 0) endGame();
-          else if(randomEvents) setTimeout(triggerRandomEvent, 420);
-        }, true);
-      }
-    }
-
-    function calcBenefit(x, y, forColor) {
-      let flips = 0;
-      if (board[y][x] !== forColor) {
-        flips++;
-      }
-      [[0,1],[1,0],[-1,0],[0,-1]].forEach(([dx,dy])=>{
-        let nx=x+dx, ny=y+dy;
-        if(nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE)
-          if(board[ny][nx] !== forColor) flips++;
-      });
-      return flips;
-    }
-
-    function animateFlip(x, y, which, cb, ai=false) {
-      let toFlip = [{x, y}];
-      [[0,1],[1,0],[-1,0],[0,-1]].forEach(([dx,dy])=>{
-        let nx=x+dx, ny=y+dy;
-        if(nx>=0&&nx<SIZE&&ny>=0&&ny<SIZE)
-          toFlip.push({x:nx, y:ny});
-      });
-      let cells = Array.from(boardDiv.children);
-      toFlip.forEach(pos=>{
-        let idx = pos.y*SIZE+pos.x;
-        if (cells[idx]) {
-          cells[idx].classList.add('selected');
-        }
-      });
-      setTimeout(()=>{
-        toFlip.forEach(pos=>{
-          board[pos.y][pos.x]=1-board[pos.y][pos.x];
-        });
-        updateUI();
-        setTimeout(()=>{
-          toFlip.forEach(pos=>{
-            let idx = pos.y*SIZE+pos.x;
-            if (cells[idx]) {
-              cells[idx].classList.remove('selected');
+function flipAdjacentTiles(row, col) {
+  for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+    for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+      if (board[i][j] === 2) { // If it's an AI tile
+        board[i][j] = 1; // Flip to player
+        animateFlip(i, j);
+        
+        // Add fire effect
+        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (cell) {
+          const fireEffect = document.createElement('div');
+          fireEffect.className = 'fire-effect';
+          cell.appendChild(fireEffect);
+          
+          setTimeout(() => {
+            if (fireEffect.parentNode) {
+              fireEffect.parentNode.removeChild(fireEffect);
             }
-          });
-          if (cb) cb();
-        }, ai ? 300 : 180);
-      }, ai ? 300 : 140);
-    }
-
-    function triggerRandomEvent() {
-      if (Math.random() < 0.25) {
-        let rand = Math.random();
-        if(rand < 0.34) {
-          let col = Math.floor(Math.random() * SIZE);
-          for (let y = 0; y < SIZE; ++y) board[y][col] = 1 - board[y][col];
-          highlightEvent("column", col);
-          showEventMsg(`Random Event: Column ${col+1} fully flipped!`);
-        } else if(rand < 0.68) {
-          let row = Math.floor(Math.random() * SIZE);
-          for (let x = 0; x < SIZE; ++x) board[row][x] = 1 - board[row][x];
-          highlightEvent("row", row);
-          showEventMsg(`Random Event: Row ${row+1} fully flipped!`);
-        } else {
-          let cx = Math.floor(Math.random()*SIZE);
-          let cy = Math.floor(Math.random()*SIZE);
-          let radius = Math.floor(Math.random()*2)+1;
-          let affected = [];
-          for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
-            if(Math.hypot(x-cx,y-cy)<=radius) affected.push({x,y});
-          affected.forEach(pos=>{ board[pos.y][pos.x]=1-board[pos.y][pos.x]; });
-          highlightMeteor(cx,cy,radius);
-          showEventMsg(`Meteor Strike! Area flipped (radius ${radius})`);
-        }
-        updateUI();
-        setTimeout(()=>{eventMsg.style.display="none";}, 1250);
-      }
-    }
-    function highlightEvent(type, idx) {
-      let cells = Array.from(boardDiv.children);
-      if(type==="column") {
-        for(let y=0; y<SIZE; ++y) {
-          let cell = cells[y*SIZE+idx];
-          if(cell) cell.classList.add("event");
-        }
-      } else {
-        for(let x=0; x<SIZE; ++x) {
-          let cell = cells[idx*SIZE+x];
-          if(cell) cell.classList.add("event");
+          }, 2000);
         }
       }
-      setTimeout(()=>{
-        if(type==="column") {
-          for(let y=0; y<SIZE; ++y) {
-            let cell = cells[y*SIZE+idx];
-            if(cell) cell.classList.remove("event");
-          }
-        } else {
-          for(let x=0; x<SIZE; ++x) {
-            let cell = cells[idx*SIZE+x];
-            if(cell) cell.classList.remove("event");
-          }
-        }
-      }, 1000);
     }
-    function highlightMeteor(cx,cy,radius) {
-      let cells = Array.from(boardDiv.children);
-      for(let y=0; y<SIZE; ++y) for(let x=0;x<SIZE;++x)
-        if(Math.hypot(x-cx,y-cy)<=radius) {
-          let idx = y*SIZE+x;
-          if(cells[idx]) cells[idx].classList.add("meteor");
-        }
-      setTimeout(()=>{
-        for(let y=0; y<SIZE; ++y) for(let x=0;x<SIZE;++x)
-          if(Math.hypot(x-cx,y-cy)<=radius) {
-            let idx = y*SIZE+x;
-            if(cells[idx]) cells[idx].classList.remove("meteor");
-          }
-      }, 1100);
-    }
-    function showEventMsg(msg) {
-      eventMsg.textContent = msg;
-      eventMsg.style.display = "block";
-    }
+  }
+  
+  // Show fire burst visual effect
+  const flashOverlay = document.getElementById('flash-overlay');
+  flashOverlay.classList.add('flash-fire');
+  setTimeout(() => {
+    flashOverlay.classList.remove('flash-fire');
+  }, 1000);
+}
 
-    function endGame() {
-      let player = 0, ai = 0;
-      for(let y=0; y<SIZE; ++y) for(let x=0; x<SIZE; ++x)
-        board[y][x]===0?player++:ai++;
-      let winner, coinsWon=0;
-      if (player > ai) {
-        winner = "You Win! 🎉";
-        if(difficulty==="hard") coinsWon=10;
-        else if(difficulty==="medium") coinsWon=5;
-        else coinsWon=2;
+function hasAdjacentTile(row, col, tileValue) {
+  for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+    for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+      if (i === row && j === col) continue;
+      if (board[i][j] === tileValue) return true;
+    }
+  }
+  return false;
+}
+
+function animateFlip(row, col) {
+  const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (cell) {
+    cell.classList.add('flipping');
+    setTimeout(() => {
+      cell.classList.remove('flipping');
+    }, 400);
+  }
+}
+
+// --- AI Move Logic ---
+function aiMove() {
+  if (movesLeft <= 0) {
+    endGame();
+    return;
+  }
+  
+  let bestMove = findBestMove();
+  
+  if (bestMove) {
+    executeMove(bestMove.row, bestMove.col, false);
+    lastMove = bestMove;
+    
+    // Update frozen tiles durations
+    updateFrozenTiles();
+    
+    // Check for game end
+    if (movesLeft <= 0 || isBoardFull()) {
+      endGame();
+      return;
+    }
+    
+    // Switch turns back to player
+    playerTurn = true;
+    updateUI();
+  } else {
+    // No valid moves for AI
+    movesLeft = 0;
+    endGame();
+  }
+}
+
+function findBestMove() {
+  const validMoves = [];
+  
+  // Find all valid moves
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 0 || (board[i][j] === 1 && hasAdjacentTile(i, j, 2))) {
+        // Check if this is a frozen tile
+        const isFrozen = spellEffects.frozenTiles.some(tile => 
+          tile.row === i && tile.col === j && tile.duration > 0
+        );
+        
+        // Check if this was the player's recent move (if blockRecentMove is enabled)
+        const isRecentPlayerMove = blockRecentMove && recentPlayerMoves.some(move => 
+          move.row === i && move.col === j
+        );
+        
+        if (!isFrozen && !isRecentPlayerMove) {
+          let score = evaluateMove(i, j);
+          validMoves.push({ row: i, col: j, score });
+        }
       }
-      else if (ai > player) winner = "AI Wins! 🤖";
-      else winner = "Draw!";
-      if(coinsWon) {
-        setCoins(getCoins()+coinsWon);
-        winner += ` (+${coinsWon}🪙)`;
-      }
-      updateCoinsBars();
-      winnerDiv.textContent = winner;
-      finalCountDiv.textContent = `Final: You ${player} - AI ${ai}`;
-      show(end); hide(game,menu,settings,shop);
-      eventMsg.style.display = "none";
     }
+  }
+  
+  if (validMoves.length === 0) return null;
+  
+  // Sort moves by score
+  validMoves.sort((a, b) => b.score - a.score);
+  
+  // Pick best move based on difficulty
+  if (difficulty === "easy") {
+    // Random move from top 70%
+    const index = Math.floor(Math.random() * Math.max(1, Math.floor(validMoves.length * 0.7)));
+    return validMoves[index];
+  } else if (difficulty === "medium") {
+    // Random move from top 40%
+    const index = Math.floor(Math.random() * Math.max(1, Math.floor(validMoves.length * 0.4)));
+    return validMoves[index];
+  } else {
+    // Hard - pick best move (with a tiny chance of mistake)
+    if (Math.random() < 0.05) {
+      const index = Math.floor(Math.random() * Math.min(3, validMoves.length));
+      return validMoves[index];
+    }
+    return validMoves[0];
+  }
+}
 
-    function openShop() {
-      show(shop);
-      hide(menu,game,end,settings);
-      updateCoinsBars();
-      renderShop();
+function evaluateMove(row, col) {
+  let score = 0;
+  
+  // Base score for empty vs occupied
+  if (board[row][col] === 0) {
+    // Placing on empty tile
+    score += 10;
+    
+    // Prefer center area
+    const distFromCenter = Math.abs(row - SIZE/2) + Math.abs(col - SIZE/2);
+    score += (SIZE - distFromCenter) * 5;
+    
+    // Prefer corners
+    if ((row === 0 || row === SIZE-1) && (col === 0 || col === SIZE-1)) {
+      score += 15;
     }
-    function renderShop() {
-      shopSpells.innerHTML = '';
-      SPELLS.forEach(spell=>{
-        let owned = getSpellOwned(spell.id);
-        let div = document.createElement('div');
-        div.className = "shop-spell";
-        div.innerHTML = `<span class="shop-spell-name">${spell.name}</span>
-        <span class="shop-spell-desc">${spell.desc}</span>
-        <span class="shop-spell-mana">(${spell.mana} Mana)</span>`;
-        if(owned) {
-          div.innerHTML += `<span class="shop-spell-owned">Owned</span>`;
-        } else {
-          div.innerHTML += `<span class="shop-spell-cost">🪙${spell.coin}</span>`;
+    
+    // Prefer edges
+    if (row === 0 || row === SIZE-1 || col === 0 || col === SIZE-1) {
+      score += 5;
+    }
+  } else if (board[row][col] === 1) {
+    // Flipping player's tile
+    score += 20;
+    
+    // Count how many adjacent tiles would also flip
+    let adjacentPlayerTiles = 0;
+    for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+      for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+        if (i === row && j === col) continue;
+        if (board[i][j] === 1 && hasAdjacentTile(i, j, 2)) {
+          adjacentPlayerTiles++;
         }
-        let btn = document.createElement('button');
-        btn.className = "shop-buy-btn";
-        btn.textContent = owned ? "Owned" : "Buy";
-        btn.disabled = owned || getCoins()<spell.coin;
-        btn.onclick = ()=>{
-          if(getCoins()>=spell.coin && !owned) {
-            setCoins(getCoins()-spell.coin);
-            setSpellOwned(spell.id,true);
-            updateCoinsBars();
-            renderShop();
-          }
-        };
-        div.appendChild(btn);
-        shopSpells.appendChild(div);
-      });
+      }
     }
+    score += adjacentPlayerTiles * 15;
+  }
+  
+  return score;
+}
 
-    show(menu);
-    moveLimitVal.textContent = moveLimitSlider.value;
-    boardSizeVal.textContent = boardSizeSlider.value;
-    boardSizeVal2.textContent = boardSizeSlider.value;
-    updateCoinsBars();
-  </script>
-</body>
-</html>
+// --- Spell Functions ---
+function castSpell(spellId) {
+  const spell = SPELLS.find(s => s.id === spellId);
+  if (!spell || !canCastSpell || mana < spell.mana) return;
+  
+  // Deduct mana
+  mana -= spell.mana;
+  canCastSpell = false;
+  
+  // Visual effect
+  const flashOverlay = document.getElementById('flash-overlay');
+  
+  switch (spellId) {
+    case "lightning":
+      // Paralyze AI for one turn
+      spellEffects.paralyzeAI = 1;
+      flashSpellEffect('lightning');
+      showEventMessage("Lightning Strike! AI skips next turn!");
+      break;
+      
+    case "frost":
+      // Apply frost to a 3x3 area
+      applyFrostEffect();
+      flashSpellEffect('frost');
+      showEventMessage("Frost Wave! 3x3 area frozen for 3 turns!");
+      break;
+      
+    case "fire":
+      // Set up fire burst for next move
+      spellEffects.fireBurst = true;
+      flashSpellEffect('fire');
+      showEventMessage("Fire Burst ready! Your next move will convert all adjacent opponent tiles!");
+      break;
+      
+    case "void":
+      // Swap random pairs of tiles
+      voidSwapEffect();
+      flashSpellEffect('void');
+      showEventMessage("Void Rift! 5 random pairs of tiles have swapped positions!");
+      break;
+      
+    case "amplify":
+      // Gain mana
+      mana = Math.min(maxMana, mana + 50);
+      flashSpellEffect('amplify');
+      showEventMessage("Mana Surge! +50 mana gained!");
+      break;
+  }
+  
+  updateUI();
+  
+  // Re-enable spell casting after a delay
+  setTimeout(() => {
+    canCastSpell = true;
+    updateUI();
+  }, 1000);
+}
+
+function applyFrostEffect() {
+  // If there's a last move, freeze around it
+  if (lastMove) {
+    const { row, col } = lastMove;
+    
+    for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+      for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+        // Add to frozen tiles with duration of 3 turns
+        spellEffects.frozenTiles.push({ row: i, col: j, duration: 3 });
+        
+        // Add visual frost effect
+        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (cell) {
+          const frostEffect = document.createElement('div');
+          frostEffect.className = 'frost-effect';
+          cell.appendChild(frostEffect);
+        }
+      }
+    }
+  }
+}
+
+function updateFrozenTiles() {
+  // Decrease duration of all frozen tiles
+  spellEffects.frozenTiles = spellEffects.frozenTiles
+    .map(tile => ({ ...tile, duration: tile.duration - 1 }))
+    .filter(tile => tile.duration > 0);
+    
+  // Update visual effects
+  renderBoard();
+}
+
+function voidSwapEffect() {
+  // Get all tile positions
+  const allPositions = [];
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      allPositions.push({ row: i, col: j });
+    }
+  }
+  
+  // Shuffle positions
+  const shuffled = [...allPositions].sort(() => 0.5 - Math.random());
+  
+  // Swap 5 pairs (or fewer if board is small)
+  const pairsToSwap = Math.min(5, Math.floor(SIZE * SIZE / 4));
+  for (let i = 0; i < pairsToSwap; i++) {
+    const pos1 = shuffled[i * 2];
+    const pos2 = shuffled[i * 2 + 1];
+    
+    // Swap the tiles
+    const temp = board[pos1.row][pos1.col];
+    board[pos1.row][pos1.col] = board[pos2.row][pos2.col];
+    board[pos2.row][pos2.col] = temp;
+    
+    // Animate both cells
+    animateFlip(pos1.row, pos1.col);
+    animateFlip(pos2.row, pos2.col);
+  }
+}
+
+function flashSpellEffect(type) {
+  const flashOverlay = document.getElementById('flash-overlay');
+  
+  switch (type) {
+    case 'frost':
+      flashOverlay.classList.add('flash-frost');
+      setTimeout(() => flashOverlay.classList.remove('flash-frost'), 1000);
+      break;
+    case 'fire':
+      flashOverlay.classList.add('flash-fire');
+      setTimeout(() => flashOverlay.classList.remove('flash-fire'), 1000);
+      break;
+    case 'void':
+      flashOverlay.classList.add('flash-void');
+      setTimeout(() => flashOverlay.classList.remove('flash-void'), 1200);
+      break;
+    default:
+      // Generic flash
+      flashOverlay.style.background = 'rgba(255, 255, 255, 0.3)';
+      flashOverlay.style.opacity = '1';
+      setTimeout(() => { 
+        flashOverlay.style.opacity = '0';
+        flashOverlay.style.background = 'transparent';
+      }, 800);
+  }
+}
+
+// --- UI Update Functions ---
+function updateUI() {
+  // Update move counter
+  document.getElementById('move-counter').textContent = `Moves: ${movesLeft}`;
+  
+  // Update turn indicator
+  document.getElementById('whose-turn').textContent = playerTurn ? "Your Turn" : "AI's Turn";
+  
+  // Update mana bar
+  const manaBar = document.getElementById('mana-bar');
+  const manaLabel = document.getElementById('mana-label');
+  manaBar.style.width = `${(mana / maxMana) * 100}%`;
+  manaLabel.textContent = `Mana: ${mana}/${maxMana}`;
+  
+  // Update coin display
+  const coins = getCoins();
+  document.getElementById('menu-coins').textContent = `Coins: ${coins}`;
+  document.getElementById('game-coins').textContent = `Coins: ${coins}`;
+  document.getElementById('shop-coins').textContent = `Your Coins: ${coins}`;
+  
+  // Update spellbar
+  updateSpellbar();
+  
+  // Render updated board
+  renderBoard();
+  
+  // Update continue button in menu
+  const continueBtn = document.getElementById('continue-btn');
+  if (hasSavedGame()) {
+    continueBtn.style.display = 'block';
+  } else {
+    continueBtn.style.display = 'none';
+  }
+}
+
+function updateSpellbar() {
+  const spellbar = document.getElementById('spellbar');
+  spellbar.innerHTML = '';
+  
+  // Only show owned spells
+  SPELLS.forEach(spell => {
+    if (getSpellOwned(spell.id)) {
+      const button = document.createElement('button');
+      button.className = 'spellbutton';
+      button.textContent = spell.name;
+      button.disabled = !canCastSpell || mana < spell.mana;
+      
+      // Add mana cost
+      const manaSpan = document.createElement('span');
+      manaSpan.className = 'spell-mana';
+      manaSpan.textContent = `${spell.mana}⧫`;
+      button.appendChild(manaSpan);
+      
+      // Add spell cast handler
+      button.addEventListener('click', () => castSpell(spell.id));
+      
+      spellbar.appendChild(button);
+    }
+  });
+}
+
+function showEventMessage(message) {
+  const eventMsg = document.getElementById('event-msg');
+  eventMsg.textContent = message;
+  eventMsg.style.display = 'block';
+  
+  // Clear after 4 seconds
+  setTimeout(() => {
+    eventMsg.style.display = 'none';
+  }, 4000);
+}
+
+function triggerRandomEvent() {
+  // Random event effects
+  const eventTypes = [
+    { name: "Quantum Flip", action: randomQuantumFlip },
+    { name: "Meteor Strike", action: meteorStrike },
+    { name: "Mana Surge", action: manaSurge }
+  ];
+  
+  // Pick a random event
+  const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+  randomEvent.action();
+  showEventMessage(`Random Event: ${randomEvent.name}!`);
+}
+
+function randomQuantumFlip() {
+  // Randomly flip 3-5 tiles
+  const flipsCount = Math.floor(Math.random() * 3) + 3;
+  
+  let flipped = 0;
+  let attempts = 0;
+  while (flipped < flipsCount && attempts < 20) {
+    attempts++;
+    
+    const row = Math.floor(Math.random() * SIZE);
+    const col = Math.floor(Math.random() * SIZE);
+    
+    if (board[row][col] !== 0) {
+      board[row][col] = board[row][col] === 1 ? 2 : 1;
+      animateFlip(row, col);
+      
+      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+      if (cell) cell.classList.add('event');
+      flipped++;
+      
+      setTimeout(() => {
+        const cells = document.querySelectorAll('.cell.event');
+        cells.forEach(c => c.classList.remove('event'));
+      }, 1500);
+    }
+  }
+}
+
+function meteorStrike() {
+  // Clear a random 2x2 area
+  const startRow = Math.floor(Math.random() * (SIZE - 1));
+  const startCol = Math.floor(Math.random() * (SIZE - 1));
+  
+  for (let i = startRow; i < startRow + 2; i++) {
+    for (let j = startCol; j < startCol + 2; j++) {
+      board[i][j] = 0;
+      
+      const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+      if (cell) {
+        cell.classList.add('meteor');
+        animateFlip(i, j);
+      }
+    }
+  }
+  
+  setTimeout(() => {
+    const cells = document.querySelectorAll('.cell.meteor');
+    cells.forEach(c => c.classList.remove('meteor'));
+  }, 1500);
+}
+
+function manaSurge() {
+  // Bonus mana
+  const bonusMana = Math.floor(Math.random() * 30) + 20;
+  mana = Math.min(maxMana, mana + bonusMana);
+  showEventMessage(`Mana Surge! +${bonusMana} mana gained!`);
+}
+
+// --- Game End Logic ---
+function isBoardFull() {
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 0) return false;
+    }
+  }
+  return true;
+}
+
+function countTiles() {
+  let playerCount = 0;
+  let aiCount = 0;
+  
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 1) playerCount++;
+      else if (board[i][j] === 2) aiCount++;
+    }
+  }
+  
+  return { playerCount, aiCount };
+}
+
+function endGame() {
+  const { playerCount, aiCount } = countTiles();
+  const winner = document.getElementById('winner');
+  const finalCount = document.getElementById('final-count');
+  
+  if (playerCount > aiCount) {
+    winner.textContent = "You Win!";
+    // Award coins
+    const earnedCoins = Math.floor(5 + (playerCount - aiCount) / 2);
+    setCoins(getCoins() + earnedCoins);
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount} | +${earnedCoins} coins earned!`;
+  } else if (aiCount > playerCount) {
+    winner.textContent = "AI Wins!";
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount}`;
+  } else {
+    winner.textContent = "It's a Tie!";
+    // Small coin reward for tie
+    setCoins(getCoins() + 2);
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount} | +2 coins earned!`;
+  }
+  
+  // Show end screen
+  hideAllScreens();
+  document.getElementById('end').classList.add('show');
+}
+
+// --- Shop Functions ---
+function initializeShop() {
+  const shopSpellsList = document.getElementById('shop-spells');
+  shopSpellsList.innerHTML = '';
+  
+  SPELLS.forEach(spell => {
+    if (!spell.testonly) { // Skip test-only spells
+      const spellEl = document.createElement('div');
+      spellEl.className = 'shop-spell';
+      
+      const owned = getSpellOwned(spell.id);
+      
+      spellEl.innerHTML = `
+        <div>
+          <div class="shop-spell-name">${spell.name}</div>
+          <div class="shop-spell-desc">${spell.desc}</div>
+          <div><span class="shop-spell-mana">Mana: ${spell.mana}</span> 
+               ${owned ? '<span class="shop-spell-owned">Owned</span>' : '<span class="shop-spell-cost">Cost: ${spell.coin} coins</span>'}
+          </div>
+        </div>
+      `;
+      
+      if (!owned) {
+        const buyBtn = document.createElement('button');
+        buyBtn.className = 'shop-buy-btn';
+        buyBtn.textContent = 'Buy';
+        buyBtn.disabled = getCoins() < spell.coin;
+        buyBtn.addEventListener('click', () => {
+          buySpell(spell.id);
+        });
+        spellEl.appendChild(buyBtn);
+      }
+      
+      shopSpellsList.appendChild(spellEl);
+    }
+  });
+}
+
+function buySpell(spellId) {
+  const spell = SPELLS.find(s => s.id === spellId);
+  if (!spell) return;
+  
+  const currentCoins = getCoins();
+  if (currentCoins >= spell.coin) {
+    setCoins(currentCoins - spell.coin);
+    setSpellOwned(spellId, true);
+    showSaveStatus(`${spell.name} purchased!`);
+    initializeShop();
+    updateUI();
+  }
+}
+
+// --- Tutorial Functions ---
+function updateTutorial() {
+  const content = document.getElementById('tutorial-content');
+  const prevBtn = document.getElementById('tutorial-prev');
+  const nextBtn = document.getElementById('tutorial-next');
+  const closeBtn = document.getElementById('tutorial-close');
+  
+  const step = TUTORIAL_STEPS[tutorialStep];
+  
+  content.innerHTML = `
+    <div class="tutorial-step">
+      <h3>${step.title}</h3>
+      <div class="tutorial-content">${step.content}</div>
+    </div>
+  `;
+  
+  // Update navigation buttons
+  prevBtn.style.display = tutorialStep > 0 ? 'block' : 'none';
+  nextBtn.style.display = tutorialStep < TUTORIAL_STEPS.length - 1 ? 'block' : 'none';
+  closeBtn.style.display = tutorialStep === TUTORIAL_STEPS.length - 1 ? 'block' : 'none';
+}
+
+// --- UI Screen Functions ---
+function hideAllScreens() {
+  document.getElementById('menu').classList.remove('show');
+  document.getElementById('settings').classList.remove('show');
+  document.getElementById('game').classList.remove('show');
+  document.getElementById('end').classList.remove('show');
+  document.getElementById('shop').classList.remove('show');
+  document.getElementById('tutorial').classList.remove('show');
+}
+
+function showMenu() {
+  hideAllScreens();
+  document.getElementById('menu').classList.add('show');
+  updateUI();
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game').classList.add('show');
+}
+
+function initGame() {
+  movesLeft = moveLimit;
+  playerTurn = true;
+  mana = 50;
+  spellEffects = { paralyzeAI: 0, frozenTiles: [], fireBurst: false, activePowerups: [] };
+  lastMove = null;
+  recentPlayerMoves = [];
+  
+  initializeBoard();
+  updateUI();
+  showGame();
+}
+
+// --- Event Listeners ---
+document.addEventListener('DOMContentLoaded', function() {
+  // If no coins are set, initialize with a starting amount
+  if (getCoins() === 0) {
+    setCoins(10);
+  }
+  
+  // Give the free lightning spell to start
+  if (!getSpellOwned("lightning")) {
+    setSpellOwned("lightning", true);
+  }
+  
+  // Menu buttons
+  document.getElementById('play-btn').addEventListener('click', () => {
+    initGame();
+  });
+  
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    if (loadGame()) {
+      showGame();
+    }
+  });
+  
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    hideAllScreens();
+    document.getElementById('settings').classList.add('show');
+  });
+  
+  document.getElementById('shop-btn').addEventListener('click', ()
+    // --- Tutorial Content ---
+const TUTORIAL_STEPS = [
+  {
+    title: "Welcome to Quantum Flip Duel",
+    content: `<p>Quantum Flip Duel is a strategic board game where you compete against the AI to claim the most tiles.</p>
+              <p>The goal is simple: <span class="tutorial-highlight">have more tiles in your color when the game ends</span>.</p>
+              <p>The game ends when all moves are used up or when there are no valid moves left.</p>`
+  },
+  {
+    title: "Making Moves",
+    content: `<p>Players take turns flipping tiles on the board.</p>
+              <p>When you click an empty tile, it becomes yours (white).</p>
+              <p>When you click on <span class="tutorial-highlight">any adjacent opponent's tile</span>, it flips to your color!</p>
+              <p>This is the key to victory - strategic flipping to convert your opponent's tiles.</p>`
+  },
+  {
+    title: "Spells & Mana",
+    content: `<p>As you play, you gain <span class="tutorial-highlight">mana</span> that can be used to cast powerful spells.</p>
+              <p>Spells give you special abilities like freezing tiles, converting adjacent opponent tiles, and more.</p>
+              <p>You can buy new spells in the shop using coins earned from victories.</p>`
+  },
+  {
+    title: "Strategic Tips",
+    content: `<p>To win consistently:</p>
+              <ul>
+                <li>Focus on <span class="tutorial-highlight">controlling the center</span> of the board</li>
+                <li>Try to create patterns that are difficult for the AI to flip</li>
+                <li>Save your spells for critical moments</li>
+                <li>Watch out for random events when enabled!</li>
+              </ul>`
+  }
+];
+
+// --- Game Initialization ---
+function initializeBoard() {
+  board = [];
+  for (let i = 0; i < SIZE; i++) {
+    board[i] = [];
+    for (let j = 0; j < SIZE; j++) {
+      board[i][j] = 0; // 0 = empty, 1 = player, 2 = AI
+    }
+  }
+
+  // Place initial pieces
+  const mid = Math.floor(SIZE / 2);
+  board[mid-1][mid-1] = 1; // Player
+  board[mid][mid] = 1; // Player
+  board[mid-1][mid] = 2; // AI
+  board[mid][mid-1] = 2; // AI
+}
+
+function renderBoard() {
+  const boardElement = document.getElementById('board');
+  boardElement.innerHTML = '';
+  boardElement.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+  
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      const cell = document.createElement('button');
+      cell.className = 'cell';
+      cell.setAttribute('data-row', i);
+      cell.setAttribute('data-col', j);
+      
+      // Set cell state
+      if (board[i][j] === 1) {
+        cell.classList.add('player');
+      } else if (board[i][j] === 2) {
+        cell.classList.add('ai');
+      }
+      
+      // Check if cell is frozen
+      const isFrozen = spellEffects.frozenTiles.some(tile => 
+        tile.row === i && tile.col === j && tile.duration > 0
+      );
+      
+      if (isFrozen) {
+        const frostEffect = document.createElement('div');
+        frostEffect.className = 'frost-effect';
+        cell.appendChild(frostEffect);
+      }
+      
+      // Mark recent move
+      if (lastMove && lastMove.row === i && lastMove.col === j) {
+        cell.classList.add('recent-move');
+      }
+      
+      cell.addEventListener('click', () => makeMove(i, j));
+      boardElement.appendChild(cell);
+    }
+  }
+}
+
+// --- Core Game Functions ---
+function makeMove(row, col) {
+  if (!playerTurn || movesLeft <= 0) return;
+  
+  // Check if move is valid
+  if (!isValidMove(row, col)) return;
+  
+  // Execute the move
+  executeMove(row, col, true);
+  
+  // Update last move
+  lastMove = { row, col };
+  recentPlayerMoves.unshift({ row, col });
+  if (recentPlayerMoves.length > 3) recentPlayerMoves.pop();
+  
+  // Check for random events
+  if (randomEvents && Math.random() < 0.08) {
+    triggerRandomEvent();
+  }
+  
+  // Check for game end
+  if (movesLeft <= 0 || isBoardFull()) {
+    endGame();
+    return;
+  }
+  
+  // Switch turns
+  playerTurn = false;
+  updateUI();
+  
+  // Check if AI is paralyzed
+  if (spellEffects.paralyzeAI > 0) {
+    spellEffects.paralyzeAI--;
+    playerTurn = true;
+    updateUI();
+  } else {
+    // AI's turn
+    setTimeout(aiMove, 600);
+  }
+}
+
+function isValidMove(row, col) {
+  // Check if cell is empty or can be flipped
+  if (board[row][col] === 0) {
+    return true; // Can place on empty cell
+  } else if (board[row][col] === 2) {
+    // Check if there's an adjacent player's tile
+    return hasAdjacentTile(row, col, 1);
+  }
+  return false;
+}
+
+function executeMove(row, col, isPlayer) {
+  const tileValue = isPlayer ? 1 : 2;
+  const opponentValue = isPlayer ? 2 : 1;
+  
+  // Check if this is a frozen tile
+  const isFrozen = spellEffects.frozenTiles.some(tile => 
+    tile.row === row && tile.col === j && tile.duration > 0
+  );
+  
+  if (isFrozen) return false;
+  
+  // Place tile or flip
+  if (board[row][col] === 0) {
+    // Empty cell, place new tile
+    board[row][col] = tileValue;
+    animateFlip(row, col);
+  } else if (board[row][col] === opponentValue) {
+    // Opponent's tile, flip it
+    board[row][col] = tileValue;
+    animateFlip(row, col);
+    
+    // Also flip adjacent opponent tiles if Fire Burst is active
+    if (isPlayer && spellEffects.fireBurst) {
+      flipAdjacentTiles(row, col);
+      spellEffects.fireBurst = false;
+    }
+  }
+  
+  // Decrement moves
+  movesLeft--;
+  
+  // Gain mana for player
+  if (isPlayer) {
+    mana = Math.min(maxMana, mana + 8);
+  }
+  
+  return true;
+}
+
+function flipAdjacentTiles(row, col) {
+  for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+    for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+      if (board[i][j] === 2) { // If it's an AI tile
+        board[i][j] = 1; // Flip to player
+        animateFlip(i, j);
+        
+        // Add fire effect
+        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (cell) {
+          const fireEffect = document.createElement('div');
+          fireEffect.className = 'fire-effect';
+          cell.appendChild(fireEffect);
+          
+          setTimeout(() => {
+            if (fireEffect.parentNode) {
+              fireEffect.parentNode.removeChild(fireEffect);
+            }
+          }, 2000);
+        }
+      }
+    }
+  }
+  
+  // Show fire burst visual effect
+  const flashOverlay = document.getElementById('flash-overlay');
+  flashOverlay.classList.add('flash-fire');
+  setTimeout(() => {
+    flashOverlay.classList.remove('flash-fire');
+  }, 1000);
+}
+
+function hasAdjacentTile(row, col, tileValue) {
+  for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+    for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+      if (i === row && j === col) continue;
+      if (board[i][j] === tileValue) return true;
+    }
+  }
+  return false;
+}
+
+function animateFlip(row, col) {
+  const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (cell) {
+    cell.classList.add('flipping');
+    setTimeout(() => {
+      cell.classList.remove('flipping');
+    }, 400);
+  }
+}
+
+// --- AI Move Logic ---
+function aiMove() {
+  if (movesLeft <= 0) {
+    endGame();
+    return;
+  }
+  
+  let bestMove = findBestMove();
+  
+  if (bestMove) {
+    executeMove(bestMove.row, bestMove.col, false);
+    lastMove = bestMove;
+    
+    // Update frozen tiles durations
+    updateFrozenTiles();
+    
+    // Check for game end
+    if (movesLeft <= 0 || isBoardFull()) {
+      endGame();
+      return;
+    }
+    
+    // Switch turns back to player
+    playerTurn = true;
+    updateUI();
+  } else {
+    // No valid moves for AI
+    movesLeft = 0;
+    endGame();
+  }
+}
+
+function findBestMove() {
+  const validMoves = [];
+  
+  // Find all valid moves
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 0 || (board[i][j] === 1 && hasAdjacentTile(i, j, 2))) {
+        // Check if this is a frozen tile
+        const isFrozen = spellEffects.frozenTiles.some(tile => 
+          tile.row === i && tile.col === j && tile.duration > 0
+        );
+        
+        // Check if this was the player's recent move (if blockRecentMove is enabled)
+        const isRecentPlayerMove = blockRecentMove && recentPlayerMoves.some(move => 
+          move.row === i && move.col === j
+        );
+        
+        if (!isFrozen && !isRecentPlayerMove) {
+          let score = evaluateMove(i, j);
+          validMoves.push({ row: i, col: j, score });
+        }
+      }
+    }
+  }
+  
+  if (validMoves.length === 0) return null;
+  
+  // Sort moves by score
+  validMoves.sort((a, b) => b.score - a.score);
+  
+  // Pick best move based on difficulty
+  if (difficulty === "easy") {
+    // Random move from top 70%
+    const index = Math.floor(Math.random() * Math.max(1, Math.floor(validMoves.length * 0.7)));
+    return validMoves[index];
+  } else if (difficulty === "medium") {
+    // Random move from top 40%
+    const index = Math.floor(Math.random() * Math.max(1, Math.floor(validMoves.length * 0.4)));
+    return validMoves[index];
+  } else {
+    // Hard - pick best move (with a tiny chance of mistake)
+    if (Math.random() < 0.05) {
+      const index = Math.floor(Math.random() * Math.min(3, validMoves.length));
+      return validMoves[index];
+    }
+    return validMoves[0];
+  }
+}
+
+function evaluateMove(row, col) {
+  let score = 0;
+  
+  // Base score for empty vs occupied
+  if (board[row][col] === 0) {
+    // Placing on empty tile
+    score += 10;
+    
+    // Prefer center area
+    const distFromCenter = Math.abs(row - SIZE/2) + Math.abs(col - SIZE/2);
+    score += (SIZE - distFromCenter) * 5;
+    
+    // Prefer corners
+    if ((row === 0 || row === SIZE-1) && (col === 0 || col === SIZE-1)) {
+      score += 15;
+    }
+    
+    // Prefer edges
+    if (row === 0 || row === SIZE-1 || col === 0 || col === SIZE-1) {
+      score += 5;
+    }
+  } else if (board[row][col] === 1) {
+    // Flipping player's tile
+    score += 20;
+    
+    // Count how many adjacent tiles would also flip
+    let adjacentPlayerTiles = 0;
+    for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+      for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+        if (i === row && j === col) continue;
+        if (board[i][j] === 1 && hasAdjacentTile(i, j, 2)) {
+          adjacentPlayerTiles++;
+        }
+      }
+    }
+    score += adjacentPlayerTiles * 15;
+  }
+  
+  return score;
+}
+
+// --- Spell Functions ---
+function castSpell(spellId) {
+  const spell = SPELLS.find(s => s.id === spellId);
+  if (!spell || !canCastSpell || mana < spell.mana) return;
+  
+  // Deduct mana
+  mana -= spell.mana;
+  canCastSpell = false;
+  
+  // Visual effect
+  const flashOverlay = document.getElementById('flash-overlay');
+  
+  switch (spellId) {
+    case "lightning":
+      // Paralyze AI for one turn
+      spellEffects.paralyzeAI = 1;
+      flashSpellEffect('lightning');
+      showEventMessage("Lightning Strike! AI skips next turn!");
+      break;
+      
+    case "frost":
+      // Apply frost to a 3x3 area
+      applyFrostEffect();
+      flashSpellEffect('frost');
+      showEventMessage("Frost Wave! 3x3 area frozen for 3 turns!");
+      break;
+      
+    case "fire":
+      // Set up fire burst for next move
+      spellEffects.fireBurst = true;
+      flashSpellEffect('fire');
+      showEventMessage("Fire Burst ready! Your next move will convert all adjacent opponent tiles!");
+      break;
+      
+    case "void":
+      // Swap random pairs of tiles
+      voidSwapEffect();
+      flashSpellEffect('void');
+      showEventMessage("Void Rift! 5 random pairs of tiles have swapped positions!");
+      break;
+      
+    case "amplify":
+      // Gain mana
+      mana = Math.min(maxMana, mana + 50);
+      flashSpellEffect('amplify');
+      showEventMessage("Mana Surge! +50 mana gained!");
+      break;
+  }
+  
+  updateUI();
+  
+  // Re-enable spell casting after a delay
+  setTimeout(() => {
+    canCastSpell = true;
+    updateUI();
+  }, 1000);
+}
+
+function applyFrostEffect() {
+  // If there's a last move, freeze around it
+  if (lastMove) {
+    const { row, col } = lastMove;
+    
+    for (let i = Math.max(0, row-1); i <= Math.min(SIZE-1, row+1); i++) {
+      for (let j = Math.max(0, col-1); j <= Math.min(SIZE-1, col+1); j++) {
+        // Add to frozen tiles with duration of 3 turns
+        spellEffects.frozenTiles.push({ row: i, col: j, duration: 3 });
+        
+        // Add visual frost effect
+        const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (cell) {
+          const frostEffect = document.createElement('div');
+          frostEffect.className = 'frost-effect';
+          cell.appendChild(frostEffect);
+        }
+      }
+    }
+  }
+}
+
+function updateFrozenTiles() {
+  // Decrease duration of all frozen tiles
+  spellEffects.frozenTiles = spellEffects.frozenTiles
+    .map(tile => ({ ...tile, duration: tile.duration - 1 }))
+    .filter(tile => tile.duration > 0);
+    
+  // Update visual effects
+  renderBoard();
+}
+
+function voidSwapEffect() {
+  // Get all tile positions
+  const allPositions = [];
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      allPositions.push({ row: i, col: j });
+    }
+  }
+  
+  // Shuffle positions
+  const shuffled = [...allPositions].sort(() => 0.5 - Math.random());
+  
+  // Swap 5 pairs (or fewer if board is small)
+  const pairsToSwap = Math.min(5, Math.floor(SIZE * SIZE / 4));
+  for (let i = 0; i < pairsToSwap; i++) {
+    const pos1 = shuffled[i * 2];
+    const pos2 = shuffled[i * 2 + 1];
+    
+    // Swap the tiles
+    const temp = board[pos1.row][pos1.col];
+    board[pos1.row][pos1.col] = board[pos2.row][pos2.col];
+    board[pos2.row][pos2.col] = temp;
+    
+    // Animate both cells
+    animateFlip(pos1.row, pos1.col);
+    animateFlip(pos2.row, pos2.col);
+  }
+}
+
+function flashSpellEffect(type) {
+  const flashOverlay = document.getElementById('flash-overlay');
+  
+  switch (type) {
+    case 'frost':
+      flashOverlay.classList.add('flash-frost');
+      setTimeout(() => flashOverlay.classList.remove('flash-frost'), 1000);
+      break;
+    case 'fire':
+      flashOverlay.classList.add('flash-fire');
+      setTimeout(() => flashOverlay.classList.remove('flash-fire'), 1000);
+      break;
+    case 'void':
+      flashOverlay.classList.add('flash-void');
+      setTimeout(() => flashOverlay.classList.remove('flash-void'), 1200);
+      break;
+    default:
+      // Generic flash
+      flashOverlay.style.background = 'rgba(255, 255, 255, 0.3)';
+      flashOverlay.style.opacity = '1';
+      setTimeout(() => { 
+        flashOverlay.style.opacity = '0';
+        flashOverlay.style.background = 'transparent';
+      }, 800);
+  }
+}
+
+// --- UI Update Functions ---
+function updateUI() {
+  // Update move counter
+  document.getElementById('move-counter').textContent = `Moves: ${movesLeft}`;
+  
+  // Update turn indicator
+  document.getElementById('whose-turn').textContent = playerTurn ? "Your Turn" : "AI's Turn";
+  
+  // Update mana bar
+  const manaBar = document.getElementById('mana-bar');
+  const manaLabel = document.getElementById('mana-label');
+  manaBar.style.width = `${(mana / maxMana) * 100}%`;
+  manaLabel.textContent = `Mana: ${mana}/${maxMana}`;
+  
+  // Update coin display
+  const coins = getCoins();
+  document.getElementById('menu-coins').textContent = `Coins: ${coins}`;
+  document.getElementById('game-coins').textContent = `Coins: ${coins}`;
+  document.getElementById('shop-coins').textContent = `Your Coins: ${coins}`;
+  
+  // Update spellbar
+  updateSpellbar();
+  
+  // Render updated board
+  renderBoard();
+  
+  // Update continue button in menu
+  const continueBtn = document.getElementById('continue-btn');
+  if (hasSavedGame()) {
+    continueBtn.style.display = 'block';
+  } else {
+    continueBtn.style.display = 'none';
+  }
+}
+
+function updateSpellbar() {
+  const spellbar = document.getElementById('spellbar');
+  spellbar.innerHTML = '';
+  
+  // Only show owned spells
+  SPELLS.forEach(spell => {
+    if (getSpellOwned(spell.id)) {
+      const button = document.createElement('button');
+      button.className = 'spellbutton';
+      button.textContent = spell.name;
+      button.disabled = !canCastSpell || mana < spell.mana;
+      
+      // Add mana cost
+      const manaSpan = document.createElement('span');
+      manaSpan.className = 'spell-mana';
+      manaSpan.textContent = `${spell.mana}⧫`;
+      button.appendChild(manaSpan);
+      
+      // Add spell cast handler
+      button.addEventListener('click', () => castSpell(spell.id));
+      
+      spellbar.appendChild(button);
+    }
+  });
+}
+
+function showEventMessage(message) {
+  const eventMsg = document.getElementById('event-msg');
+  eventMsg.textContent = message;
+  eventMsg.style.display = 'block';
+  
+  // Clear after 4 seconds
+  setTimeout(() => {
+    eventMsg.style.display = 'none';
+  }, 4000);
+}
+
+function triggerRandomEvent() {
+  // Random event effects
+  const eventTypes = [
+    { name: "Quantum Flip", action: randomQuantumFlip },
+    { name: "Meteor Strike", action: meteorStrike },
+    { name: "Mana Surge", action: manaSurge }
+  ];
+  
+  // Pick a random event
+  const randomEvent = eventTypes[Math.floor(Math.random() * eventTypes.length)];
+  randomEvent.action();
+  showEventMessage(`Random Event: ${randomEvent.name}!`);
+}
+
+function randomQuantumFlip() {
+  // Randomly flip 3-5 tiles
+  const flipsCount = Math.floor(Math.random() * 3) + 3;
+  
+  let flipped = 0;
+  let attempts = 0;
+  while (flipped < flipsCount && attempts < 20) {
+    attempts++;
+    
+    const row = Math.floor(Math.random() * SIZE);
+    const col = Math.floor(Math.random() * SIZE);
+    
+    if (board[row][col] !== 0) {
+      board[row][col] = board[row][col] === 1 ? 2 : 1;
+      animateFlip(row, col);
+      
+      const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+      if (cell) cell.classList.add('event');
+      flipped++;
+      
+      setTimeout(() => {
+        const cells = document.querySelectorAll('.cell.event');
+        cells.forEach(c => c.classList.remove('event'));
+      }, 1500);
+    }
+  }
+}
+
+function meteorStrike() {
+  // Clear a random 2x2 area
+  const startRow = Math.floor(Math.random() * (SIZE - 1));
+  const startCol = Math.floor(Math.random() * (SIZE - 1));
+  
+  for (let i = startRow; i < startRow + 2; i++) {
+    for (let j = startCol; j < startCol + 2; j++) {
+      board[i][j] = 0;
+      
+      const cell = document.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+      if (cell) {
+        cell.classList.add('meteor');
+        animateFlip(i, j);
+      }
+    }
+  }
+  
+  setTimeout(() => {
+    const cells = document.querySelectorAll('.cell.meteor');
+    cells.forEach(c => c.classList.remove('meteor'));
+  }, 1500);
+}
+
+function manaSurge() {
+  // Bonus mana
+  const bonusMana = Math.floor(Math.random() * 30) + 20;
+  mana = Math.min(maxMana, mana + bonusMana);
+  showEventMessage(`Mana Surge! +${bonusMana} mana gained!`);
+}
+
+// --- Game End Logic ---
+function isBoardFull() {
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 0) return false;
+    }
+  }
+  return true;
+}
+
+function countTiles() {
+  let playerCount = 0;
+  let aiCount = 0;
+  
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      if (board[i][j] === 1) playerCount++;
+      else if (board[i][j] === 2) aiCount++;
+    }
+  }
+  
+  return { playerCount, aiCount };
+}
+
+function endGame() {
+  const { playerCount, aiCount } = countTiles();
+  const winner = document.getElementById('winner');
+  const finalCount = document.getElementById('final-count');
+  
+  if (playerCount > aiCount) {
+    winner.textContent = "You Win!";
+    // Award coins
+    const earnedCoins = Math.floor(5 + (playerCount - aiCount) / 2);
+    setCoins(getCoins() + earnedCoins);
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount} | +${earnedCoins} coins earned!`;
+  } else if (aiCount > playerCount) {
+    winner.textContent = "AI Wins!";
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount}`;
+  } else {
+    winner.textContent = "It's a Tie!";
+    // Small coin reward for tie
+    setCoins(getCoins() + 2);
+    finalCount.textContent = `Your tiles: ${playerCount} | AI tiles: ${aiCount} | +2 coins earned!`;
+  }
+  
+  // Show end screen
+  hideAllScreens();
+  document.getElementById('end').classList.add('show');
+}
+
+// --- Shop Functions ---
+function initializeShop() {
+  const shopSpellsList = document.getElementById('shop-spells');
+  shopSpellsList.innerHTML = '';
+  
+  SPELLS.forEach(spell => {
+    if (!spell.testonly) { // Skip test-only spells
+      const spellEl = document.createElement('div');
+      spellEl.className = 'shop-spell';
+      
+      const owned = getSpellOwned(spell.id);
+      
+      spellEl.innerHTML = `
+        <div>
+          <div class="shop-spell-name">${spell.name}</div>
+          <div class="shop-spell-desc">${spell.desc}</div>
+          <div><span class="shop-spell-mana">Mana: ${spell.mana}</span> 
+               ${owned ? '<span class="shop-spell-owned">Owned</span>' : '<span class="shop-spell-cost">Cost: ${spell.coin} coins</span>'}
+          </div>
+        </div>
+      `;
+      
+      if (!owned) {
+        const buyBtn = document.createElement('button');
+        buyBtn.className = 'shop-buy-btn';
+        buyBtn.textContent = 'Buy';
+        buyBtn.disabled = getCoins() < spell.coin;
+        buyBtn.addEventListener('click', () => {
+          buySpell(spell.id);
+        });
+        spellEl.appendChild(buyBtn);
+      }
+      
+      shopSpellsList.appendChild(spellEl);
+    }
+  });
+}
+
+function buySpell(spellId) {
+  const spell = SPELLS.find(s => s.id === spellId);
+  if (!spell) return;
+  
+  const currentCoins = getCoins();
+  if (currentCoins >= spell.coin) {
+    setCoins(currentCoins - spell.coin);
+    setSpellOwned(spellId, true);
+    showSaveStatus(`${spell.name} purchased!`);
+    initializeShop();
+    updateUI();
+  }
+}
+
+// --- Tutorial Functions ---
+function updateTutorial() {
+  const content = document.getElementById('tutorial-content');
+  const prevBtn = document.getElementById('tutorial-prev');
+  const nextBtn = document.getElementById('tutorial-next');
+  const closeBtn = document.getElementById('tutorial-close');
+  
+  const step = TUTORIAL_STEPS[tutorialStep];
+  
+  content.innerHTML = `
+    <div class="tutorial-step">
+      <h3>${step.title}</h3>
+      <div class="tutorial-content">${step.content}</div>
+    </div>
+  `;
+  
+  // Update navigation buttons
+  prevBtn.style.display = tutorialStep > 0 ? 'block' : 'none';
+  nextBtn.style.display = tutorialStep < TUTORIAL_STEPS.length - 1 ? 'block' : 'none';
+  closeBtn.style.display = tutorialStep === TUTORIAL_STEPS.length - 1 ? 'block' : 'none';
+}
+
+// --- UI Screen Functions ---
+function hideAllScreens() {
+  document.getElementById('menu').classList.remove('show');
+  document.getElementById('settings').classList.remove('show');
+  document.getElementById('game').classList.remove('show');
+  document.getElementById('end').classList.remove('show');
+  document.getElementById('shop').classList.remove('show');
+  document.getElementById('tutorial').classList.remove('show');
+}
+
+function showMenu() {
+  hideAllScreens();
+  document.getElementById('menu').classList.add('show');
+  updateUI();
+}
+
+function showGame() {
+  hideAllScreens();
+  document.getElementById('game').classList.add('show');
+}
+
+function initGame() {
+  movesLeft = moveLimit;
+  playerTurn = true;
+  mana = 50;
+  spellEffects = { paralyzeAI: 0, frozenTiles: [], fireBurst: false, activePowerups: [] };
+  lastMove = null;
+  recentPlayerMoves = [];
+  
+  initializeBoard();
+  updateUI();
+  showGame();
+}
+
+// --- Event Listeners ---
+document.addEventListener('DOMContentLoaded', function() {
+  // If no coins are set, initialize with a starting amount
+  if (getCoins() === 0) {
+    setCoins(10);
+  }
+  
+  // Give the free lightning spell to start
+  if (!getSpellOwned("lightning")) {
+    setSpellOwned("lightning", true);
+  }
+  
+  // Menu buttons
+  document.getElementById('play-btn').addEventListener('click', () => {
+    initGame();
+  });
+  
+  document.getElementById('continue-btn').addEventListener('click', () => {
+    if (loadGame()) {
+      showGame();
+    }
+  });
+  
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    hideAllScreens();
+    document.getElementById('settings').classList.add('show');
+  });
+  
+  document.getElementById('shop-btn').addEventListener('click', ()
+    {
+  // Show shop
+  hideAllScreens();
+  document.getElementById('shop').classList.add('show');
+  initializeShop();
+});
+
+document.getElementById('tutorial-btn').addEventListener('click', () => {
+  tutorialStep = 0;
+  hideAllScreens();
+  document.getElementById('tutorial').classList.add('show');
+  updateTutorial();
+});
+
+document.getElementById('settings-back').addEventListener('click', showMenu);
+
+document.getElementById('back-menu').addEventListener('click', showMenu);
+
+document.getElementById('play-again').addEventListener('click', initGame);
+
+document.getElementById('end-menu').addEventListener('click', showMenu);
+
+document.getElementById('end-shop').addEventListener('click', () => {
+  hideAllScreens();
+  document.getElementById('shop').classList.add('show');
+  initializeShop();
+});
+
+document.getElementById('close-shop').addEventListener('click', showMenu);
+
+// Save/load game
+document.getElementById('save-game').addEventListener('click', saveGame);
+document.getElementById('load-game').addEventListener('click', () => {
+  if (loadGame()) showGame();
+});
+
+// Tutorial navigation
+document.getElementById('tutorial-next').addEventListener('click', () => {
+  if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+    tutorialStep++;
+    updateTutorial();
+  }
+});
+document.getElementById('tutorial-prev').addEventListener('click', () => {
+  if (tutorialStep > 0) {
+    tutorialStep--;
+    updateTutorial();
+  }
+});
+document.getElementById('tutorial-close').addEventListener('click', showMenu);
+
+// Settings
+document.getElementById('move-limit-slider').addEventListener('input', function() {
+  moveLimit = parseInt(this.value);
+  document.getElementById('move-limit-val').textContent = this.value;
+});
+document.getElementById('difficulty').addEventListener('change', function() {
+  difficulty = this.value;
+});
+document.getElementById('board-size-slider').addEventListener('input', function() {
+  SIZE = parseInt(this.value);
+  document.getElementById('board-size-val').textContent = this.value;
+  document.getElementById('board-size-val2').textContent = this.value;
+});
+document.getElementById('random-events').addEventListener('change', function() {
+  randomEvents = this.checked;
+});
+document.getElementById('block-recent-move').addEventListener('change', function() {
+  blockRecentMove = this.checked;
+});
+
+// Initialize menu UI
+updateUI();
+showMenu();
+});
