@@ -366,6 +366,9 @@
     document.getElementById('back-menu').onclick = () => {
       show(menu); hide(game, settings, end, shop);
     };
+    document.getElementById('settings-back').onclick = () => {
+      show(menu); hide(settings, game, end, shop);
+    };
     document.getElementById('end-menu').onclick = () => {
       show(menu); hide(game, settings, end, shop);
     };
@@ -440,7 +443,7 @@
           const cell = document.createElement('button');
           cell.className = `cell ${board[y][x]===0?'player':'ai'}`;
           cell.dataset.x = x; cell.dataset.y = y;
-          cell.disabled = !(playerTurn && board[y][x]===1 && !spellEffects.justCasted); // can only click AI color on your turn, unless you just casted a spell (except for Lightning)
+          cell.disabled = !(playerTurn && board[y][x]===1 && !spellEffects.justCasted);
           cell.onclick = () => playerMove(x,y);
           boardDiv.appendChild(cell);
         }
@@ -456,7 +459,6 @@
     function renderSpellbar() {
       spellbar.innerHTML = '';
       SPELLS.forEach(spell => {
-        // Show only if owned
         if(!getSpellOwned(spell.id) && !spell.testonly) return;
         let btn = document.createElement('button');
         btn.className = "spellbutton";
@@ -490,14 +492,15 @@
       updateUI();
       if(spellid==="lightning") {
         spellEffects.paralyzeAI = 1;
-        spellEffects.justCasted = true; // So player can move again
+        spellEffects.justCasted = false; // allow move
+        canCastSpell = false; // block further spell use until next turn
         showEventMsg("⚡ You cast Lightning! The AI is paralyzed for 1 move. Move again!");
         setTimeout(()=>{eventMsg.style.display="none";}, 1100);
         updateUI();
-        // Let player move again, do NOT end turn. Will set justCasted=false after move.
       }
       // Add further spells here!
-      canCastSpell = false;
+      // For other spells, use:
+      // spellEffects.justCasted = true; canCastSpell = false;
       renderSpellbar();
     }
 
@@ -512,7 +515,6 @@
         if(randomEvents) setTimeout(triggerRandomEvent, 420);
         return;
       }
-      // 1. Gather all possible moves with their benefit
       let moves = [];
       for (let y = 0; y < SIZE; ++y)
         for (let x = 0; x < SIZE; ++x)
@@ -525,21 +527,17 @@
         if (movesLeft === 0) endGame();
         return;
       }
-      // 2. Calculate benefit for all moves
       moves = moves.map(move => ({
         ...move,
         benefit: calcBenefit(move.x, move.y, 1)
       }));
-      // 3. Sort moves by benefit (descending), but keep original order for ties
       moves.sort((a, b) => b.benefit - a.benefit);
-      // 4. Assign ranks (1 = best, 2 = next, etc.) - ties share the same rank
       let rankedMoves = [];
       let currentRank = 1;
       for (let i = 0; i < moves.length; ++i) {
         if (i > 0 && moves[i].benefit < moves[i - 1].benefit) currentRank = i + 1;
         rankedMoves.push({ ...moves[i], rank: currentRank });
       }
-      // 5. Pick a move according to difficulty
       let chosen = null;
       if (difficulty === "hard") {
         let bestMoves = rankedMoves.filter(m => m.rank === 1);
@@ -564,7 +562,6 @@
       }
     }
 
-    // Returns how many cells will be flipped to ai/player color if move is made
     function calcBenefit(x, y, forColor) {
       let flips = 0;
       if (board[y][x] !== forColor) {
@@ -578,7 +575,6 @@
       return flips;
     }
 
-    // Flips and animates (adds .selected class), then calls cb when done
     function animateFlip(x, y, which, cb, ai=false) {
       let toFlip = [{x, y}];
       [[0,1],[1,0],[-1,0],[0,-1]].forEach(([dx,dy])=>{
@@ -610,25 +606,20 @@
       }, ai ? 300 : 140);
     }
 
-    // --- Random Events (row/col/meteor) ---
     function triggerRandomEvent() {
-      // 1/4 chance per turn
       if (Math.random() < 0.25) {
         let rand = Math.random();
         if(rand < 0.34) {
-          // Flip a random column
           let col = Math.floor(Math.random() * SIZE);
           for (let y = 0; y < SIZE; ++y) board[y][col] = 1 - board[y][col];
           highlightEvent("column", col);
           showEventMsg(`Random Event: Column ${col+1} fully flipped!`);
         } else if(rand < 0.68) {
-          // Flip a random row
           let row = Math.floor(Math.random() * SIZE);
           for (let x = 0; x < SIZE; ++x) board[row][x] = 1 - board[row][x];
           highlightEvent("row", row);
           showEventMsg(`Random Event: Row ${row+1} fully flipped!`);
         } else {
-          // Meteor event: pick center, random radius 1 or 2, flip all in circle
           let cx = Math.floor(Math.random()*SIZE);
           let cy = Math.floor(Math.random()*SIZE);
           let radius = Math.floor(Math.random()*2)+1;
@@ -703,7 +694,6 @@
       }
       else if (ai > player) winner = "AI Wins! 🤖";
       else winner = "Draw!";
-      // Award coins
       if(coinsWon) {
         setCoins(getCoins()+coinsWon);
         winner += ` (+${coinsWon}🪙)`;
@@ -715,7 +705,6 @@
       eventMsg.style.display = "none";
     }
 
-    // --- Shop logic ---
     function openShop() {
       show(shop);
       hide(menu,game,end,settings);
@@ -753,9 +742,7 @@
       });
     }
 
-    // --- Start with main menu ---
     show(menu);
-    // Set initial visuals for sliders
     moveLimitVal.textContent = moveLimitSlider.value;
     boardSizeVal.textContent = boardSizeSlider.value;
     boardSizeVal2.textContent = boardSizeSlider.value;
