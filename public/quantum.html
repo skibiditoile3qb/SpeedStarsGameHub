@@ -732,9 +732,9 @@ function renderBoard() {
       }
       
       // Check if cell is frozen
-      const isFrozen = spellEffects.frozenTiles.some(tile => 
-        tile.row === i && tile.col === j && tile.duration > 0
-      );
+     const isFrozen = spellEffects.frozenTiles.some(tile => 
+  tile.row === row && tile.col === col && tile.duration > 0
+);
       
       if (isFrozen) {
         const frostEffect = document.createElement('div');
@@ -1494,14 +1494,12 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('settings').classList.add('show');
   });
   
-  document.getElementById('shop-btn').addEventListener('click', ()
-    {
+document.getElementById('shop-btn').addEventListener('click', () => {
   // Show shop
   hideAllScreens();
   document.getElementById('shop').classList.add('show');
   initializeShop();
 });
-
 document.getElementById('tutorial-btn').addEventListener('click', () => {
   tutorialStep = 0;
   hideAllScreens();
