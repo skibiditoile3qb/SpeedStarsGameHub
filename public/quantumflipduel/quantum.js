@@ -1,146 +1,147 @@
 // --- Persistent Storage ---
-    function getCoins() { return parseInt(localStorage.getItem("qf_coins")||"0"); }
-    function setCoins(val) { localStorage.setItem("qf_coins",val); }
-    function getSpellOwned(spell) { return JSON.parse(localStorage.getItem("qf_spell_" + spell)||"false"); }
-    function setSpellOwned(spell, owned) { localStorage.setItem("qf_spell_" + spell, owned?"true":"false"); }
-    
-    // --- Save game system ---
-    function saveGame() {
-      const gameState = {
-        board,
-        movesLeft,
-        playerTurn,
-        mana,
-        spellEffects,
-        SIZE,
-        difficulty,
-        moveLimit,
-        randomEvents,
-        lastMove
-      };
-      localStorage.setItem("qf_saved_game", JSON.stringify(gameState));
-      showSaveStatus("Game saved successfully!");
-    }
-    
-    function loadGame() {
-      const savedGame = localStorage.getItem("qf_saved_game");
-      if (!savedGame) {
-        showSaveStatus("No saved game found!");
-        return false;
-      }
-      
-      try {
-        const gameState = JSON.parse(savedGame);
-        board = gameState.board;
-        movesLeft = gameState.movesLeft;
-        playerTurn = gameState.playerTurn;
-        mana = gameState.mana;
-        spellEffects = gameState.spellEffects;
-        SIZE = gameState.SIZE;
-        difficulty = gameState.difficulty;
-        moveLimit = gameState.moveLimit;
-        randomEvents = gameState.randomEvents;
-        lastMove = gameState.lastMove;
-        
-        // Update UI elements
-        document.getElementById('move-limit-slider').value = moveLimit;
-        document.getElementById('move-limit-val').textContent = moveLimit;
-        document.getElementById('difficulty').value = difficulty;
-        document.getElementById('board-size-slider').value = SIZE;
-        document.getElementById('board-size-val').textContent = SIZE;
-        document.getElementById('board-size-val2').textContent = SIZE;
-        document.getElementById('random-events').checked = randomEvents;
-        
-        canCastSpell = true;
-        updateUI();
-        showSaveStatus("Game loaded successfully!");
-        return true;
-      } catch (e) {
-        console.error("Error loading game:", e);
-        showSaveStatus("Error loading game!");
-        return false;
-      }
-    }
-    
-    function hasSavedGame() {
-      return localStorage.getItem("qf_saved_game") !== null;
-    }
-    
-    function showSaveStatus(message) {
-      const statusEl = document.getElementById('save-status');
-      statusEl.textContent = message;
-      statusEl.style.display = 'block';
-      
-      setTimeout(() => {
-        statusEl.style.display = 'none';
-      }, 2000);
-    }
+function getCoins() { return parseInt(localStorage.getItem("qf_coins")||"0"); }
+function setCoins(val) { localStorage.setItem("qf_coins",val); }
+function getSpellOwned(spell) { return JSON.parse(localStorage.getItem("qf_spell_" + spell)||"false"); }
+function setSpellOwned(spell, owned) { localStorage.setItem("qf_spell_" + spell, owned?"true":"false"); }
 
-    // --- Spell definitions ---
-    const SPELLS = [
-      {
-        id: "lightning",
-        name: "Lightning",
-        desc: "Paralyze AI for 1 move. You move again instantly.",
-        coin: 0,  // Free in shop
-        mana: 40,
-        testonly: true
-      },
-      {
-        id: "frost",
-        name: "Frost Wave",
-        desc: "Freeze a 3x3 area of the board, making those tiles immune to flipping for 3 turns.",
-        coin: 10,
-        mana: 30,
-        testonly: false
-      },
-      {
-        id: "fire",
-        name: "Fire Burst",
-        desc: "Convert all adjacent opponent tiles around your most recent flip.",
-        coin: 20,
-        mana: 45,
-        testonly: false
-      },
-      {
-        id: "void",
-        name: "Void Rift",
-        desc: "Swap the positions of 5 random pairs of tiles on the board.",
-        coin: 30,
-        mana: 65,
-        testonly: false
-      },
-      {
-        id: "amplify",
-        name: "Mana Surge",
-        desc: "Instantly gain 50 mana points.",
-        coin: 15,
-        mana: 0,
-        testonly: false
-      }
-    ];
+// --- Save game system ---
+function saveGame() {
+  const gameState = {
+    board,
+    movesLeft,
+    playerTurn,
+    mana,
+    spellEffects,
+    SIZE,
+    difficulty,
+    moveLimit,
+    randomEvents,
+    lastMove
+  };
+  localStorage.setItem("qf_saved_game", JSON.stringify(gameState));
+  showSaveStatus("Game saved successfully!");
+}
 
-    // --- State ---
-    let SIZE = 6;
-    let moveLimit = 30;
-    let difficulty = "hard";
-    let randomEvents = false;
-    let blockRecentMove = true;
-    let board = [];
-    let movesLeft = moveLimit;
-    let playerTurn = true; // player = white
-    let mana = 50, maxMana = 100;
-    let spellEffects = { 
-      paralyzeAI: 0,
-      frozenTiles: [], // Stores coordinates and duration of frozen tiles
-      fireBurst: false, // Flag for fire burst effect
-      activePowerups: [], // Tracks active powerups and their durations
-    };
-    let canCastSpell = true;
-    let lastMove = null; // Track the last move made
-    let recentPlayerMoves = []; // Track recent player moves for blocking AI
-    let tutorialStep = 0;
-    // --- Tutorial Content ---
+function loadGame() {
+  const savedGame = localStorage.getItem("qf_saved_game");
+  if (!savedGame) {
+    showSaveStatus("No saved game found!");
+    return false;
+  }
+  
+  try {
+    const gameState = JSON.parse(savedGame);
+    board = gameState.board;
+    movesLeft = gameState.movesLeft;
+    playerTurn = gameState.playerTurn;
+    mana = gameState.mana;
+    spellEffects = gameState.spellEffects;
+    SIZE = gameState.SIZE;
+    difficulty = gameState.difficulty;
+    moveLimit = gameState.moveLimit;
+    randomEvents = gameState.randomEvents;
+    lastMove = gameState.lastMove;
+    
+    // Update UI elements
+    document.getElementById('move-limit-slider').value = moveLimit;
+    document.getElementById('move-limit-val').textContent = moveLimit;
+    document.getElementById('difficulty').value = difficulty;
+    document.getElementById('board-size-slider').value = SIZE;
+    document.getElementById('board-size-val').textContent = SIZE;
+    document.getElementById('board-size-val2').textContent = SIZE;
+    document.getElementById('random-events').checked = randomEvents;
+    
+    canCastSpell = true;
+    updateUI();
+    showSaveStatus("Game loaded successfully!");
+    return true;
+  } catch (e) {
+    console.error("Error loading game:", e);
+    showSaveStatus("Error loading game!");
+    return false;
+  }
+}
+
+function hasSavedGame() {
+  return localStorage.getItem("qf_saved_game") !== null;
+}
+
+function showSaveStatus(message) {
+  const statusEl = document.getElementById('save-status');
+  statusEl.textContent = message;
+  statusEl.style.display = 'block';
+  
+  setTimeout(() => {
+    statusEl.style.display = 'none';
+  }, 2000);
+}
+
+// --- Spell definitions ---
+const SPELLS = [
+  {
+    id: "lightning",
+    name: "Lightning",
+    desc: "Paralyze AI for 1 move. You move again instantly.",
+    coin: 0,  // Free in shop
+    mana: 40,
+    testonly: true
+  },
+  {
+    id: "frost",
+    name: "Frost Wave",
+    desc: "Freeze a 3x3 area of the board, making those tiles immune to flipping for 3 turns.",
+    coin: 10,
+    mana: 30,
+    testonly: false
+  },
+  {
+    id: "fire",
+    name: "Fire Burst",
+    desc: "Convert all adjacent opponent tiles around your most recent flip.",
+    coin: 20,
+    mana: 45,
+    testonly: false
+  },
+  {
+    id: "void",
+    name: "Void Rift",
+    desc: "Swap the positions of 5 random pairs of tiles on the board.",
+    coin: 30,
+    mana: 65,
+    testonly: false
+  },
+  {
+    id: "amplify",
+    name: "Mana Surge",
+    desc: "Instantly gain 50 mana points.",
+    coin: 15,
+    mana: 0,
+    testonly: false
+  }
+];
+
+// --- State ---
+let SIZE = 6;
+let moveLimit = 30;
+let difficulty = "hard";
+let randomEvents = false;
+let blockRecentMove = true;
+let board = [];
+let movesLeft = moveLimit;
+let playerTurn = true; // player = white
+let mana = 50, maxMana = 100;
+let spellEffects = { 
+  paralyzeAI: 0,
+  frozenTiles: [], // Stores coordinates and duration of frozen tiles
+  fireBurst: false, // Flag for fire burst effect
+  activePowerups: [], // Tracks active powerups and their durations
+};
+let canCastSpell = true;
+let lastMove = null; // Track the last move made
+let recentPlayerMoves = []; // Track recent player moves for blocking AI
+let tutorialStep = 0;
+
+// --- Tutorial Content ---
 const TUTORIAL_STEPS = [
   {
     title: "Welcome to Quantum Flip Duel",
@@ -224,7 +225,6 @@ function renderBoard() {
   }
 }
 
-// --- Core Game Functions ---
 function makeMove(row, col) {
   if (!playerTurn || movesLeft <= 0) return;
   
@@ -302,17 +302,6 @@ function executeMove(row, col, isPlayer) {
   if (isPlayer) {
     mana = Math.min(maxMana, mana + 8);
   }
-  return true;
-}
-  
-  // Decrement moves
-  movesLeft--;
-  
-  // Gain mana for player
-  if (isPlayer) {
-    mana = Math.min(maxMana, mana + 8);
-  }
-  
   return true;
 }
 
@@ -966,77 +955,77 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('settings').classList.add('show');
   });
   
-document.getElementById('shop-btn').addEventListener('click', () => {
-  // Show shop
-  hideAllScreens();
-  document.getElementById('shop').classList.add('show');
-  initializeShop();
-});
-document.getElementById('tutorial-btn').addEventListener('click', () => {
-  tutorialStep = 0;
-  hideAllScreens();
-  document.getElementById('tutorial').classList.add('show');
-  updateTutorial();
-});
-
-document.getElementById('settings-back').addEventListener('click', showMenu);
-
-document.getElementById('back-menu').addEventListener('click', showMenu);
-
-document.getElementById('play-again').addEventListener('click', initGame);
-
-document.getElementById('end-menu').addEventListener('click', showMenu);
-
-document.getElementById('end-shop').addEventListener('click', () => {
-  hideAllScreens();
-  document.getElementById('shop').classList.add('show');
-  initializeShop();
-});
-
-document.getElementById('close-shop').addEventListener('click', showMenu);
-
-// Save/load game
-document.getElementById('save-game').addEventListener('click', saveGame);
-document.getElementById('load-game').addEventListener('click', () => {
-  if (loadGame()) showGame();
-});
-
-// Tutorial navigation
-document.getElementById('tutorial-next').addEventListener('click', () => {
-  if (tutorialStep < TUTORIAL_STEPS.length - 1) {
-    tutorialStep++;
+  document.getElementById('shop-btn').addEventListener('click', () => {
+    // Show shop
+    hideAllScreens();
+    document.getElementById('shop').classList.add('show');
+    initializeShop();
+  });
+  document.getElementById('tutorial-btn').addEventListener('click', () => {
+    tutorialStep = 0;
+    hideAllScreens();
+    document.getElementById('tutorial').classList.add('show');
     updateTutorial();
-  }
-});
-document.getElementById('tutorial-prev').addEventListener('click', () => {
-  if (tutorialStep > 0) {
-    tutorialStep--;
-    updateTutorial();
-  }
-});
-document.getElementById('tutorial-close').addEventListener('click', showMenu);
+  });
 
-// Settings
-document.getElementById('move-limit-slider').addEventListener('input', function() {
-  moveLimit = parseInt(this.value);
-  document.getElementById('move-limit-val').textContent = this.value;
-});
-document.getElementById('difficulty').addEventListener('change', function() {
-  difficulty = this.value;
-});
-document.getElementById('board-size-slider').addEventListener('input', function() {
-  SIZE = parseInt(this.value);
-  document.getElementById('board-size-val').textContent = this.value;
-  document.getElementById('board-size-val2').textContent = this.value;
-});
-document.getElementById('random-events').addEventListener('change', function() {
-  randomEvents = this.checked;
-});
-document.getElementById('block-recent-move').addEventListener('change', function() {
-  blockRecentMove = this.checked;
-});
+  document.getElementById('settings-back').addEventListener('click', showMenu);
 
-// Initialize menu UI
-updateUI();
-showMenu();
+  document.getElementById('back-menu').addEventListener('click', showMenu);
+
+  document.getElementById('play-again').addEventListener('click', initGame);
+
+  document.getElementById('end-menu').addEventListener('click', showMenu);
+
+  document.getElementById('end-shop').addEventListener('click', () => {
+    hideAllScreens();
+    document.getElementById('shop').classList.add('show');
+    initializeShop();
+  });
+
+  document.getElementById('close-shop').addEventListener('click', showMenu);
+
+  // Save/load game
+  document.getElementById('save-game').addEventListener('click', saveGame);
+  document.getElementById('load-game').addEventListener('click', () => {
+    if (loadGame()) showGame();
+  });
+
+  // Tutorial navigation
+  document.getElementById('tutorial-next').addEventListener('click', () => {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      tutorialStep++;
+      updateTutorial();
+    }
+  });
+  document.getElementById('tutorial-prev').addEventListener('click', () => {
+    if (tutorialStep > 0) {
+      tutorialStep--;
+      updateTutorial();
+    }
+  });
+  document.getElementById('tutorial-close').addEventListener('click', showMenu);
+
+  // Settings
+  document.getElementById('move-limit-slider').addEventListener('input', function() {
+    moveLimit = parseInt(this.value);
+    document.getElementById('move-limit-val').textContent = this.value;
+  });
+  document.getElementById('difficulty').addEventListener('change', function() {
+    difficulty = this.value;
+  });
+  document.getElementById('board-size-slider').addEventListener('input', function() {
+    SIZE = parseInt(this.value);
+    document.getElementById('board-size-val').textContent = this.value;
+    document.getElementById('board-size-val2').textContent = this.value;
+  });
+  document.getElementById('random-events').addEventListener('change', function() {
+    randomEvents = this.checked;
+  });
+  document.getElementById('block-recent-move').addEventListener('change', function() {
+    blockRecentMove = this.checked;
+  });
+
+  // Initialize menu UI
+  updateUI();
+  showMenu();
 });
