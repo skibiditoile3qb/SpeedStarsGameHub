@@ -3,42 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <title>Quantum Flip Duel</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Quantum Flip Duel</h1>
-  <!-- Main Menu -->
   <div class="menu show" id="menu">
     <button class="button" id="play-btn">Play</button>
-    <button class="button" id="continue-btn" style="display: none;">Continue Game</button>
+    <button class="button" id="continue-btn" style="display:none;">Continue Game</button>
     <button class="button" id="settings-btn">Settings</button>
     <button class="button" id="shop-btn">Shop</button>
     <button class="button" id="tutorial-btn">How To Play</button>
     <div class="coinbar" id="menu-coins"></div>
   </div>
-  <!-- Settings Menu -->
   <div class="settings" id="settings">
-    <div class="settings-opt">
-      <div class="label">Move Limit:</div>
-      <div class="slider-wrap">
-        <span id="move-limit-val">30</span>
-        <input id="move-limit-slider" class="slider" type="range" min="5" max="100" value="30">
-      </div>
+    <div class="settings-opt"><div class="label">Move Limit:</div>
+      <div class="slider-wrap"><span id="move-limit-val">30</span>
+        <input id="move-limit-slider" class="slider" type="range" min="5" max="100" value="30"></div>
     </div>
-    <div class="settings-opt">
-      <div class="label">AI Difficulty:</div>
-      <select id="difficulty" class="select">
-        <option value="easy">Easy</option>
+    <div class="settings-opt"><div class="label">AI Difficulty:</div>
+      <select id="difficulty" class="select"><option value="easy">Easy</option>
         <option value="medium">Medium</option>
-        <option value="hard" selected>Hard</option>
-      </select>
+        <option value="hard" selected>Hard</option></select>
     </div>
-    <div class="settings-opt">
-      <div class="label">Board Size: <span id="board-size-val">6</span> x <span id="board-size-val2">6</span></div>
-      <div class="slider-wrap">
-        <input id="board-size-slider" class="slider" type="range" min="4" max="10" value="6">
-      </div>
+    <div class="settings-opt"><div class="label">Board Size: <span id="board-size-val">6</span> x <span id="board-size-val2">6</span></div>
+      <div class="slider-wrap"><input id="board-size-slider" class="slider" type="range" min="4" max="10" value="6"></div>
     </div>
     <div class="settings-opt">
       <label style="color:#ffe36b;font-weight:bold;font-size:1.09em;">
@@ -56,7 +45,6 @@
     </div>
     <button class="button" id="settings-back" style="margin-top:22px;">Back</button>
   </div>
-  <!-- Game UI -->
   <div class="game" id="game">
     <div id="event-msg"></div>
     <div class="coinbar" id="game-coins"></div>
@@ -71,7 +59,6 @@
     </div>
     <button class="button" id="back-menu" style="margin-top:23px;">Main Menu</button>
   </div>
-  <!-- Shop Overlay -->
   <div class="shop" id="shop">
     <div class="shop-box">
       <button class="shop-close-btn" id="close-shop" title="Close Shop">&times;</button>
@@ -81,7 +68,6 @@
       <div style="color:#ffe36b99;font-size:0.98em;">Earn coins by defeating the AI!</div>
     </div>
   </div>
-  <!-- Tutorial -->
   <div class="tutorial" id="tutorial">
     <h2 style="color:#7df9ff">How To Play Quantum Flip Duel</h2>
     <div id="tutorial-content"></div>
@@ -91,7 +77,6 @@
       <button class="button" id="tutorial-close" style="display:none">Close Tutorial</button>
     </div>
   </div>
-  <!-- End Screen -->
   <div class="end" id="end">
     <div id="winner"></div>
     <div id="final-count"></div>
@@ -99,9 +84,8 @@
     <button class="button" id="end-menu">Main Menu</button>
     <button class="button" id="end-shop">Shop</button>
   </div>
-  <!-- Visual Effects Overlays -->
   <div class="flash-overlay" id="flash-overlay"></div>
   <div id="save-status"></div>
-  <script src="quantum.js"></script>
+  <script type="module" src="js/quantum.js"></script>
 </body>
 </html>
