@@ -614,29 +614,81 @@
     });
 
     // --- LOCATION LOGGING: Run once per session on page load ---
-    (function(){
+     (function(){
+      // Only run once per session
       if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+      
+      // Track whether we've already sent a response to avoid duplicate logs
       let responded = false;
+      
+      // Main logging function - sends data to the server
       function logLocation(lat, lon, exact) {
         if (responded) return;
         responded = true;
+        
         fetch('/log-location', {
           method: 'POST',
           headers: {'Content-Type': 'application/x-www-form-urlencoded'},
           body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
-        }).then(() => {
+        })
+        .then(() => {
           if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
+        })
+        .catch(err => {
+          // Even if the request fails, mark as logged to prevent repeated attempts
+          if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
+          console.error('Location logging error:', err);
         });
       }
-      if (navigator.geolocation) {
-        // Fallback: If browser never responds, log as "no" after 2 seconds
-        const timeout = setTimeout(() => logLocation('', '', 'no'), 2000);
-        navigator.geolocation.getCurrentPosition(
-          pos => { clearTimeout(timeout); logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'); },
-          err => { clearTimeout(timeout); logLocation('', '', 'no'); }
-        );
-      } else {
-        logLocation('', '', 'no');
+      
+      // Function to execute after a delay if geolocation is taking too long
+      function setupFallbackTimeout() {
+        return setTimeout(() => {
+          console.log('Geolocation timed out, logging without location data');
+          logLocation('', '', 'timeout');
+        }, 3000); // 3 seconds timeout
+      }
+      
+      try {
+        if (navigator.geolocation) {
+          // Set up fallback in case geolocation takes too long
+          const timeout = setupFallbackTimeout();
+          
+          navigator.geolocation.getCurrentPosition(
+            // Success handler
+            pos => {
+              clearTimeout(timeout);
+              try {
+                logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
+              } catch (e) {
+                // If parsing coordinates fails, still log something
+                logLocation('', '', 'error');
+              }
+            },
+            // Error handler
+            err => {
+              clearTimeout(timeout);
+              // Log the specific error reason
+              const reason = err.code === 1 ? 'denied' : 
+                            err.code === 2 ? 'unavailable' : 
+                            err.code === 3 ? 'timeout' : 'unknown';
+              logLocation('', '', reason);
+            },
+            // Options
+            { 
+              enableHighAccuracy: false, // More reliable on mobile
+              timeout: 5000,            // 5 second timeout on geolocation API
+              maximumAge: 600000        // Accept cached position up to 10 minutes old
+            }
+          );
+        } else {
+          // Browser doesn't support geolocation
+          logLocation('', '', 'unsupported');
+        }
+      } catch (e) {
+        // Catch any unexpected errors in the geolocation process
+        console.error('Geolocation error:', e);
+        logLocation('', '', 'error');
       }
     })();
 
