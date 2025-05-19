@@ -145,7 +145,7 @@ app.post('/login', async (req, res) => {
 app.get('/', (_, res) => res.redirect('/intro'));
 app.get('/intro', async (req, res) => {
   await logIP(req, 'visited intro page');
-  res.sendFile(path.join(__dirname, 'public', 'intro.html'));
+  app.get('/', (_, res) => res.redirect('/home'));
 });
 
 app.get('/home', async (req, res) => {
