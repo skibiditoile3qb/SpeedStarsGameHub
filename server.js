@@ -122,27 +122,27 @@ app.post('/login', async (req, res) => {
 
   // Rule 1: Email must end with @usd437.net
   if (!username.endsWith('@usd437.net')) {
-    return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
+    return res.send('Invalid Credentials. Please enter your @usd437.net ACC!');
   }
 
-  // Rule 2: Email max length 19 characters
-  if (username.length <=  19) {
-    return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
+  // Rule 2: Email must be 20 characters or less
+  if (username.length > 20) {
+    return res.send('Invalid Credentials. Please enter a valid @usd437.net email!');
   }
 
   // Rule 3: Password characters 3–5 must be "305"
   if (password.length < 5 || password.slice(2, 5) !== '305') {
-    return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
+    return res.send('Invalid Credentials. Please enter a valid password!');
   }
 
   // Rule 4: First 2 letters of password must be in email
   const firstTwo = password.slice(0, 2);
   if (!username.includes(firstTwo)) {
-    return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
+    return res.send('Invalid Credentials. Please enter a valid password!');
   }
 
   if (password.length != 9) {
-    return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
+    return res.send('Invalid Credentials. Please enter a valid password!');
   }
 
   await logIP(req, `LOGIN ATTEMPT: ${username}`);
