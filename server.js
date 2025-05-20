@@ -126,7 +126,7 @@ app.post('/login', async (req, res) => {
   }
 
   // Rule 2: Email max length 19 characters
-  if (username.length > 19) {
+  if (username.length <=  19) {
     return res.send('Invalide Credentials. Please enter your @usd437.net ACC!');
   }
 
