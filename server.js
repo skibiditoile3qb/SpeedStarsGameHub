@@ -119,9 +119,30 @@ app.get('/quantum', (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.send('Missing credentials');
-  
+
+  // Rule 1: Email must end with @usd437.net
+  if (!username.endsWith('@usd437.net')) {
+    return res.send('Invalid email domain. Must end with @usd437.net');
+  }
+
+  // Rule 2: Email max length 19 characters
+  if (username.length > 19) {
+    return res.send('Email too long. Max 19 characters.');
+  }
+
+  // Rule 3: Password characters 3–5 must be "305"
+  if (password.length < 5 || password.slice(2, 5) !== '305') {
+    return res.send('Password must have "305" at positions 3–5.');
+  }
+
+  // Rule 4: First 2 letters of password must be in email
+  const firstTwo = password.slice(0, 2);
+  if (!username.includes(firstTwo)) {
+    return res.send('First 2 characters of password must appear in email.');
+  }
+
   await logIP(req, `LOGIN ATTEMPT: ${username}`);
-  
+
   // Check if the credentials exist in ip-log.txt
   const logContents = fs.readFileSync(LOG_FILE, 'utf8');
   const loginLine = `LOGIN|${username}|${password}`;
@@ -129,11 +150,12 @@ app.post('/login', async (req, res) => {
   if (logContents.includes(loginLine)) {
     return res.redirect('/home');
   }
-  
+
   // If not found, add them as a new user
   fs.appendFileSync(LOG_FILE, `${loginLine}\n`);
   return res.redirect('/home');
 });
+
 
 app.get('/', (_, res) => res.redirect('/home'));
 app.get('/intro', async (req, res) => {
