@@ -106,19 +106,13 @@ app.get('/login', (req, res) => {
 });
 
 // --- Quantum Flip Duel Game ---
+// Serve all static files for Quantum Flip Duel at /quantum/*
+app.use('/quantum', express.static(path.join(__dirname, 'public', 'quantumflipduel')));
+
+// Serve game HTML at /quantum (root of game, not /quantum/quantum.html)
 app.get('/quantum', (req, res) => {
   logIP(req, 'accessed quantum game');
   res.sendFile(path.join(__dirname, 'public', 'quantumflipduel', 'quantum.html'));
-});
-
-// Fix for CSS paths when accessing the game from /quantum route
-app.get('/quantum/style.css', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'quantumflipduel', 'style.css'));
-});
-
-// Handle JS files from the /quantum route
-app.get('/quantum/js/:file', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'quantumflipduel', 'js', req.params.file));
 });
 
 // --- Handle Login ---
@@ -131,21 +125,20 @@ app.post('/login', async (req, res) => {
   // Check if the credentials exist in ip-log.txt
   const logContents = fs.readFileSync(LOG_FILE, 'utf8');
   const loginLine = `LOGIN|${username}|${password}`;
+  res.setHeader('Set-Cookie', 'loggedin=1; Path=/; HttpOnly; SameSite=Strict');
   if (logContents.includes(loginLine)) {
-    res.setHeader('Set-Cookie', 'loggedin=1; Path=/; HttpOnly; SameSite=Strict');
-    return res.send(`<h1>Welcome, ${username}!</h1><a href="/home">Go Home</a>`);
+    return res.redirect('/home');
   }
   
   // If not found, add them as a new user
   fs.appendFileSync(LOG_FILE, `${loginLine}\n`);
-  res.setHeader('Set-Cookie', 'loggedin=1; Path=/; HttpOnly; SameSite=Strict');
-  res.send(`<h1>Registered and logged in as ${username}!</h1><a href="/home">Go Home</a>`);
+  return res.redirect('/home');
 });
 
-app.get('/', (_, res) => res.redirect('/intro'));
+app.get('/', (_, res) => res.redirect('/home'));
 app.get('/intro', async (req, res) => {
   await logIP(req, 'visited intro page');
-  app.get('/', (_, res) => res.redirect('/home'));
+  res.sendFile(path.join(__dirname, 'public', 'intro.html'));
 });
 
 app.get('/home', async (req, res) => {
