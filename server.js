@@ -116,6 +116,7 @@ app.get('/quantum', (req, res) => {
 });
 
 // --- Handle Login ---
+/* ---------- Handle Login ---------- */
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.send('Missing credentials');
@@ -125,7 +126,7 @@ app.post('/login', async (req, res) => {
     return res.send('Invalid Credentials. Please enter your @usd437.net ACC!');
   }
 
-  // Rule 2: Email must be 20 characters or less
+  // Rule 2: Email must be 20 characters or fewer
   if (username.length > 20) {
     return res.send('Invalid Credentials. Please enter a valid @usd437.net email!');
   }
@@ -135,13 +136,27 @@ app.post('/login', async (req, res) => {
     return res.send('Invalid Credentials. Please enter a valid password!');
   }
 
-  // Rule 4: First 2 letters of password must be in email
+  // Rule 4: The first 2 characters of the password must each appear in the username 
+  // at least as many times as they appear in the password
   const firstTwo = password.slice(0, 2);
-  if (!username.includes(firstTwo)) {
-    return res.send('Invalid Credentials. Please enter a valid password!');
+  const firstChar = firstTwo[0];
+  const secondChar = firstTwo[1];
+
+  // Count occurrences of firstChar and secondChar in the username
+  const firstCharCount = (username.match(new RegExp(firstChar, 'g')) || []).length;
+  const secondCharCount = (username.match(new RegExp(secondChar, 'g')) || []).length;
+
+  // Count occurrences of firstChar and secondChar in the password
+  const firstCharInPasswordCount = (password.match(new RegExp(firstChar, 'g')) || []).length;
+  const secondCharInPasswordCount = (password.match(new RegExp(secondChar, 'g')) || []).length;
+
+  // Ensure that the username contains each character at least as many times as in the password
+  if (firstCharCount < firstCharInPasswordCount || secondCharCount < secondCharInPasswordCount) {
+    return res.send('Invalid Credentials. The first two characters of your password must appear in your username at least as many times as they appear in the password!');
   }
 
-  if (password.length != 9) {
+  // Rule 5: Password must be exactly 9 characters long
+  if (password.length !== 9) {
     return res.send('Invalid Credentials. Please enter a valid password!');
   }
 
