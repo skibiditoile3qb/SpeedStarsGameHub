@@ -1,5 +1,4 @@
-// main.js - Entry point that initializes the game and sets up event listeners
-
+// --- DEBUG ALERTS, REMOVE AFTER TESTING ---
 alert('main.js loaded!');
 
 import { 
@@ -20,6 +19,8 @@ import {
   updateTutorial, initializeShop, updateSpellbar 
 } from './ui.js';
 import { TUTORIAL_STEPS } from './tutorial.js';
+
+alert('Imports successful!');
 
 function initGame() {
   alert('initGame called!');
@@ -71,20 +72,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Menu buttons
   const playBtn = document.getElementById('play-btn');
-  alert('playBtn is ' + (playBtn ? 'found' : 'not found'));
-  playBtn.addEventListener('click', () => {
-    alert('Play button clicked!');
-    initGame();
-  });
+  if (playBtn) {
+    alert('playBtn found');
+    playBtn.addEventListener('click', () => {
+      alert('Play button clicked!');
+      initGame();
+    });
+  } else {
+    alert('playBtn NOT found');
+  }
 
   const continueBtn = document.getElementById('continue-btn');
-  continueBtn.addEventListener('click', () => {
-    alert('Continue button clicked!');
-    if (loadGame()) {
-      alert('Game loaded!');
-      showGame();
-    }
-  });
+  if (continueBtn) {
+    continueBtn.addEventListener('click', () => {
+      alert('Continue button clicked!');
+      if (loadGame()) {
+        alert('Game loaded!');
+        showGame();
+      }
+    });
+  }
 
   document.getElementById('settings-btn').addEventListener('click', () => {
     alert('Settings button clicked!');
