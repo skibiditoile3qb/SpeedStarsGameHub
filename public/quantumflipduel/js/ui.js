@@ -35,6 +35,7 @@ function showEventMessage(text, duration = 1500) {
     setTimeout(() => { eventElem.style.opacity = 0; }, duration);
   }
 }
+
 export function hideAllScreens() {
   // Hide all game screens, e.g.:
   document.getElementById('menu').classList.remove('show');
