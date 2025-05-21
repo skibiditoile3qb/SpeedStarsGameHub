@@ -35,6 +35,15 @@ function showEventMessage(text, duration = 1500) {
     setTimeout(() => { eventElem.style.opacity = 0; }, duration);
   }
 }
+export function hideAllScreens() {
+  // Hide all game screens, e.g.:
+  document.getElementById('menu').classList.remove('show');
+  document.getElementById('settings').classList.remove('show');
+  document.getElementById('game').classList.remove('show');
+  document.getElementById('shop').classList.remove('show');
+  document.getElementById('tutorial').classList.remove('show');
+  document.getElementById('end').classList.remove('show');
+}
 
 function showShop(show = true) {
   const shopElem = document.getElementById('shop');
