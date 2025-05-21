@@ -178,13 +178,25 @@ app.get('/login', (req, res) => {
 });
 
 // --- Quantum Flip Duel Game ---
+// --- Quantum Flip Duel Game ---
 // Serve all static files for Quantum Flip Duel at /quantum/*
 app.use('/quantum', express.static(path.join(__dirname, 'public', 'quantumflipduel')));
 
-// Serve game HTML at /quantum (root of game, not /quantum/quantum.html)
+// Serve game HTML at /quantum (root of game)
 app.get('/quantum', async (req, res) => {
   await logIP(req, 'accessed quantum game');
   res.sendFile(path.join(__dirname, 'public', 'quantumflipduel', 'quantum.html'));
+});
+
+// For routes that don't work, provide a debug endpoint
+app.get('/debug/paths', (req, res) => {
+  res.json({
+    serverRoot: __dirname,
+    quantumGamePath: path.join(__dirname, 'public', 'quantumflipduel'),
+    htmlPath: path.join(__dirname, 'public', 'quantumflipduel', 'quantum.html'),
+    jsPath: path.join(__dirname, 'public', 'quantumflipduel', 'js'),
+    requestPath: req.path
+  });
 });
 
 // --- Handle Login ---
