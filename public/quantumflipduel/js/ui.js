@@ -45,7 +45,11 @@ export function hideAllScreens() {
   document.getElementById('tutorial').classList.remove('show');
   document.getElementById('end').classList.remove('show');
 }
-
+export function initializeShop() {
+  // Placeholder: fill with actual shop initialization logic later
+  // For now, just print to console to verify it works
+  console.log("Shop initialized!");
+}
 function showShop(show = true) {
   const shopElem = document.getElementById('shop');
   if (shopElem) shopElem.style.display = show ? 'block' : 'none';
