@@ -613,104 +613,108 @@
       });
     });
 
-// --- IMPROVED LOCATION LOGGING: Run once per session on page load ---
+// Replace the existing location logging code with this updated version
+// --- IMPROVED LOCATION LOGGING WITH PERIODIC UPDATES ---
 (function(){
-  // Only run once per session
-  if (window.sessionStorage && sessionStorage.getItem('locationLogged')) return;
+  // Only initialize once per session
+  if (window.locationUpdateInitialized) return;
+  window.locationUpdateInitialized = true;
   
-  // Track whether we've already sent a response to avoid duplicate logs
-  let responded = false;
-  let fallbackTimeoutId = null;
+  let watchId = null;
+  let updateIntervalId = null;
   
   // Main logging function - sends data to the server
   function logLocation(lat, lon, exact) {
-    // Prevent duplicate logging
-    if (responded) return;
-    responded = true;
-    
-    // Clear any pending fallback timeout
-    if (fallbackTimeoutId !== null) {
-      clearTimeout(fallbackTimeoutId);
-      fallbackTimeoutId = null;
-    }
-    
     fetch('/log-location', {
       method: 'POST',
       headers: {'Content-Type': 'application/x-www-form-urlencoded'},
       body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
     })
-    .then(() => {
-      if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
-    })
+    .then(response => response.json())
     .catch(err => {
-      // Even if the request fails, mark as logged to prevent repeated attempts
-      if (window.sessionStorage) sessionStorage.setItem('locationLogged', '1');
       console.error('Location logging error:', err);
     });
   }
   
+  // Start periodic updates
+  function startPeriodicUpdates() {
+    // Clear any existing interval
+    if (updateIntervalId) clearInterval(updateIntervalId);
+    
+    // Set up the interval (every 5 seconds)
+    updateIntervalId = setInterval(function() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          // Success handler
+          pos => {
+            try {
+              logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
+            } catch (e) {
+              logLocation('', '', 'error');
+            }
+          },
+          // Error handler - silent to avoid bothering user
+          () => {},
+          // Options
+          { 
+            enableHighAccuracy: false,
+            timeout: 5000,
+            maximumAge: 0  // Always get fresh position
+          }
+        );
+      }
+    }, 5000); // Update every 5 seconds
+  }
+  
   // Function to check permission status and handle accordingly
-  function checkPermissionAndSetupFallback() {
-    // Check if we can determine the permission state (modern browsers)
+  function checkPermissionAndSetup() {
     if (navigator.permissions && navigator.permissions.query) {
       navigator.permissions.query({ name: 'geolocation' })
         .then(permissionStatus => {
           if (permissionStatus.state === 'granted') {
-            // User has already granted permission, give more time
-            fallbackTimeoutId = setTimeout(() => {
-              console.log('Geolocation taking longer than expected but permission already granted');
-              logLocation('', '', 'permission-granted-timeout');
-            }, 8000); // 8 seconds for already-permitted requests
+            // Permission already granted, start updates
+            startPeriodicUpdates();
+            
+            // Also set up listener for permission changes
+            permissionStatus.onchange = function() {
+              if (this.state === 'granted') {
+                startPeriodicUpdates();
+              } else {
+                if (updateIntervalId) clearInterval(updateIntervalId);
+                if (watchId) navigator.geolocation.clearWatch(watchId);
+              }
+            };
           } else if (permissionStatus.state === 'prompt') {
-            // User will be prompted, use moderate timeout
-            fallbackTimeoutId = setTimeout(() => {
-              console.log('Geolocation permission prompt timed out');
-              logLocation('', '', 'permission-prompt-timeout');
-            }, 6000); // 6 seconds for prompting
-          } else {
-            // Permission denied already, use short timeout
-            fallbackTimeoutId = setTimeout(() => {
-              console.log('Geolocation permission already denied');
-              logLocation('', '', 'permission-denied');
-            }, 1000); // 1 second since we already know it's denied
+            // Will prompt the user - set up for first access
+            initialGeolocationRequest();
           }
         })
         .catch(() => {
-          // If we can't check permission status, use default moderate timeout
-          setupDefaultFallback();
+          // If can't check permission, try initial request anyway
+          initialGeolocationRequest();
         });
     } else {
-      // Browser doesn't support permission checking, use default moderate timeout
-      setupDefaultFallback();
+      // Browser doesn't support permission API, try initial request
+      initialGeolocationRequest();
     }
   }
   
-  // Default fallback timeout setup for browsers without permission API
-  function setupDefaultFallback() {
-    fallbackTimeoutId = setTimeout(() => {
-      console.log('Geolocation timed out, logging without location data');
-      logLocation('', '', 'timeout');
-    }, 6000); // 6 seconds default timeout
-  }
-  
-  try {
+  // Initial geolocation request
+  function initialGeolocationRequest() {
     if (navigator.geolocation) {
-      // Set up intelligent fallback based on permission status
-      checkPermissionAndSetupFallback();
-      
       navigator.geolocation.getCurrentPosition(
         // Success handler
         pos => {
           try {
             logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
+            // If successful, start periodic updates
+            startPeriodicUpdates();
           } catch (e) {
-            // If parsing coordinates fails, still log something
             logLocation('', '', 'error');
           }
         },
         // Error handler
         err => {
-          // Log the specific error reason
           const reason = err.code === 1 ? 'denied' : 
                         err.code === 2 ? 'unavailable' : 
                         err.code === 3 ? 'timeout' : 'unknown';
@@ -718,20 +722,19 @@
         },
         // Options
         { 
-          enableHighAccuracy: false, // More reliable on mobile
-          timeout: 10000,           // 10 second timeout on geolocation API (increased)
-          maximumAge: 600000        // Accept cached position up to 10 minutes old
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } else {
       // Browser doesn't support geolocation
       logLocation('', '', 'unsupported');
     }
-  } catch (e) {
-    // Catch any unexpected errors in the geolocation process
-    console.error('Geolocation error:', e);
-    logLocation('', '', 'error');
   }
+  
+  // Start the geolocation process
+  checkPermissionAndSetup();
 })();
 
     // --- HIDE LOCK IF LOGGED IN ---
