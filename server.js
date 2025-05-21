@@ -193,15 +193,114 @@ app.post('/home', async (req, res) => {
 });
 
 // Improved location logging endpoint
+/* Updated logging endpoint to return address information */
 app.post('/log-location', express.urlencoded({ extended: true }), async (req, res) => {
   try {
-    await logIP(req, 'logged location');
-    res.sendStatus(204);
+    const locationInfo = await logIP(req, 'logged location', true); // Pass true to indicate we want the location info returned
+    res.json(locationInfo || {}); // Send back the location info as JSON
   } catch (e) {
     console.error('Error in log-location:', e);
-    res.sendStatus(204); // Still send success to client even if logging failed
+    res.json({}); // Send empty object if something fails
   }
 });
+
+/* Updated helper to get address from coordinates using reverse geocoding */
+async function getAddressFromCoords(latitude, longitude) {
+  try {
+    // Use a free reverse geocoding service
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`);
+    const data = await response.json();
+    
+    if (data && data.display_name) {
+      return {
+        fullAddress: data.display_name,
+        shortAddress: data.address ? 
+          `${data.address.road || ''}, ${data.address.city || data.address.town || ''}, ${data.address.country || ''}` : 
+          data.display_name
+      };
+    }
+  } catch (e) {
+    console.error('Reverse geocoding error:', e.message);
+  }
+  return null;
+}
+
+/* Updated IP logger that returns location data */
+async function logIP(req, label = 'visited', returnLocationInfo = false) {
+  try {
+    const forwarded = req.headers['x-forwarded-for'] || '';
+    const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+    const ipForGeo = ipList[0] || req.socket.remoteAddress;
+    const allIPs = ipList.length ? ipList.join(', ') : req.socket.remoteAddress;
+    const ts = new Date().toISOString();
+    let locString = '';
+    let locationInfo = {};
+    
+    const { latitude, longitude, exact_location } = req.body || {};
+    
+    // Safely handle location information
+    if (latitude && longitude && exact_location === 'yes') {
+      locString = ` | location: ${latitude},${longitude} | exact: yes`;
+      
+      // Get additional address information
+      try {
+        const addressInfo = await getAddressFromCoords(latitude, longitude);
+        if (addressInfo) {
+          locString += ` | address: ${addressInfo.shortAddress}`;
+          locationInfo = {
+            latitude,
+            longitude,
+            ...addressInfo
+          };
+        }
+      } catch (e) {
+        console.error('Address lookup error:', e);
+      }
+    } else {
+      // Always try to get estimated location if exact wasn't provided
+      try {
+        const loc = await estimateLocationByIP(ipForGeo);
+        if (loc) {
+          locString = ` | location: ${loc.latitude},${loc.longitude} (${loc.city},${loc.country}) | exact: no`;
+          locationInfo = {
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            shortAddress: `${loc.city}, ${loc.country}`,
+            fullAddress: `${loc.city}, ${loc.country}`
+          };
+        } else {
+          locString = ' | location: unknown | exact: no';
+        }
+      } catch (e) {
+        // Fallback if location estimation fails
+        locString = ' | location: error | exact: no';
+      }
+    }
+    
+    const logEntry = `${ts} - ${allIPs} ${label}${locString}\n`;
+    
+    fs.appendFile(LOG_FILE, logEntry, err => {
+      if (err) console.error('Log write error:', err);
+    });
+    
+    // Return location info if requested
+    if (returnLocationInfo) {
+      return locationInfo;
+    }
+  } catch (e) {
+    // Catch-all error handler to prevent logging failures from affecting the app
+    console.error('Logging error:', e);
+    try {
+      // Attempt to log the error itself
+      fs.appendFile(LOG_FILE, `${new Date().toISOString()} - LOGGING ERROR: ${e.message}\n`, () => {});
+    } catch {}
+    
+    // Return empty object if we're supposed to return location info
+    if (returnLocationInfo) {
+      return {};
+    }
+  }
+}
 
 /* pretty game routes ( /templerun → /games/templerun ) */
 ['templerun', 'speedstars', 'subway', 'candy'].forEach(game => {
