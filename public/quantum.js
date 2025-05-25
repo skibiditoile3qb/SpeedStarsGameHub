@@ -1,7 +1,7 @@
 // Quantum Flip Game - Single File React App (No external dependencies except React)
-// Copy-paste into a React project, or run with an online React playground.
+// Assumes React and ReactDOM are loaded globally via CDN in HTML
 
-import React, { useState, useEffect } from "react";
+const { useState, useEffect } = React;
 
 // Utility
 const range = n => Array.from({ length: n }, (_, i) => i);
@@ -50,7 +50,7 @@ const DIFFICULTY_LEVELS = [
 ];
 
 // Main App
-export default function QuantumFlipGame() {
+function QuantumFlipGame() {
   // "menu", "play", "tutorial", "shop", "settings"
   const [screen, setScreen] = useState("menu");
   // Settings
@@ -793,3 +793,6 @@ export default function QuantumFlipGame() {
     </div>
   );
 }
+
+// Expose globally for HTML to use: ReactDOM.createRoot(...).render(React.createElement(window.QuantumFlipGame))
+window.QuantumFlipGame = QuantumFlipGame;
