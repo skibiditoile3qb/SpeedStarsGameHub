@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quantum Flip Game</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { background: #ddd; margin: 0; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- React/ReactDOM from CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <!-- Your game logic -->
+  <script src="quantum.js"></script>
+  <script>
+    // If your quantum.js file is a UMD bundle that exposes QuantumFlipGame on window
+    // For the file I provided, you need to wrap it as:
+    // window.QuantumFlipGame = QuantumFlipGame;
+    // at the end of your quantum.js build!
+    ReactDOM.createRoot(document.getElementById('root')).render(
+      React.createElement(window.QuantumFlipGame)
+    );
+  </script>
+</body>
+</html>
