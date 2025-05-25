@@ -3,17 +3,601 @@
 <head>
   <meta charset="UTF-8">
   <title>Quantum Flip Game</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      font-family: system-ui,Arial,sans-serif;
+      background: #eee;
+      min-height: 100vh;
+    }
+    #root {
+      min-height: 100vh;
+      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .panel {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 460px;
+      min-width: 320px;
+      margin: 32px auto 0 auto;
+      padding: 30px 32px 36px 32px;
+      box-shadow: 0 4px 28px #0002;
+      text-align: center;
+      position: relative;
+    }
+    .coin {
+      color: #fb0;
+      font-weight: bold;
+    }
+    .menu-btn {
+      display: block;
+      width: 240px;
+      margin: 18px auto;
+      padding: 14px 0;
+      font-size: 20px;
+      background: #b4e;
+      color: #fff;
+      border-radius: 9px;
+      border: none;
+      box-shadow: 0 2px 10px #0001;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .menu-btn:hover { background: #924fe6; }
+    .back-btn {
+      padding: 8px 20px;
+      margin-top: 26px;
+      background: #888;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+    .back-btn:hover { background: #444; }
+    .shop-spell {
+      border: 1px solid #999;
+      border-radius: 7px;
+      padding: 10px 6px 8px 12px;
+      margin: 12px 2px;
+      background: #f8f8f8;
+      text-align: left;
+      transition: background .2s;
+      position: relative;
+      font-size: 15px;
+    }
+    .shop-spell.owned { background: #eaffea; }
+    .shop-spell .spell-title { font-weight: bold; font-size: 16px; }
+    .shop-spell .spell-desc { font-size: 13px; color: #444; white-space: pre-line; }
+    .shop-spell .spell-cost { color: #fb0; font-weight: bold; }
+    .shop-spell button {
+      margin-top: 7px;
+      background: #b4e;
+      color: #fff; border: none; border-radius: 6px;
+      padding: 6px 15px; cursor: pointer;
+      font-weight: bold;
+      float: right;
+    }
+    .shop-spell button:disabled { background: #aaa; cursor: not-allowed; }
+    .difficulty-select {
+      margin-top: 18px;
+      font-size: 17px;
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: 1px solid #bbb;
+      background: #f2f2ff;
+    }
+    .board-row {
+      display: flex;
+    }
+    .board-cell {
+      width: 32px; height: 32px;
+      border: 1px solid #888;
+      box-sizing: border-box;
+      margin: 0; padding: 0;
+      font-size: 15px;
+      cursor: pointer;
+      background: #fff;
+      transition: background 0.18s, border 0.18s;
+      position: relative;
+      user-select: none;
+    }
+    .board-cell.ai { background: #222; color: #fff; }
+    .board-cell.player { background: #fff; color: #222; }
+    .board-cell.quantum { background: #aaf; color: #222; }
+    .board-cell.quantum.visible { background: repeating-linear-gradient(45deg,#aaf 0 4px,#fff 4px 8px); }
+    .board { margin: 18px auto; }
+    .spell-btn {
+      margin: 4px 7px 4px 0;
+      padding: 7px 17px;
+      background: #95f; color: #fff;
+      border: none; border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .spell-btn:disabled { background: #ccc; color: #888; cursor: not-allowed; }
+    .spell-btn.selected { outline: 2px solid #fc0; }
+    .info-bar {
+      margin: 10px 0 3px 0;
+      font-size: 15px;
+      color: #222;
+    }
+    .overlay {
+      position: fixed;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: #000a;
+      z-index: 1000;
+      display: flex;
+      align-items: center; justify-content: center;
+    }
+    .overlay-inner {
+      background: #fff;
+      padding: 36px 36px 24px 36px;
+      border-radius: 15px;
+      min-width: 260px;
+      box-shadow: 0 6px 40px #0006;
+      text-align: center;
+      font-size: 19px;
+    }
+    @media (max-width: 500px) {
+      .panel { max-width: 98vw; min-width: unset; padding: 16px 3vw 22px 3vw; }
+      .shop-spell { font-size: 13px; }
+      .board-cell { width: 22px; height: 22px; font-size: 10px; }
+    }
+  </style>
 </head>
 <body>
   <div id="root"></div>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="quantum.js"></script>
   <script>
-    ReactDOM.createRoot(document.getElementById('root')).render(
-      React.createElement(window.QuantumFlipGame)
-    );
+    // ----------- State -----------
+    let coins = 0;
+    let spellsOwned = [];
+    let difficulty = 0; // 0=easy,1=med,2=hard,3=extreme
+    let screen = "menu";
+    let gameState = null;
+    let overlay = null;
+
+    const SPELLS = [
+      {
+        key: "quantum",
+        name: "Quantum Split",
+        desc: `A single move, many futures.\nSplits a piece into 2-3 possible states; opponent sees all, but only one is real—revealed when targeted.`,
+        cost: 30,
+        mana: 20
+      },
+      {
+        key: "collapse",
+        name: "Waveform Collapse",
+        desc: `Everything becomes... definite.\nCollapses all superpositioned pieces on the board to their actual states. Good for revealing enemy tricks or final strikes.`,
+        cost: 20,
+        mana: 50
+      },
+      {
+        key: "fireball",
+        name: "Fireball",
+        desc: `Casts a fireball in a 4x4 area, flipping all squares inside.`,
+        cost: 18,
+        mana: 40
+      },
+      {
+        key: "skip",
+        name: "Skip",
+        desc: `Skips the opponent's move, giving you two in a row.`,
+        cost: 25,
+        mana: 35
+      }
+    ];
+    const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
+    const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
+    // ----------- Rendering -----------
+    function render() {
+      const root = document.getElementById('root');
+      root.innerHTML = '';
+      if (screen === "menu") root.appendChild(renderMenu());
+      else if (screen === "settings") root.appendChild(renderSettings());
+      else if (screen === "shop") root.appendChild(renderShop());
+      else if (screen === "tutorial") root.appendChild(renderTutorial());
+      else if (screen === "play") root.appendChild(renderPlay());
+      if (overlay) root.appendChild(renderOverlay(...overlay));
+    }
+    // ----------- UI PARTS -----------
+    function renderMenu() {
+      const div = document.createElement('div');
+      div.className = "panel";
+      div.innerHTML = `
+        <h1>Quantum Flip</h1>
+        <div style="margin:14px 0 30px 0;">
+          <span class="coin" style="font-size:22px;">Coins: ${coins} 🪙</span>
+        </div>
+      `;
+      div.appendChild(menuBtn("Play", ()=>startGame()));
+      div.appendChild(menuBtn("Tutorial", ()=>{screen="tutorial"; render();}));
+      div.appendChild(menuBtn("Shop", ()=>{screen="shop"; render();}));
+      div.appendChild(menuBtn("Settings", ()=>{screen="settings"; render();}));
+      const by = document.createElement('div');
+      by.style.marginTop = "28px";
+      by.style.fontSize = "12px";
+      by.style.color = "#888";
+      by.innerText = "by copilot | vanilla JS demo";
+      div.appendChild(by);
+      return div;
+    }
+    function menuBtn(text, cb) {
+      const btn = document.createElement('button');
+      btn.className = "menu-btn";
+      btn.innerText = text;
+      btn.onclick = cb;
+      return btn;
+    }
+    function renderSettings() {
+      const div = document.createElement('div');
+      div.className = "panel";
+      div.innerHTML = `<h2>Settings</h2>
+        <div style="margin-bottom:16px">
+          <b>AI Difficulty:</b>
+          <select class="difficulty-select" id="diffsel">
+            ${DIFFICULTY_LEVELS.map((d,i)=>`<option value="${i}"${i==difficulty?' selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+      `;
+      setTimeout(()=>{
+        document.getElementById('diffsel').onchange = e=>{
+          difficulty = +e.target.value;
+        };
+      },10);
+      div.appendChild(backBtn());
+      return div;
+    }
+    function renderShop() {
+      const div = document.createElement('div');
+      div.className = "panel";
+      div.innerHTML = `<div style="margin-bottom:8px;">
+        <b>Coins:</b> <span class="coin">${coins} 🪙</span>
+      </div>
+      <h2>Shop</h2>`;
+      SPELLS.forEach(spell=>{
+        const owned = spellsOwned.includes(spell.key);
+        const spellDiv = document.createElement('div');
+        spellDiv.className = 'shop-spell'+(owned?' owned':'');
+        spellDiv.innerHTML = `
+          <div class="spell-title">${spell.name}</div>
+          <div class="spell-desc">${spell.desc}</div>
+          <div>
+            <span class="spell-cost">${spell.cost} 🪙</span>
+            <span style="margin-left:12px; color:#555;">Use: ${spell.mana} mana</span>
+          </div>
+        `;
+        const btn = document.createElement('button');
+        btn.innerText = owned ? "Owned" : "Buy";
+        btn.disabled = owned || coins < spell.cost;
+        btn.onclick = ()=>{
+          if (owned || coins < spell.cost) return;
+          coins -= spell.cost;
+          spellsOwned.push(spell.key);
+          render();
+        };
+        spellDiv.appendChild(btn);
+        div.appendChild(spellDiv);
+      });
+      div.appendChild(backBtn());
+      return div;
+    }
+    function renderTutorial() {
+      const div = document.createElement('div');
+      div.className = "panel";
+      div.style.textAlign = "left";
+      div.style.maxWidth = "560px";
+      div.innerHTML = `
+        <h2>Tutorial</h2>
+        <ol>
+          <li><b>The Goal:</b> Flip as many tiles to your color (white) as possible before 70-move countdown ends.</li>
+          <li><b>Turns:</b> You and the AI take turns. Each turn, click any <b>black</b> square; it and all adjacent squares (not corners) flip.</li>
+          <li><b>Mana:</b> Each turn you regain 8 mana. Spells cost mana to cast.</li>
+          <li><b>Spells:</b> Buy spells in the Shop, then select a spell in-game to use its effect!</li>
+          <li><b>End:</b> When moves run out, whoever has more squares of their color wins and gets 10 coins!</li>
+          <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves.</li>
+        </ol>
+      `;
+      div.appendChild(backBtn());
+      return div;
+    }
+    function backBtn() {
+      const btn = document.createElement('button');
+      btn.className = "back-btn";
+      btn.innerText = "Back";
+      btn.onclick = ()=>{screen="menu"; render();};
+      return btn;
+    }
+    // ----------- GAME LOGIC -----------
+    function startGame() {
+      // 0=player(white), 1=ai(black), 2=quantum, etc.
+      let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
+      for (let r=3;r<7;r++) for (let c=3;c<7;c++) board[r][c]=0;
+      gameState = {
+        board,
+        mana: INIT_MANA,
+        aiMana: INIT_MANA,
+        turn: 0, // 0=player, 1=ai
+        movesLeft: MAX_MOVES,
+        winner: null,
+        skip: false,
+        quantumPieces: [],
+        spellOn: null,
+        usedSkip: false
+      };
+      screen = "play";
+      render();
+    }
+    function renderPlay() {
+      const gs = gameState;
+      const div = document.createElement('div');
+      div.className = "panel";
+      // Top bar
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+          <button class="back-btn" style="margin:0 0 0 -10px;" onclick="screen='menu';render();">Home</button>
+          <div style="font-size:16px;"><b>Moves Left:</b> ${gs.movesLeft}</div>
+        </div>
+        <div class="info-bar">
+          <span style="margin-right:12px;"><b>Mana:</b> ${gs.mana} <span style="color:#6cf;">💠</span></span>
+          <span style="margin-right:12px;"><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
+          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#222;">⬛</span></span>
+        </div>`;
+      // Board
+      const boardDiv = document.createElement('div');
+      boardDiv.className = "board";
+      for (let r=0; r<BOARD_SIZE; r++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = "board-row";
+        for (let c=0; c<BOARD_SIZE; c++) {
+          const cell = gs.board[r][c];
+          const cellDiv = document.createElement('div');
+          cellDiv.className = "board-cell";
+          if (cell===0) cellDiv.classList.add("player");
+          else if (cell===1) cellDiv.classList.add("ai");
+          else if (typeof cell==='object' && cell.quantum) {
+            cellDiv.classList.add("quantum");
+            if (cell.visible) cellDiv.classList.add("visible");
+          }
+          cellDiv.onclick = ()=>handleCellClick(r,c);
+          // Quantum marker
+          if (typeof cell==='object' && cell.quantum) {
+            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:15px;color:#66f;font-weight:bold;">Q</span>`;
+          }
+          rowDiv.appendChild(cellDiv);
+        }
+        boardDiv.appendChild(rowDiv);
+      }
+      div.appendChild(boardDiv);
+      // Spells
+      const spellsDiv = document.createElement('div');
+      SPELLS.forEach(spell=>{
+        const owned = spellsOwned.includes(spell.key);
+        const btn = document.createElement('button');
+        btn.innerText = spell.name;
+        btn.className = "spell-btn"+(gs.spellOn===spell.key?' selected':'');
+        btn.disabled = !owned || gs.mana < spell.mana || (spell.key==="skip" && gs.usedSkip);
+        btn.onclick = ()=>{
+          if (!owned || gs.mana < spell.mana) return;
+          if (spell.key==="collapse") { handleCollapseSpell(); return; }
+          if (spell.key==="skip") { handleSkipSpell(); return; }
+          gs.spellOn = spell.key;
+          render();
+        };
+        spellsDiv.appendChild(btn);
+      });
+      div.appendChild(spellsDiv);
+      const spellInfo = document.createElement('div');
+      spellInfo.style.fontSize = "12px";
+      spellInfo.style.color = "#888";
+      spellInfo.style.marginBottom = "9px";
+      spellInfo.innerText = "(Select a spell to use it on your next move.)";
+      div.appendChild(spellInfo);
+
+      // Winner overlay
+      if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; render(); });
+      return div;
+    }
+    // -- Helper functions for Play
+    function countBoard(board, val) {
+      let n=0;
+      for (let r=0;r<BOARD_SIZE;r++)
+        for (let c=0;c<BOARD_SIZE;c++)
+          if (board[r][c]===val||(typeof board[r][c]==='object'&&board[r][c].quantum&&board[r][c].visible&&board[r][c].states.includes(val))) n++;
+      return n;
+    }
+    function handleCellClick(r,c) {
+      const gs = gameState;
+      if (gs.winner||gs.turn!==0) return;
+      let cell = gs.board[r][c];
+      if (typeof cell==='object' && cell.quantum) {
+        if (!cell.visible) return;
+        cell = cell.states[0];
+      }
+      if (cell!==1) return; // can only flip AI squares
+      // Handle spell use
+      if (gs.spellOn) {
+        const spellKey = gs.spellOn;
+        if (!spellsOwned.includes(spellKey)) return;
+        if (spellKey==="quantum") {
+          // Place quantum split
+          let states=[0,1];
+          if (Math.random()<0.5) states.push(1);
+          const trueState = states[Math.floor(Math.random()*states.length)];
+          gs.board[r][c] = {quantum:true,states,trueState,visible:false};
+          gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
+          gs.spellOn = null;
+          gs.movesLeft--;
+          gs.turn = 1;
+          gs.quantumPieces.push({r,c});
+          render();
+          setTimeout(()=>aiMove(gs),900);
+          return;
+        }
+        if (spellKey==="fireball") {
+          // Fireball: area flip 4x4
+          for (let dr=0;dr<4;dr++) for (let dc=0;dc<4;dc++) {
+            let nr=r+dr-1, nc=c+dc-1;
+            if (nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE) {
+              if (typeof gs.board[nr][nc]==='object'&&gs.board[nr][nc].quantum) gs.board[nr][nc]=gs.board[nr][nc].trueState;
+              else gs.board[nr][nc]=0;
+            }
+          }
+          gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
+          gs.spellOn = null;
+          gs.movesLeft--;
+          gs.turn = 1;
+          render();
+          setTimeout(()=>aiMove(gs),900);
+          return;
+        }
+      }
+      // Standard flip
+      flip(gs.board, r, c, 0);
+      gs.movesLeft--;
+      gs.turn = 1;
+      gs.mana += MANA_REGEN;
+      if (gs.movesLeft<=0) {
+        const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
+        endGame(w>bl?1:w<bl?0:null);
+        return;
+      }
+      render();
+      setTimeout(()=>aiMove(gs),900);
+    }
+    function flip(board, r, c, color) {
+      const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
+      for (const [dr,dc] of dirs) {
+        let nr=r+dr,nc=c+dc;
+        if (nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE) {
+          if (typeof board[nr][nc]==='object'&&board[nr][nc].quantum) board[nr][nc]=board[nr][nc].trueState;
+          else board[nr][nc]=color;
+        }
+      }
+    }
+    function handleCollapseSpell() {
+      const gs = gameState;
+      if (!spellsOwned.includes("collapse")||gs.mana<SPELLS.find(s=>s.key==="collapse").mana) return;
+      for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++)
+        if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum) gs.board[r][c]=gs.board[r][c].trueState;
+      gs.mana -= SPELLS.find(s=>s.key==="collapse").mana;
+      gs.spellOn = null;
+      gs.movesLeft--;
+      gs.turn = 1;
+      render();
+      setTimeout(()=>aiMove(gs),900);
+    }
+    function handleSkipSpell() {
+      const gs = gameState;
+      if (!spellsOwned.includes("skip")||gs.mana<SPELLS.find(s=>s.key==="skip").mana||gs.usedSkip) return;
+      gs.mana -= SPELLS.find(s=>s.key==="skip").mana;
+      gs.skip = true;
+      gs.usedSkip = true;
+      gs.spellOn = null;
+      gs.movesLeft--;
+      gs.turn = 1;
+      render();
+      setTimeout(()=>aiMove(gs),900);
+    }
+    function endGame(playerWon) {
+      const gs = gameState;
+      gs.winner = playerWon ? "You win! +10 coins" : playerWon===null ? "Draw!" : "AI wins!";
+      if (playerWon) coins += 10;
+      render();
+    }
+    // --- AI MOVE ---
+    function aiMove(gs) {
+      if (gs.winner) return;
+      // Skip if player cast skip
+      if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; render(); return; }
+      // AI chooses spell? Only collapse if many quantum
+      let quantumCount=0;
+      for (let r=0;r<BOARD_SIZE;r++)
+        for (let c=0;c<BOARD_SIZE;c++) if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum) quantumCount++;
+      // 20% chance to use collapse if there are 2+ quantum and has mana
+      if (spellsOwned.includes("collapse")&&gs.aiMana>=SPELLS.find(s=>s.key==="collapse").mana&&quantumCount>=2&&Math.random()<0.2) {
+        for (let r=0;r<BOARD_SIZE;r++)
+          for (let c=0;c<BOARD_SIZE;c++)
+            if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum) gs.board[r][c]=gs.board[r][c].trueState;
+        gs.aiMana-=SPELLS.find(s=>s.key==="collapse").mana;
+      }
+      // AI move selection logic
+      const moves=[];
+      for (let r=0;r<BOARD_SIZE;r++)
+        for (let c=0;c<BOARD_SIZE;c++)
+          if (gs.board[r][c]!==0) {
+            // simulate flip
+            const b2 = JSON.parse(JSON.stringify(gs.board));
+            flip(b2,r,c,1);
+            const gain = countBoard(b2,1)-countBoard(gs.board,1);
+            moves.push({r,c,gain,b2});
+          }
+      let sortedMoves=[...moves].sort((a,b)=>b.gain-a.gain);
+      let move=null;
+      if (difficulty===0) {
+        let top=sortedMoves.slice(0,25); move=top[Math.floor(Math.random()*top.length)];
+      } else if (difficulty===1) {
+        let top=sortedMoves.slice(0,15); move=top[Math.floor(Math.random()*top.length)];
+      } else if (difficulty===2) {
+        let top=sortedMoves.slice(0,3); move=top[Math.floor(Math.random()*top.length)];
+      } else if (difficulty===3) {
+        // Extreme: depth 2, pick best
+        let best=-Infinity;
+        for (const m of sortedMoves.slice(0,6)) {
+          let bestReply=-Infinity;
+          for (let rr=0;rr<BOARD_SIZE;rr++) for (let cc=0;cc<BOARD_SIZE;cc++)
+            if (m.b2[rr][cc]===0) {
+              let b3=JSON.parse(JSON.stringify(m.b2));
+              flip(b3,rr,cc,0);
+              let v=countBoard(b3,1)-countBoard(m.b2,1);
+              if (v>bestReply) bestReply=v;
+            }
+          let value = m.gain-(bestReply||0);
+          if (value>best) { best=value; move=m; }
+        }
+      }
+      if (!move) move=sortedMoves[0];
+      if (!move) { gs.turn=0; render(); return; }
+      // Do move
+      gs.board = move.b2;
+      // Collapse quantum if landed
+      for (let r=0;r<BOARD_SIZE;r++)
+        for (let c=0;c<BOARD_SIZE;c++)
+          if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum&&!gs.board[r][c].visible)
+            gs.board[r][c].visible=true;
+      gs.movesLeft--;
+      gs.aiMana+=MANA_REGEN;
+      gs.turn=0;
+      if (gs.movesLeft<=0) {
+        const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
+        endGame(w>bl?1:w<bl?0:null);
+        return;
+      }
+      render();
+    }
+    // ----------- Overlay -----------
+    function showOverlay(msg, cb) {
+      overlay=[msg, cb];
+      render();
+    }
+    function renderOverlay(msg, cb) {
+      const div = document.createElement('div');
+      div.className = "overlay";
+      div.onclick = ()=>{
+        overlay=null;
+        if (cb) cb();
+        render();
+      };
+      div.innerHTML = `<div class="overlay-inner">${msg}<div style="font-size:15px;margin-top:20px;">(Click to continue)</div></div>`;
+      return div;
+    }
+    // ----------- INIT -----------
+    window.onload = render;
   </script>
 </body>
 </html>
