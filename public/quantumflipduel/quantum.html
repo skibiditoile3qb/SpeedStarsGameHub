@@ -10,157 +10,260 @@
       font-family: system-ui,Arial,sans-serif;
       background: #000;
       min-height: 100vh;
+      min-width: 100vw;
+      overflow: hidden;
     }
     #root {
+      width: 100vw;
+      height: 100vh;
+      min-width: 100vw;
       min-height: 100vh;
-      min-width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: stretch;
+    }
+    .fullscreen-panel {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
+      background: radial-gradient(ellipse at 60% 50%, #0ff2 0%, #011 100%);
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
     }
-    .panel {
-      background: rgba(20,20,30,0.98);
-      border-radius: 14px;
-      max-width: 480px;
-      min-width: 320px;
-      margin: 32px auto 0 auto;
-      padding: 30px 32px 36px 32px;
-      box-shadow: 0 4px 32px #0ff5, 0 0 16px #0ff2;
+    .panel-content {
+      width: 100vw;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 3vw;
       text-align: center;
-      position: relative;
+      color: #fff;
+      margin-top: 4vh;
+      margin-bottom: 4vh;
+      z-index: 2;
     }
+    h1, h2 { color: #0ff; text-shadow: 0 0 16px #0ff8; }
     .coin {
       color: #0ff;
       font-weight: bold;
-      text-shadow: 0 0 8px #0ff, 0 0 3px #fff8;
+      text-shadow: 0 0 8px #0ff, 0 0 5px #fff8;
+      font-size: 1.2em;
     }
     .menu-btn {
-      display: block;
-      width: 240px;
+      width: 320px;
+      max-width: 80vw;
       margin: 18px auto;
-      padding: 14px 0;
-      font-size: 20px;
+      padding: 18px 0;
+      font-size: 1.4em;
       background: linear-gradient(90deg, #0ff 30%, #88f 100%);
       color: #000;
-      border-radius: 9px;
+      border-radius: 12px;
       border: none;
-      box-shadow: 0 2px 10px #0ff2;
+      box-shadow: 0 4px 22px #0ff5;
       cursor: pointer;
       font-weight: bold;
       letter-spacing: 1px;
       transition: background .12s, color .12s;
       text-shadow: 0 0 10px #fff8;
+      display:block;
     }
     .menu-btn:hover { background: linear-gradient(90deg, #0cf 10%, #0ff 90%); color: #fff;}
     .back-btn {
-      padding: 8px 20px;
-      margin-top: 26px;
+      padding: 12px 36px;
+      margin-top: 32px;
       background: #111;
       color: #0ff;
-      border: 1.5px solid #0ff;
-      border-radius: 7px;
+      border: 2px solid #0ff;
+      border-radius: 10px;
       cursor: pointer;
+      font-size: 1.1em;
       font-weight: bold;
-      box-shadow: 0 0 6px #0ff7;
+      box-shadow: 0 0 12px #0ff7;
       transition: background .14s, color .14s;
     }
     .back-btn:hover { background: #0ff; color: #000; }
     .shop-spell {
-      border: 1px solid #0ff6;
-      border-radius: 7px;
-      padding: 10px 6px 8px 12px;
-      margin: 12px 2px;
+      border: 2px solid #0ff6;
+      border-radius: 12px;
+      padding: 18px 6px 18px 12px;
+      margin: 16px 2px;
       background: #011218;
       text-align: left;
       transition: background .2s, border .2s;
       position: relative;
-      font-size: 15px;
-      box-shadow: 0 0 14px #0ff4;
+      font-size: 1em;
+      box-shadow: 0 0 24px #0ff3;
+      max-width: 460px;
+      margin-left:auto;
+      margin-right:auto;
     }
     .shop-spell.owned { background: #022e1c; border-color:#0f06; }
-    .shop-spell .spell-title { font-weight: bold; font-size: 16px; color:#0ff; text-shadow:0 0 5px #0ff9;}
-    .shop-spell .spell-desc { font-size: 13px; color: #bff; white-space: pre-line; }
+    .shop-spell .spell-title { font-weight: bold; font-size: 1.2em; color:#0ff; text-shadow:0 0 5px #0ff9;}
+    .shop-spell .spell-desc { font-size: 1em; color: #bff; white-space: pre-line; }
     .shop-spell .spell-cost { color: #0ff; font-weight: bold; }
     .shop-spell button {
       margin-top: 7px;
       background: #0ff;
-      color: #000; border: none; border-radius: 6px;
-      padding: 6px 15px; cursor: pointer;
+      color: #000; border: none; border-radius: 8px;
+      padding: 8px 28px; cursor: pointer;
       font-weight: bold;
       float: right;
-      box-shadow: 0 0 10px #0ff7;
+      font-size:1em;
+      box-shadow: 0 0 18px #0ff7;
       transition: background .13s, color .13s;
     }
     .shop-spell button:disabled { background: #099; color:#555; cursor: not-allowed; }
     .difficulty-select {
-      margin-top: 18px;
-      font-size: 17px;
-      padding: 5px 12px;
-      border-radius: 7px;
-      border: 1px solid #0ff;
+      margin-top: 38px;
+      font-size: 1.2em;
+      padding: 10px 24px;
+      border-radius: 12px;
+      border: 2px solid #0ff;
       background: #021e24;
       color:#0ff;
+      text-align:center;
     }
-    .board-row {
+    /* ---- BOARD ---- */
+    .fullscreen-board {
+      width: 100vw;
+      height: 100vh;
+      min-width: 100vw;
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: stretch;
+      background: linear-gradient(90deg,#fff2 0 50%,#0ff2 50% 100%);
+      box-shadow: 0 0 0 0;
+      z-index: 1;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .board-topbar {
+      width: 100vw;
+      padding: 2vh 2vw 0 2vw;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #0ff;
+      font-size: 1.1em;
+      z-index: 2;
+      text-shadow: 0 0 6px #0ff;
+    }
+    .info-bar {
+      width:100vw;
+      font-size: 1.05em;
+      color: #0ff;
+      text-shadow: 0 0 7px #0ff5;
+      display: block;
+      margin: 10px 0 3px 0;
+      text-align: center;
+      z-index: 2;
+    }
+    .board-wrap {
+      flex: 1 1 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height:100%;
+      width:100vw;
+      min-height: 0;
+      min-width: 0;
+    }
+    .board {
+      display: grid;
+      grid-template-rows: repeat(10,1fr);
+      grid-template-columns: repeat(10,1fr);
+      gap: 3px;
+      background: #000;
+      border-radius: 22px;
+      box-shadow: 0 0 60px #0ff9,0 0 12px #fff9;
+      margin: 0 auto;
+      width: min(90vw, 90vh);
+      height: min(90vw, 90vh);
+      max-width: 80vw;
+      max-height: 80vw;
+      aspect-ratio: 1/1;
+      position: relative;
     }
     .board-cell {
-      width: 32px; height: 32px;
+      width: 100%;
+      height: 100%;
+      border-radius: 7px;
       border: 1.5px solid #068;
       box-sizing: border-box;
-      margin: 0; padding: 0;
-      font-size: 15px;
+      font-size: 1.1em;
       cursor: pointer;
       background: #000;
       transition: background 0.18s, border 0.18s, box-shadow 0.18s;
       position: relative;
       user-select: none;
-      border-radius: 6px;
-      box-shadow: 0 0 7px #0ff5, 0 0 2px #fff2;
+      box-shadow: 0 0 13px #0ff5, 0 0 2px #fff2;
       overflow: hidden;
+      z-index: 1;
     }
+    .board-cell.left-half { border-left: 2.5px solid #fff4; }
+    .board-cell.right-half { border-right: 2.5px solid #0ff7; }
     .board-cell.ai {
       background: radial-gradient(circle, #023 60%, #0ff 100%);
-      box-shadow: 0 0 11px #0ff9, 0 0 3px #00fffa99;
+      box-shadow: 0 0 17px #0ff9, 0 0 6px #00fffa99;
       border-color:#0ff;
+      color: #fff;
     }
     .board-cell.player {
       background: radial-gradient(circle, #181826 50%, #fff 100%);
-      box-shadow: 0 0 10px #fff9, 0 0 3px #0ff2;
+      box-shadow: 0 0 17px #fff9, 0 0 6px #0ff2;
       border-color: #fff;
+      color: #000;
     }
     .board-cell.quantum {
       background: linear-gradient(120deg,#0ff,#44f 60%);
-      box-shadow: 0 0 8px #0ff7,0 0 12px #4ff4;
+      box-shadow: 0 0 8px #0ff7,0 0 22px #4ff4;
       border-color:#44f;
     }
     .board-cell.quantum.visible {
       background: repeating-linear-gradient(45deg,#aaf 0 4px,#fff 4px 8px);
     }
     .board-cell.last-move {
-      outline: 2.5px solid #f00 !important;
+      outline: 3px solid #f00 !important;
       z-index: 2;
-      box-shadow: 0 0 14px #f08a, 0 0 3px #fff9;
+      box-shadow: 0 0 20px #f08a, 0 0 8px #fff9;
     }
-    .board { margin: 18px auto; }
+    .spell-bar {
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 18px 0 0 0;
+      flex-wrap: wrap;
+    }
     .spell-btn {
-      margin: 4px 7px 4px 0;
-      padding: 7px 17px;
+      margin: 7px 11px 7px 0;
+      padding: 10px 29px;
       background: linear-gradient(90deg,#0ff 40%,#44f 100%);
       color: #000;
-      border: none; border-radius: 6px;
+      border: none; border-radius: 9px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 13px;
-      box-shadow: 0 0 12px #0ff4;
+      font-size: 1.1em;
+      box-shadow: 0 0 18px #0ff4;
+      transition: background .13s, color .13s;
+      outline: none;
     }
     .spell-btn:disabled { background: #022; color: #066; cursor: not-allowed; }
     .spell-btn.selected { outline: 2px solid #ff0; background: #222; color:#0ff;}
-    .info-bar {
-      margin: 10px 0 3px 0;
-      font-size: 15px;
+    .spell-info {
+      font-size: 1em;
       color: #0ff;
+      margin: 6px 0 0 0;
+      text-align: center;
       text-shadow: 0 0 7px #0ff5;
     }
     .overlay {
@@ -174,17 +277,34 @@
     .overlay-inner {
       background: #0ff;
       color: #111;
-      padding: 36px 36px 24px 36px;
-      border-radius: 15px;
-      min-width: 260px;
-      box-shadow: 0 6px 40px #0ffb;
+      padding: 60px 36px 40px 36px;
+      border-radius: 22px;
+      min-width: 320px;
+      box-shadow: 0 10px 60px #0ffb;
       text-align: center;
-      font-size: 19px;
+      font-size: 2.2em;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+    }
+    .overlay-inner .small {
+      font-size: 1.1em;
+      margin-top: 30px;
+      color: #099;
+    }
+    @media (max-width: 800px) {
+      .board { max-width: 97vw; max-height: 97vw; }
+      .fullscreen-panel, .fullscreen-board { max-width: 100vw; max-height: 100vh;}
+      .panel-content { max-width: 95vw;}
+      .shop-spell { max-width: 96vw;}
     }
     @media (max-width: 500px) {
-      .panel { max-width: 98vw; min-width: unset; padding: 16px 3vw 22px 3vw; }
-      .shop-spell { font-size: 13px; }
-      .board-cell { width: 22px; height: 22px; font-size: 10px; }
+      .board { max-width: 99vw; max-height: 99vw; }
+      .panel-content { max-width: 99vw;}
+      .shop-spell { max-width: 99vw;}
+      .board-cell { font-size: 0.7em; }
+      .spell-btn { font-size: 0.7em; padding: 7px 10px;}
     }
   </style>
 </head>
@@ -245,25 +365,28 @@
     }
     // ----------- UI PARTS -----------
     function renderMenu() {
-      const div = document.createElement('div');
-      div.className = "panel";
-      div.innerHTML = `
-        <h1 style="color:#0ff;text-shadow:0 0 14px #0ff7;">Quantum Flip</h1>
-        <div style="margin:14px 0 30px 0;">
-          <span class="coin" style="font-size:22px;">Coins: ${coins} 🪙</span>
+      const panel = document.createElement('div');
+      panel.className = "fullscreen-panel";
+      const content = document.createElement('div');
+      content.className = "panel-content";
+      content.innerHTML = `
+        <h1>Quantum Flip</h1>
+        <div style="margin:16px 0 40px 0;">
+          <span class="coin" style="font-size:2.2em;">Coins: ${coins} 🪙</span>
         </div>
       `;
-      div.appendChild(menuBtn("Play", ()=>startGame()));
-      div.appendChild(menuBtn("Tutorial", ()=>{screen="tutorial"; render();}));
-      div.appendChild(menuBtn("Shop", ()=>{screen="shop"; render();}));
-      div.appendChild(menuBtn("Settings", ()=>{screen="settings"; render();}));
+      content.appendChild(menuBtn("Play", ()=>startGame()));
+      content.appendChild(menuBtn("Tutorial", ()=>{screen="tutorial"; render();}));
+      content.appendChild(menuBtn("Shop", ()=>{screen="shop"; render();}));
+      content.appendChild(menuBtn("Settings", ()=>{screen="settings"; render();}));
       const by = document.createElement('div');
-      by.style.marginTop = "28px";
-      by.style.fontSize = "12px";
+      by.style.marginTop = "53px";
+      by.style.fontSize = "1.1em";
       by.style.color = "#0ff";
       by.innerText = "by copilot | neon vanilla JS demo";
-      div.appendChild(by);
-      return div;
+      content.appendChild(by);
+      panel.appendChild(content);
+      return panel;
     }
     function menuBtn(text, cb) {
       const btn = document.createElement('button');
@@ -273,11 +396,14 @@
       return btn;
     }
     function renderSettings() {
-      const div = document.createElement('div');
-      div.className = "panel";
-      div.innerHTML = `<h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Settings</h2>
-        <div style="margin-bottom:16px">
+      const panel = document.createElement('div');
+      panel.className = "fullscreen-panel";
+      const content = document.createElement('div');
+      content.className = "panel-content";
+      content.innerHTML = `<h2>Settings</h2>
+        <div style="margin-bottom:24px">
           <b>AI Difficulty:</b>
+          <br>
           <select class="difficulty-select" id="diffsel">
             ${DIFFICULTY_LEVELS.map((d,i)=>`<option value="${i}"${i==difficulty?' selected':''}>${d}</option>`).join('')}
           </select>
@@ -288,16 +414,19 @@
           difficulty = +e.target.value;
         };
       },10);
-      div.appendChild(backBtn());
-      return div;
+      content.appendChild(backBtn());
+      panel.appendChild(content);
+      return panel;
     }
     function renderShop() {
-      const div = document.createElement('div');
-      div.className = "panel";
-      div.innerHTML = `<div style="margin-bottom:8px;">
+      const panel = document.createElement('div');
+      panel.className = "fullscreen-panel";
+      const content = document.createElement('div');
+      content.className = "panel-content";
+      content.innerHTML = `<div style="margin-bottom:14px;">
         <b>Coins:</b> <span class="coin">${coins} 🪙</span>
       </div>
-      <h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Shop</h2>`;
+      <h2>Shop</h2>`;
       SPELLS.forEach(spell=>{
         const owned = spellsOwned.includes(spell.key);
         const spellDiv = document.createElement('div');
@@ -320,18 +449,21 @@
           render();
         };
         spellDiv.appendChild(btn);
-        div.appendChild(spellDiv);
+        content.appendChild(spellDiv);
       });
-      div.appendChild(backBtn());
-      return div;
+      content.appendChild(backBtn());
+      panel.appendChild(content);
+      return panel;
     }
     function renderTutorial() {
-      const div = document.createElement('div');
-      div.className = "panel";
-      div.style.textAlign = "left";
-      div.style.maxWidth = "560px";
-      div.innerHTML = `
-        <h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Tutorial</h2>
+      const panel = document.createElement('div');
+      panel.className = "fullscreen-panel";
+      const content = document.createElement('div');
+      content.className = "panel-content";
+      content.style.textAlign = "left";
+      content.style.maxWidth = "650px";
+      content.innerHTML = `
+        <h2>Tutorial</h2>
         <ol>
           <li><b>The Goal:</b> Flip as many tiles to your color (white-neon) as possible before 70-move countdown ends.</li>
           <li><b>Turns:</b> You and the AI take turns. Each turn, click any <b>AI (aqua)</b> square; it and all adjacent squares (not corners) flip.</li>
@@ -341,8 +473,9 @@
           <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves. AI/Player cannot repeat the other's last move.</li>
         </ol>
       `;
-      div.appendChild(backBtn());
-      return div;
+      content.appendChild(backBtn());
+      panel.appendChild(content);
+      return panel;
     }
     function backBtn() {
       const btn = document.createElement('button');
@@ -354,7 +487,8 @@
     // ----------- GAME LOGIC -----------
     function startGame() {
       let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
-      for (let r=3;r<7;r++) for (let c=3;c<7;c++) board[r][c]=0;
+      for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) 
+        if (c<BOARD_SIZE/2) board[r][c]=0; // left half player, right half AI
       gameState = {
         board,
         mana: INIT_MANA,
@@ -374,29 +508,31 @@
     }
     function renderPlay() {
       const gs = gameState;
-      const div = document.createElement('div');
-      div.className = "panel";
+      const panel = document.createElement('div');
+      panel.className = "fullscreen-board";
       // Top bar
-      div.innerHTML = `
-        <div style="display:flex;justify-content:space-between;margin-bottom:7px;">
+      panel.innerHTML = `
+        <div class="board-topbar">
           <button class="back-btn" style="margin:0 0 0 -10px;" onclick="screen='menu';render();">Home</button>
-          <div style="font-size:16px;"><b>Moves Left:</b> ${gs.movesLeft}</div>
+          <div><b>Moves Left:</b> ${gs.movesLeft}</div>
         </div>
         <div class="info-bar">
-          <span style="margin-right:12px;"><b>Mana:</b> ${gs.mana} <span style="color:#0ff;">💠</span></span>
-          <span style="margin-right:12px;"><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
+          <span style="margin-right:14px;"><b>Mana:</b> ${gs.mana} <span style="color:#0ff;">💠</span></span>
+          <span style="margin-right:14px;"><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
           <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#0ff;">⬛</span></span>
         </div>`;
       // Board
+      const boardWrap = document.createElement('div');
+      boardWrap.className = 'board-wrap';
       const boardDiv = document.createElement('div');
       boardDiv.className = "board";
       for (let r=0; r<BOARD_SIZE; r++) {
-        const rowDiv = document.createElement('div');
-        rowDiv.className = "board-row";
         for (let c=0; c<BOARD_SIZE; c++) {
           const cell = gs.board[r][c];
           const cellDiv = document.createElement('div');
           cellDiv.className = "board-cell";
+          if (c < BOARD_SIZE/2) cellDiv.classList.add("left-half");
+          else cellDiv.classList.add("right-half");
           if (cell===0) cellDiv.classList.add("player");
           else if (cell===1) cellDiv.classList.add("ai");
           else if (typeof cell==='object' && cell.quantum) {
@@ -411,24 +547,25 @@
           cellDiv.onclick = ()=>handleCellClick(r,c);
           // Quantum marker
           if (typeof cell==='object' && cell.quantum) {
-            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:15px;color:#fff;text-shadow:0 0 6px #44f;font-weight:bold;">Q</span>`;
+            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
           }
           // Disallow if last AI move for player, last player move for AI
           if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
-            cellDiv.style.opacity = 0.4;
+            cellDiv.style.opacity = 0.45;
             cellDiv.title = "Can't play in the same spot as the AI's last move!";
           }
           if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
-            cellDiv.style.opacity = 0.4;
+            cellDiv.style.opacity = 0.45;
             cellDiv.title = "Can't play in the same spot as the player's last move!";
           }
-          rowDiv.appendChild(cellDiv);
+          boardDiv.appendChild(cellDiv);
         }
-        boardDiv.appendChild(rowDiv);
       }
-      div.appendChild(boardDiv);
+      boardWrap.appendChild(boardDiv);
+      panel.appendChild(boardWrap);
       // Spells
       const spellsDiv = document.createElement('div');
+      spellsDiv.className = 'spell-bar';
       SPELLS.forEach(spell=>{
         const owned = spellsOwned.includes(spell.key);
         const btn = document.createElement('button');
@@ -444,17 +581,15 @@
         };
         spellsDiv.appendChild(btn);
       });
-      div.appendChild(spellsDiv);
+      panel.appendChild(spellsDiv);
       const spellInfo = document.createElement('div');
-      spellInfo.style.fontSize = "12px";
-      spellInfo.style.color = "#0ff";
-      spellInfo.style.marginBottom = "9px";
+      spellInfo.className = 'spell-info';
       spellInfo.innerText = "(Select a spell to use it on your next move.)";
-      div.appendChild(spellInfo);
+      panel.appendChild(spellInfo);
 
       // Winner overlay
       if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; render(); });
-      return div;
+      return panel;
     }
     // -- Helper functions for Play
     function countBoard(board, val) {
@@ -467,7 +602,6 @@
     function handleCellClick(r,c) {
       const gs = gameState;
       if (gs.winner||gs.turn!==0) return;
-      // Can't click AI's last move
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
       let cell = gs.board[r][c];
       if (typeof cell==='object' && cell.quantum) {
@@ -480,7 +614,6 @@
         const spellKey = gs.spellOn;
         if (!spellsOwned.includes(spellKey)) return;
         if (spellKey==="quantum") {
-          // Place quantum split
           let states=[0,1];
           if (Math.random()<0.5) states.push(1);
           const trueState = states[Math.floor(Math.random()*states.length)];
@@ -496,7 +629,6 @@
           return;
         }
         if (spellKey==="fireball") {
-          // Fireball: area flip 4x4
           for (let dr=0;dr<4;dr++) for (let dc=0;dc<4;dc++) {
             let nr=r+dr-1, nc=c+dc-1;
             if (nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE) {
@@ -571,16 +703,12 @@
     // --- AI MOVE ---
     function aiMove(gs) {
       if (gs.winner) return;
-      // Skip if player cast skip
       if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; render(); return; }
-      // Only allow AI to play on player's squares (0)
       const moves=[];
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
           if (gs.board[r][c]===0) {
-            // Don't allow AI to play on player's last move
             if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
-            // simulate flip
             const b2 = JSON.parse(JSON.stringify(gs.board));
             flip(b2,r,c,1);
             const gain = countBoard(b2,1)-countBoard(gs.board,1);
@@ -596,13 +724,12 @@
       } else if (difficulty===2) {
         let top=sortedMoves.slice(0,3); move=top[Math.floor(Math.random()*top.length)];
       } else if (difficulty===3) {
-        // Extreme: depth 2, pick best (only on player's square, can't repeat last move)
+        // Extreme: depth 2, best minimax, only valid moves
         let best=-Infinity;
         for (const m of sortedMoves.slice(0,6)) {
           let bestReply=-Infinity;
           for (let rr=0;rr<BOARD_SIZE;rr++) for (let cc=0;cc<BOARD_SIZE;cc++)
             if (m.b2[rr][cc]===1) { // Only allow player on AI's squares
-              // Can't go back to AI's current move
               if (m.r===rr && m.c===cc) continue;
               let b3=JSON.parse(JSON.stringify(m.b2));
               flip(b3,rr,cc,0);
@@ -615,7 +742,6 @@
       }
       if (!move) move=sortedMoves[0];
       if (!move) { gs.turn=0; render(); return; }
-      // Do move
       gs.board = move.b2;
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
@@ -645,7 +771,7 @@
         if (cb) cb();
         render();
       };
-      div.innerHTML = `<div class="overlay-inner">${msg}<div style="font-size:15px;margin-top:20px;">(Click to continue)</div></div>`;
+      div.innerHTML = `<div class="overlay-inner">${msg}<div class="small">(Click to continue)</div></div>`;
       return div;
     }
     // ----------- INIT -----------
