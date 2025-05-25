@@ -180,12 +180,16 @@ app.get('/login', (req, res) => {
 // --- Quantum Flip Duel Game ---
 // --- Quantum Flip Duel Game ---
 // Serve all static files for Quantum Flip Duel at /quantum/*
-app.use('/quantum', express.static(path.join(__dirname, 'public', 'quantumflipduel')));
+app.use('/quantum', express.static(path.join(__dirname, 'public')));
 
 // Serve game HTML at /quantum (root of game)
 app.get('/quantum', async (req, res) => {
   await logIP(req, 'accessed quantum game');
-  res.sendFile(path.join(__dirname, 'public', 'quantumflipduel', 'quantum.html'));
+  res.sendFile(path.join(__dirname, 'public', 'quantum.html'));
+});
+app.post('/quantum', async (req, res) => {
+  await logIP(req, 'POST to /quantum');
+  res.json({ status: 'ok', received: req.body });
 });
 
 // For routes that don't work, provide a debug endpoint
