@@ -8,7 +8,7 @@
     html, body {
       margin: 0; padding: 0;
       font-family: system-ui,Arial,sans-serif;
-      background: #eee;
+      background: #000;
       min-height: 100vh;
     }
     #root {
@@ -20,19 +20,20 @@
       justify-content: flex-start;
     }
     .panel {
-      background: #fff;
+      background: rgba(20,20,30,0.98);
       border-radius: 14px;
-      max-width: 460px;
+      max-width: 480px;
       min-width: 320px;
       margin: 32px auto 0 auto;
       padding: 30px 32px 36px 32px;
-      box-shadow: 0 4px 28px #0002;
+      box-shadow: 0 4px 32px #0ff5, 0 0 16px #0ff2;
       text-align: center;
       position: relative;
     }
     .coin {
-      color: #fb0;
+      color: #0ff;
       font-weight: bold;
+      text-shadow: 0 0 8px #0ff, 0 0 3px #fff8;
     }
     .menu-btn {
       display: block;
@@ -40,92 +41,127 @@
       margin: 18px auto;
       padding: 14px 0;
       font-size: 20px;
-      background: #b4e;
-      color: #fff;
+      background: linear-gradient(90deg, #0ff 30%, #88f 100%);
+      color: #000;
       border-radius: 9px;
       border: none;
-      box-shadow: 0 2px 10px #0001;
+      box-shadow: 0 2px 10px #0ff2;
       cursor: pointer;
-      transition: background .12s;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: background .12s, color .12s;
+      text-shadow: 0 0 10px #fff8;
     }
-    .menu-btn:hover { background: #924fe6; }
+    .menu-btn:hover { background: linear-gradient(90deg, #0cf 10%, #0ff 90%); color: #fff;}
     .back-btn {
       padding: 8px 20px;
       margin-top: 26px;
-      background: #888;
-      color: #fff;
-      border: none;
+      background: #111;
+      color: #0ff;
+      border: 1.5px solid #0ff;
       border-radius: 7px;
       cursor: pointer;
+      font-weight: bold;
+      box-shadow: 0 0 6px #0ff7;
+      transition: background .14s, color .14s;
     }
-    .back-btn:hover { background: #444; }
+    .back-btn:hover { background: #0ff; color: #000; }
     .shop-spell {
-      border: 1px solid #999;
+      border: 1px solid #0ff6;
       border-radius: 7px;
       padding: 10px 6px 8px 12px;
       margin: 12px 2px;
-      background: #f8f8f8;
+      background: #011218;
       text-align: left;
-      transition: background .2s;
+      transition: background .2s, border .2s;
       position: relative;
       font-size: 15px;
+      box-shadow: 0 0 14px #0ff4;
     }
-    .shop-spell.owned { background: #eaffea; }
-    .shop-spell .spell-title { font-weight: bold; font-size: 16px; }
-    .shop-spell .spell-desc { font-size: 13px; color: #444; white-space: pre-line; }
-    .shop-spell .spell-cost { color: #fb0; font-weight: bold; }
+    .shop-spell.owned { background: #022e1c; border-color:#0f06; }
+    .shop-spell .spell-title { font-weight: bold; font-size: 16px; color:#0ff; text-shadow:0 0 5px #0ff9;}
+    .shop-spell .spell-desc { font-size: 13px; color: #bff; white-space: pre-line; }
+    .shop-spell .spell-cost { color: #0ff; font-weight: bold; }
     .shop-spell button {
       margin-top: 7px;
-      background: #b4e;
-      color: #fff; border: none; border-radius: 6px;
+      background: #0ff;
+      color: #000; border: none; border-radius: 6px;
       padding: 6px 15px; cursor: pointer;
       font-weight: bold;
       float: right;
+      box-shadow: 0 0 10px #0ff7;
+      transition: background .13s, color .13s;
     }
-    .shop-spell button:disabled { background: #aaa; cursor: not-allowed; }
+    .shop-spell button:disabled { background: #099; color:#555; cursor: not-allowed; }
     .difficulty-select {
       margin-top: 18px;
       font-size: 17px;
       padding: 5px 12px;
       border-radius: 7px;
-      border: 1px solid #bbb;
-      background: #f2f2ff;
+      border: 1px solid #0ff;
+      background: #021e24;
+      color:#0ff;
     }
     .board-row {
       display: flex;
     }
     .board-cell {
       width: 32px; height: 32px;
-      border: 1px solid #888;
+      border: 1.5px solid #068;
       box-sizing: border-box;
       margin: 0; padding: 0;
       font-size: 15px;
       cursor: pointer;
-      background: #fff;
-      transition: background 0.18s, border 0.18s;
+      background: #000;
+      transition: background 0.18s, border 0.18s, box-shadow 0.18s;
       position: relative;
       user-select: none;
+      border-radius: 6px;
+      box-shadow: 0 0 7px #0ff5, 0 0 2px #fff2;
+      overflow: hidden;
     }
-    .board-cell.ai { background: #222; color: #fff; }
-    .board-cell.player { background: #fff; color: #222; }
-    .board-cell.quantum { background: #aaf; color: #222; }
-    .board-cell.quantum.visible { background: repeating-linear-gradient(45deg,#aaf 0 4px,#fff 4px 8px); }
+    .board-cell.ai {
+      background: radial-gradient(circle, #023 60%, #0ff 100%);
+      box-shadow: 0 0 11px #0ff9, 0 0 3px #00fffa99;
+      border-color:#0ff;
+    }
+    .board-cell.player {
+      background: radial-gradient(circle, #181826 50%, #fff 100%);
+      box-shadow: 0 0 10px #fff9, 0 0 3px #0ff2;
+      border-color: #fff;
+    }
+    .board-cell.quantum {
+      background: linear-gradient(120deg,#0ff,#44f 60%);
+      box-shadow: 0 0 8px #0ff7,0 0 12px #4ff4;
+      border-color:#44f;
+    }
+    .board-cell.quantum.visible {
+      background: repeating-linear-gradient(45deg,#aaf 0 4px,#fff 4px 8px);
+    }
+    .board-cell.last-move {
+      outline: 2.5px solid #f00 !important;
+      z-index: 2;
+      box-shadow: 0 0 14px #f08a, 0 0 3px #fff9;
+    }
     .board { margin: 18px auto; }
     .spell-btn {
       margin: 4px 7px 4px 0;
       padding: 7px 17px;
-      background: #95f; color: #fff;
+      background: linear-gradient(90deg,#0ff 40%,#44f 100%);
+      color: #000;
       border: none; border-radius: 6px;
       font-weight: bold;
       cursor: pointer;
       font-size: 13px;
+      box-shadow: 0 0 12px #0ff4;
     }
-    .spell-btn:disabled { background: #ccc; color: #888; cursor: not-allowed; }
-    .spell-btn.selected { outline: 2px solid #fc0; }
+    .spell-btn:disabled { background: #022; color: #066; cursor: not-allowed; }
+    .spell-btn.selected { outline: 2px solid #ff0; background: #222; color:#0ff;}
     .info-bar {
       margin: 10px 0 3px 0;
       font-size: 15px;
-      color: #222;
+      color: #0ff;
+      text-shadow: 0 0 7px #0ff5;
     }
     .overlay {
       position: fixed;
@@ -136,11 +172,12 @@
       align-items: center; justify-content: center;
     }
     .overlay-inner {
-      background: #fff;
+      background: #0ff;
+      color: #111;
       padding: 36px 36px 24px 36px;
       border-radius: 15px;
       min-width: 260px;
-      box-shadow: 0 6px 40px #0006;
+      box-shadow: 0 6px 40px #0ffb;
       text-align: center;
       font-size: 19px;
     }
@@ -194,6 +231,7 @@
     ];
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
+
     // ----------- Rendering -----------
     function render() {
       const root = document.getElementById('root');
@@ -210,7 +248,7 @@
       const div = document.createElement('div');
       div.className = "panel";
       div.innerHTML = `
-        <h1>Quantum Flip</h1>
+        <h1 style="color:#0ff;text-shadow:0 0 14px #0ff7;">Quantum Flip</h1>
         <div style="margin:14px 0 30px 0;">
           <span class="coin" style="font-size:22px;">Coins: ${coins} 🪙</span>
         </div>
@@ -222,8 +260,8 @@
       const by = document.createElement('div');
       by.style.marginTop = "28px";
       by.style.fontSize = "12px";
-      by.style.color = "#888";
-      by.innerText = "by copilot | vanilla JS demo";
+      by.style.color = "#0ff";
+      by.innerText = "by copilot | neon vanilla JS demo";
       div.appendChild(by);
       return div;
     }
@@ -237,7 +275,7 @@
     function renderSettings() {
       const div = document.createElement('div');
       div.className = "panel";
-      div.innerHTML = `<h2>Settings</h2>
+      div.innerHTML = `<h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Settings</h2>
         <div style="margin-bottom:16px">
           <b>AI Difficulty:</b>
           <select class="difficulty-select" id="diffsel">
@@ -259,7 +297,7 @@
       div.innerHTML = `<div style="margin-bottom:8px;">
         <b>Coins:</b> <span class="coin">${coins} 🪙</span>
       </div>
-      <h2>Shop</h2>`;
+      <h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Shop</h2>`;
       SPELLS.forEach(spell=>{
         const owned = spellsOwned.includes(spell.key);
         const spellDiv = document.createElement('div');
@@ -269,7 +307,7 @@
           <div class="spell-desc">${spell.desc}</div>
           <div>
             <span class="spell-cost">${spell.cost} 🪙</span>
-            <span style="margin-left:12px; color:#555;">Use: ${spell.mana} mana</span>
+            <span style="margin-left:12px; color:#0ff;">Use: ${spell.mana} mana</span>
           </div>
         `;
         const btn = document.createElement('button');
@@ -293,14 +331,14 @@
       div.style.textAlign = "left";
       div.style.maxWidth = "560px";
       div.innerHTML = `
-        <h2>Tutorial</h2>
+        <h2 style="color:#0ff;text-shadow:0 0 8px #0ff;">Tutorial</h2>
         <ol>
-          <li><b>The Goal:</b> Flip as many tiles to your color (white) as possible before 70-move countdown ends.</li>
-          <li><b>Turns:</b> You and the AI take turns. Each turn, click any <b>black</b> square; it and all adjacent squares (not corners) flip.</li>
+          <li><b>The Goal:</b> Flip as many tiles to your color (white-neon) as possible before 70-move countdown ends.</li>
+          <li><b>Turns:</b> You and the AI take turns. Each turn, click any <b>AI (aqua)</b> square; it and all adjacent squares (not corners) flip.</li>
           <li><b>Mana:</b> Each turn you regain 8 mana. Spells cost mana to cast.</li>
           <li><b>Spells:</b> Buy spells in the Shop, then select a spell in-game to use its effect!</li>
           <li><b>End:</b> When moves run out, whoever has more squares of their color wins and gets 10 coins!</li>
-          <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves.</li>
+          <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves. AI/Player cannot repeat the other's last move.</li>
         </ol>
       `;
       div.appendChild(backBtn());
@@ -315,7 +353,6 @@
     }
     // ----------- GAME LOGIC -----------
     function startGame() {
-      // 0=player(white), 1=ai(black), 2=quantum, etc.
       let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
       for (let r=3;r<7;r++) for (let c=3;c<7;c++) board[r][c]=0;
       gameState = {
@@ -328,7 +365,9 @@
         skip: false,
         quantumPieces: [],
         spellOn: null,
-        usedSkip: false
+        usedSkip: false,
+        lastPlayerMove: null,  // {r,c}
+        lastAIMove: null       // {r,c}
       };
       screen = "play";
       render();
@@ -344,9 +383,9 @@
           <div style="font-size:16px;"><b>Moves Left:</b> ${gs.movesLeft}</div>
         </div>
         <div class="info-bar">
-          <span style="margin-right:12px;"><b>Mana:</b> ${gs.mana} <span style="color:#6cf;">💠</span></span>
+          <span style="margin-right:12px;"><b>Mana:</b> ${gs.mana} <span style="color:#0ff;">💠</span></span>
           <span style="margin-right:12px;"><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
-          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#222;">⬛</span></span>
+          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#0ff;">⬛</span></span>
         </div>`;
       // Board
       const boardDiv = document.createElement('div');
@@ -364,10 +403,24 @@
             cellDiv.classList.add("quantum");
             if (cell.visible) cellDiv.classList.add("visible");
           }
+          // Last move highlight
+          if ((gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) ||
+              (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c)) {
+            cellDiv.classList.add("last-move");
+          }
           cellDiv.onclick = ()=>handleCellClick(r,c);
           // Quantum marker
           if (typeof cell==='object' && cell.quantum) {
-            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:15px;color:#66f;font-weight:bold;">Q</span>`;
+            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:15px;color:#fff;text-shadow:0 0 6px #44f;font-weight:bold;">Q</span>`;
+          }
+          // Disallow if last AI move for player, last player move for AI
+          if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
+            cellDiv.style.opacity = 0.4;
+            cellDiv.title = "Can't play in the same spot as the AI's last move!";
+          }
+          if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
+            cellDiv.style.opacity = 0.4;
+            cellDiv.title = "Can't play in the same spot as the player's last move!";
           }
           rowDiv.appendChild(cellDiv);
         }
@@ -394,7 +447,7 @@
       div.appendChild(spellsDiv);
       const spellInfo = document.createElement('div');
       spellInfo.style.fontSize = "12px";
-      spellInfo.style.color = "#888";
+      spellInfo.style.color = "#0ff";
       spellInfo.style.marginBottom = "9px";
       spellInfo.innerText = "(Select a spell to use it on your next move.)";
       div.appendChild(spellInfo);
@@ -414,6 +467,8 @@
     function handleCellClick(r,c) {
       const gs = gameState;
       if (gs.winner||gs.turn!==0) return;
+      // Can't click AI's last move
+      if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
       let cell = gs.board[r][c];
       if (typeof cell==='object' && cell.quantum) {
         if (!cell.visible) return;
@@ -435,6 +490,7 @@
           gs.movesLeft--;
           gs.turn = 1;
           gs.quantumPieces.push({r,c});
+          gs.lastPlayerMove = {r,c};
           render();
           setTimeout(()=>aiMove(gs),900);
           return;
@@ -452,6 +508,7 @@
           gs.spellOn = null;
           gs.movesLeft--;
           gs.turn = 1;
+          gs.lastPlayerMove = {r,c};
           render();
           setTimeout(()=>aiMove(gs),900);
           return;
@@ -462,6 +519,7 @@
       gs.movesLeft--;
       gs.turn = 1;
       gs.mana += MANA_REGEN;
+      gs.lastPlayerMove = {r,c};
       if (gs.movesLeft<=0) {
         const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
         endGame(w>bl?1:w<bl?0:null);
@@ -515,30 +573,22 @@
       if (gs.winner) return;
       // Skip if player cast skip
       if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; render(); return; }
-      // AI chooses spell? Only collapse if many quantum
-      let quantumCount=0;
-      for (let r=0;r<BOARD_SIZE;r++)
-        for (let c=0;c<BOARD_SIZE;c++) if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum) quantumCount++;
-      // 20% chance to use collapse if there are 2+ quantum and has mana
-      if (spellsOwned.includes("collapse")&&gs.aiMana>=SPELLS.find(s=>s.key==="collapse").mana&&quantumCount>=2&&Math.random()<0.2) {
-        for (let r=0;r<BOARD_SIZE;r++)
-          for (let c=0;c<BOARD_SIZE;c++)
-            if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum) gs.board[r][c]=gs.board[r][c].trueState;
-        gs.aiMana-=SPELLS.find(s=>s.key==="collapse").mana;
-      }
-      // AI move selection logic
+      // Only allow AI to play on player's squares (0)
       const moves=[];
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
-          if (gs.board[r][c]!==0) {
+          if (gs.board[r][c]===0) {
+            // Don't allow AI to play on player's last move
+            if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
             // simulate flip
             const b2 = JSON.parse(JSON.stringify(gs.board));
             flip(b2,r,c,1);
             const gain = countBoard(b2,1)-countBoard(gs.board,1);
             moves.push({r,c,gain,b2});
           }
-      let sortedMoves=[...moves].sort((a,b)=>b.gain-a.gain);
       let move=null;
+      if (moves.length===0) { gs.turn=0; render(); return; }
+      let sortedMoves=[...moves].sort((a,b)=>b.gain-a.gain);
       if (difficulty===0) {
         let top=sortedMoves.slice(0,25); move=top[Math.floor(Math.random()*top.length)];
       } else if (difficulty===1) {
@@ -546,12 +596,14 @@
       } else if (difficulty===2) {
         let top=sortedMoves.slice(0,3); move=top[Math.floor(Math.random()*top.length)];
       } else if (difficulty===3) {
-        // Extreme: depth 2, pick best
+        // Extreme: depth 2, pick best (only on player's square, can't repeat last move)
         let best=-Infinity;
         for (const m of sortedMoves.slice(0,6)) {
           let bestReply=-Infinity;
           for (let rr=0;rr<BOARD_SIZE;rr++) for (let cc=0;cc<BOARD_SIZE;cc++)
-            if (m.b2[rr][cc]===0) {
+            if (m.b2[rr][cc]===1) { // Only allow player on AI's squares
+              // Can't go back to AI's current move
+              if (m.r===rr && m.c===cc) continue;
               let b3=JSON.parse(JSON.stringify(m.b2));
               flip(b3,rr,cc,0);
               let v=countBoard(b3,1)-countBoard(m.b2,1);
@@ -565,7 +617,6 @@
       if (!move) { gs.turn=0; render(); return; }
       // Do move
       gs.board = move.b2;
-      // Collapse quantum if landed
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
           if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum&&!gs.board[r][c].visible)
@@ -573,6 +624,7 @@
       gs.movesLeft--;
       gs.aiMana+=MANA_REGEN;
       gs.turn=0;
+      gs.lastAIMove = {r:move.r,c:move.c};
       if (gs.movesLeft<=0) {
         const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
         endGame(w>bl?1:w<bl?0:null);
