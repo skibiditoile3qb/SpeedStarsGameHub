@@ -4,17 +4,18 @@
   <meta charset="UTF-8">
   <title>Quantum Flip Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Orbitron:wght@800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0; padding: 0;
       font-family: 'Orbitron', Arial, sans-serif;
-      background: #05080e;
+      background: #10131a;
       min-height: 100vh;
       min-width: 100vw;
       width: 100vw;
       height: 100vh;
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
     #root {
       width: 100vw;
@@ -25,61 +26,47 @@
       justify-content: flex-start;
       position: relative;
       z-index: 0;
+      background: #10131a;
     }
-    /* Topbar */
     .topbar {
       width: 100vw;
-      min-height: 90px;
-      background: rgba(12, 18, 33, 0.92);
-      box-shadow: 0 0 32px #0ff7, 0 0 4px #fff4;
+      min-height: 60px;
+      background: #181f2a;
+      border-bottom: 1.5px solid #232b39;
       display: flex;
-      align-items: flex-end;
-      justify-content: center;
       flex-direction: column;
-      position: relative;
+      align-items: center;
+      justify-content: flex-end;
       z-index: 2;
-      border-bottom: 3px solid #0ffb;
+      position: relative;
+      box-shadow: 0 2px 12px #0003;
     }
     .moves-counter {
       font-family: 'Orbitron', monospace, Arial, sans-serif;
-      font-size: 2.7em;
-      color: #44fff7;
-      text-shadow: 0 0 18px #44fff7, 0 0 5px #fff;
-      background: rgba(18,35,40,0.70);
-      padding: 9px 48px 2px 48px;
-      border-radius: 0 0 48px 48px;
-      margin: 0 auto 0 auto;
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
-      border-bottom: 3.5px solid #0ff;
-      box-shadow: 0 8px 32px #0ff7;
-      pointer-events: none;
-      animation: movePulse 2.1s infinite alternate;
-    }
-    @keyframes movePulse {
-      0%   { filter: brightness(1) blur(0px);}
-      100% { filter: brightness(1.14) blur(2px);}
+      font-size: 2em;
+      color: #18e6e6;
+      margin-top: 4px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      background: none;
+      padding: 3px 0 2px 0;
+      border-radius: 12px;
+      text-shadow: 0 2px 0 #fff3, 0 0 6px #18e6e6a1;
     }
     .info-bar {
       width: 100vw;
-      font-size: 1.2em;
-      color: #0ff;
-      text-shadow: 0 0 4px #0ff8;
+      font-size: 1em;
+      color: #18e6e6;
       background: none;
       display: flex;
       justify-content: center;
-      gap: 38px;
+      gap: 32px;
       align-items: center;
       margin: 0;
-      padding: 17px 0 0 0;
-      position: relative;
-      z-index: 2;
-      letter-spacing: 1.5px;
-      font-weight: 900;
-      font-family: 'Orbitron', Arial, sans-serif;
-      filter: drop-shadow(0 0 11px #0ff8);
+      padding: 2px 0 8px 0;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 1px;
     }
     .game-main {
       flex: 1 1 auto;
@@ -89,17 +76,16 @@
       justify-content: flex-start;
       width: 100vw;
       min-height: 0;
-      background: linear-gradient(123deg, #181a25 54%, #0ff2 100%);
+      background: #10131a;
       position: relative;
-      box-shadow: 0 0 180px #0ff3 inset, 0 0 90px #fff2 inset;
     }
     .board-wrap {
       width: 100vw;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-top: 38px;
-      margin-bottom: 18px;
+      margin-top: 26px;
+      margin-bottom: 8px;
       min-height: 0;
       z-index: 1;
     }
@@ -107,10 +93,9 @@
       display: grid;
       grid-template-rows: repeat(10,1fr);
       grid-template-columns: repeat(10,1fr);
-      gap: 10px;
-      background: rgba(0,0,0,0.42);
-      border-radius: 38px;
-      box-shadow: 0 0 110px 35px #1eefff55, 0 0 130px 25px #ffffff18, 0 0 22px #0ff9;
+      gap: 3px;
+      background: #12141e;
+      border-radius: 18px;
       margin: 0 auto;
       width: min(70vw, 70vh);
       height: min(70vw, 70vh);
@@ -118,85 +103,69 @@
       max-height: 97vw;
       aspect-ratio: 1/1;
       position: relative;
-      border: 4px solid #fff8;
+      border: 1.5px solid #232b39;
+      box-shadow: 0 2px 24px #0007;
       transition: box-shadow 0.2s;
-      animation: boardGlow 6s linear infinite alternate;
-    }
-    @keyframes boardGlow {
-      0% { box-shadow: 0 0 70px 22px #0ff5, 0 0 20px #fff5; }
-      100% { box-shadow: 0 0 130px 45px #0ff7, 0 0 35px #fff9; }
     }
     .board-cell {
       width: 100%;
       height: 100%;
-      border-radius: 17px;
-      border: 5px solid #191a22;
+      border-radius: 8px;
+      border: 2px solid #2cf3fb;
       box-sizing: border-box;
       font-size: 1.15em;
       cursor: pointer;
-      background: #000;
+      background: #191b22;
       position: relative;
       user-select: none;
-      box-shadow: 0 0 31px 11px #0ff8, 0 0 3px #fff4;
+      box-shadow: 0 1px 2.5px #0005;
       overflow: hidden;
       z-index: 1;
-      transition: box-shadow 0.18s, border 0.18s, background 0.18s, filter 0.18s;
-      filter: brightness(1.08);
+      transition: background 0.22s, border 0.15s, box-shadow 0.12s, filter 0.18s, transform 0.23s;
+      filter: brightness(1);
+      animation: none !important;
     }
     .board-cell.player {
-      background: radial-gradient(circle at 52% 62%, #fff 67%, #d4eaff 100%, #2cf 170%);
-      box-shadow: 0 0 52px 18px #fff, 0 0 22px #fff, 0 0 17px #0ff5;
-      border: 4px solid #fff;
-      animation: neonwhite 1.7s infinite alternate;
-      filter: brightness(1.25) blur(0.4px);
-      transition: filter 0.25s;
-    }
-    .board-cell.player:hover {
-      filter: brightness(1.5) blur(0px);
-      box-shadow: 0 0 70px 30px #fff, 0 0 22px #0ffb;
-      border-color: #0ff;
-    }
-    @keyframes neonwhite {
-      0% { box-shadow: 0 0 40px 18px #fff, 0 0 10px #fff9, 0 0 7px #0ff5; }
-      100% { box-shadow: 0 0 78px 39px #fff, 0 0 30px #0ff9, 0 0 13px #0ff9; }
+      background: #fff;
+      border: 2.5px solid #dbeafe;
+      box-shadow: 0 0 5px #dbeafe77;
     }
     .board-cell.ai {
-      background: radial-gradient(circle at 53% 60%, #000 60%, #00e0ff 100%, #00f 180%);
-      box-shadow: 0 0 54px 27px #0ff, 0 0 22px #0ff, 0 0 32px #000;
-      border: 4px solid #0ff;
-      animation: neonaqua 1.5s infinite alternate;
-      filter: brightness(1.1) blur(0.2px);
-      transition: filter 0.2s;
-    }
-    .board-cell.ai:hover {
-      filter: brightness(1.4) blur(0px);
-      box-shadow: 0 0 80px 40px #0ff, 0 0 30px #fff;
-      border-color: #fff;
-    }
-    @keyframes neonaqua {
-      0% { box-shadow: 0 0 54px 27px #0ff, 0 0 22px #0ff, 0 0 12px #000;}
-      100% { box-shadow: 0 0 90px 49px #0ff, 0 0 40px #0ff9, 0 0 38px #00f;}
+      background: #20242b;
+      border: 2.5px solid #18e6e6;
+      box-shadow: 0 0 5px #18e6e655;
     }
     .board-cell.quantum {
       background: repeating-linear-gradient(45deg, #3ff 0 5px, #fff 6px 14px);
-      box-shadow: 0 0 36px #44f7,0 0 50px #4ff4;
-      border-color:#44f;
-      filter: saturate(1.8) brightness(1.22);
+      border: 2.5px dashed #44f;
     }
     .board-cell.quantum.visible {
       background: linear-gradient(120deg,#0ff,#44f 60%);
-      animation: none;
-      filter: blur(0.7px) brightness(1.3);
+      border-style: solid;
     }
     .board-cell.last-move {
-      outline: 5.5px solid #f00 !important;
+      outline: 2.5px solid #f00 !important;
       z-index: 2;
-      box-shadow: 0 0 36px #f08a, 0 0 18px #fff9;
-      filter: brightness(1.5) blur(0.1px) drop-shadow(0 0 14px #f00);
+      box-shadow: 0 0 10px #f08a;
     }
-    .board-cell:active {
+    .board-cell:active, .board-cell.flipping {
+      transform: scale(1.18) rotate(-2deg);
+      z-index: 2;
+      filter: brightness(1.25);
+      transition: transform 0.15s, filter 0.12s;
+    }
+    .board-cell.flipping {
+      animation: flipEffect 0.34s cubic-bezier(.53,2.3,.44,.98);
+    }
+    @keyframes flipEffect {
+      0% { transform: scale(1) rotate(0deg);}
+      45% { transform: scale(1.26) rotate(4deg);}
+      100% { transform: scale(1) rotate(0deg);}
+    }
+    .board-cell:hover {
+      filter: brightness(1.12);
       border-color: #ff0;
-      box-shadow: 0 0 32px #ff0b;
+      z-index: 2;
     }
     .spell-bar {
       width: 100vw;
@@ -205,66 +174,64 @@
       align-items: center;
       margin: 0 0 16px 0;
       flex-wrap: wrap;
-      min-height: 62px;
+      min-height: 52px;
       position: relative;
       z-index: 2;
       background: none;
     }
     .spell-btn {
       margin: 7px 11px 7px 0;
-      padding: 14px 34px;
-      background: linear-gradient(90deg,#fff 40%,#0ff 100%);
-      color: #000;
-      border: 3px solid #fff;
-      border-radius: 15px;
+      padding: 10px 30px;
+      background: #fff;
+      color: #222;
+      border: 2.5px solid #18e6e6;
+      border-radius: 10px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 1.2em;
-      box-shadow: 0 0 26px #0ff8, 0 0 8px #fff9;
-      transition: background .13s, color .13s, border 0.18s, box-shadow 0.18s;
+      font-size: 1.15em;
+      box-shadow: 0 0 4px #18e6e655;
+      transition: background .13s, color .13s, border 0.12s;
       outline: none;
-      letter-spacing: 1.7px;
-      text-shadow: 0 0 19px #fff;
-      filter: brightness(1.1);
+      letter-spacing: 1.2px;
+      text-shadow: none;
+      filter: none;
     }
-    .spell-btn:disabled { background: #022; color: #066; cursor: not-allowed; border: 3px solid #0ff; filter: brightness(0.8);}
-    .spell-btn.selected { outline: 3px solid #ff0; background: #222; color:#0ff; border:3px solid #ff0; filter: brightness(1.32);}
+    .spell-btn:disabled { background: #eee; color: #bbb; cursor: not-allowed; border:2.5px solid #bbb;}
+    .spell-btn.selected { outline: 2px solid #ff0; background: #232b39; color:#18e6e6; border:2.5px solid #ff0;}
     .spell-info {
-      font-size: 1.06em;
-      color: #0ff;
+      font-size: 1em;
+      color: #18e6e6;
       margin: 4px 0 0 0;
       text-align: center;
-      text-shadow: 0 0 11px #0ff8;
       min-height: 28px;
-      font-family: 'Orbitron', Arial, sans-serif;
-      font-weight:600;
+      font-family: inherit;
+      font-weight: 600;
       letter-spacing: 1px;
     }
     .no-spells {
       color: #fc0;
       font-weight: bold;
-      font-size: 1.15em;
+      font-size: 1.12em;
       margin-right: 14px;
-      text-shadow: 0 0 14px #fff;
+      text-shadow: none;
       font-family:inherit;
     }
     .shop-link-btn {
-      background: linear-gradient(90deg,#ff0 20%,#0ff 100%);
-      color: #000;
+      background: #ff0;
+      color: #232b39;
       border: none;
-      border-radius: 12px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      font-size: 1.08em;
-      box-shadow: 0 0 19px #fff4;
-      padding: 10px 30px;
+      font-size: 1em;
+      box-shadow: none;
+      padding: 8px 24px;
       margin-left: 14px;
       transition: background .13s, color .13s;
       outline: none;
       font-family:inherit;
     }
-    .shop-link-btn:hover { background: linear-gradient(90deg,#0ff 20%,#ff0 100%); }
-    /* Panels, overlays, etc. */
+    .shop-link-btn:hover { background: #18e6e6; color:#222;}
     .fullscreen-panel {
       width: 100vw;
       height: 100vh;
@@ -274,7 +241,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(ellipse at 60% 50%, #0ff1 0%, #070a13 100%);
+      background: #10131a;
       position: absolute;
       top: 0; left: 0;
       z-index: 1;
@@ -289,103 +256,96 @@
       margin-top: 4vh;
       margin-bottom: 4vh;
       z-index: 2;
-      background:rgba(0,0,0,0.27);
-      border-radius:30px;
-      box-shadow: 0 0 60px #0ff3, 0 0 10px #fff2;
-      border: 2px solid #0ffaa;
-      animation: panelPulse 8s linear infinite alternate;
+      background: #181f2a;
+      border-radius:20px;
+      box-shadow: 0 0 36px #0003;
+      border: 1.5px solid #232b39;
     }
-    @keyframes panelPulse {
-      0%   { box-shadow: 0 0 50px #0ff3, 0 0 10px #fff2; }
-      100% { box-shadow: 0 0 120px #0ff7, 0 0 30px #fff9; }
-    }
-    h1, h2 { color: #0ff; text-shadow: 0 0 17px #0ff8; font-family: 'Orbitron', Arial, sans-serif; }
+    h1, h2 { color: #18e6e6; text-shadow: 0 0 7px #fff2; font-family: 'Orbitron', Arial, sans-serif; }
     .coin {
-      color: #0ff;
+      color: #18e6e6;
       font-weight: bold;
-      text-shadow: 0 0 8px #0ff, 0 0 5px #fff8;
-      font-size: 1.25em;
+      text-shadow: none;
+      font-size: 1.12em;
     }
     .menu-btn {
       width: 320px;
       max-width: 80vw;
       margin: 18px auto;
       padding: 18px 0;
-      font-size: 1.45em;
-      background: linear-gradient(90deg, #0ff 30%, #88f 100%);
-      color: #000;
-      border-radius: 17px;
-      border: none;
-      box-shadow: 0 4px 22px #0ff7, 0 0 8px #fff4;
+      font-size: 1.3em;
+      background: #fff;
+      color: #18e6e6;
+      border-radius: 10px;
+      border: 2px solid #18e6e6;
+      box-shadow: none;
       cursor: pointer;
       font-weight: bold;
       letter-spacing: 1px;
-      transition: background .16s, color .16s;
-      text-shadow: 0 0 11px #fff8;
+      transition: background .12s, color .12s;
+      text-shadow: none;
       display:block;
       font-family:inherit;
     }
-    .menu-btn:hover { background: linear-gradient(90deg, #0cf 10%, #0ff 90%); color: #fff;}
+    .menu-btn:hover { background: #18e6e6; color: #fff;}
     .back-btn {
       padding: 13px 36px;
       margin-top: 32px;
-      background: #111;
-      color: #0ff;
-      border: 2px solid #0ff;
-      border-radius: 17px;
+      background: #232b39;
+      color: #fff;
+      border: 2px solid #18e6e6;
+      border-radius: 10px;
       cursor: pointer;
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: bold;
-      box-shadow: 0 0 20px #0ff7;
+      box-shadow: none;
       transition: background .14s, color .14s;
       font-family:inherit;
     }
-    .back-btn:hover { background: #0ff; color: #000; }
+    .back-btn:hover { background: #18e6e6; color: #222; }
     .shop-spell {
-      border: 2px solid #0ff6;
-      border-radius: 17px;
-      padding: 22px 6px 22px 12px;
-      margin: 19px 2px;
-      background: #051218;
+      border: 1.5px solid #18e6e6;
+      border-radius: 10px;
+      padding: 17px 6px 17px 12px;
+      margin: 13px 2px;
+      background: #181f2a;
       text-align: left;
-      transition: background .22s, border .22s;
-      position: relative;
-      font-size: 1.18em;
-      box-shadow: 0 0 24px #0ff3;
-      max-width: 590px;
+      font-size: 1.08em;
+      box-shadow: none;
+      max-width: 530px;
       margin-left:auto;
       margin-right:auto;
       font-family:inherit;
+      transition: background .12s, border .12s;
     }
-    .shop-spell.owned { background: #022e1c; border-color:#0f06; }
-    .shop-spell .spell-title { font-weight: bold; font-size: 1.2em; color:#0ff; text-shadow:0 0 7px #0ff9;}
+    .shop-spell.owned { background: #e7ffe7; border-color:#bcb;}
+    .shop-spell .spell-title { font-weight: bold; font-size: 1.12em; color:#18e6e6;}
     .shop-spell .spell-desc { font-size: 1em; color: #bff; white-space: pre-line; }
-    .shop-spell .spell-cost { color: #0ff; font-weight: bold; }
+    .shop-spell .spell-cost { color: #18e6e6; font-weight: bold; }
     .shop-spell button {
       margin-top: 7px;
-      background: #0ff;
-      color: #000; border: none; border-radius: 10px;
-      padding: 10px 30px; cursor: pointer;
+      background: #18e6e6;
+      color: #fff; border: none; border-radius: 7px;
+      padding: 8px 20px; cursor: pointer;
       font-weight: bold;
       float: right;
-      font-size:1.11em;
-      box-shadow: 0 0 18px #0ff7;
-      transition: background .15s, color .15s;
+      font-size:1em;
+      box-shadow: none;
+      transition: background .13s, color .13s;
       font-family:inherit;
     }
-    .shop-spell button:disabled { background: #099; color:#555; cursor: not-allowed; }
+    .shop-spell button:disabled { background: #bbb; color:#eee; cursor: not-allowed; }
     .difficulty-select {
-      margin-top: 38px;
-      font-size: 1.2em;
+      margin-top: 24px;
+      font-size: 1.12em;
       padding: 10px 24px;
-      border-radius: 12px;
-      border: 2px solid #0ff;
-      background: #021e24;
-      color:#0ff;
+      border-radius: 9px;
+      border: 1.5px solid #18e6e6;
+      background: #fff;
+      color:#18e6e6;
       text-align:center;
       font-family:inherit;
     }
-    /* Overlay */
     .overlay {
       position: fixed;
       left: 0; top: 0; width: 100vw; height: 100vh;
@@ -395,24 +355,25 @@
       align-items: center; justify-content: center;
     }
     .overlay-inner {
-      background: #0ff;
-      color: #111;
-      padding: 60px 36px 40px 36px;
+      background: #fff;
+      color: #181f2a;
+      padding: 44px 36px 34px 36px;
       border-radius: 22px;
       min-width: 320px;
-      box-shadow: 0 10px 60px #0ffb;
+      box-shadow: 0 10px 60px #0003;
       text-align: center;
-      font-size: 2.2em;
+      font-size: 2em;
       display:flex;
       flex-direction:column;
       align-items:center;
       justify-content:center;
       font-family:inherit;
+      border: 2.5px solid #18e6e6;
     }
     .overlay-inner .small {
-      font-size: 1.1em;
+      font-size: 1.08em;
       margin-top: 30px;
-      color: #099;
+      color: #18e6e6;
     }
     @media (max-width: 800px) {
       .board { max-width: 97vw; max-height: 97vw; }
@@ -425,22 +386,21 @@
       .shop-spell { max-width: 99vw;}
       .board-cell { font-size: 0.7em; }
       .spell-btn { font-size: 0.7em; padding: 7px 10px;}
-      .moves-counter { font-size: 1.4em; padding: 6px 14px 2px 14px;}
-      .info-bar { font-size: 0.9em; gap: 18px;}
+      .moves-counter { font-size: 1.1em;}
+      .info-bar { font-size: 0.9em; gap: 16px;}
     }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script>
-    // --- Game State ---
     let coins = 0;
     let spellsOwned = [];
-    let difficulty = 0; // 0=easy,1=med,2=hard,3=extreme
+    let difficulty = 0;
     let screen = "menu";
     let gameState = null;
     let overlay = null;
-
+    let flipQueue = [];
     const SPELLS = [
       {
         key: "quantum",
@@ -473,8 +433,6 @@
     ];
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
-
-    // --- Random Events ---
     const RANDOM_EVENTS = [
       {
         name: "Flip Random Row",
@@ -531,7 +489,6 @@
       }
     ];
 
-    // ----------- Rendering -----------
     function render() {
       const root = document.getElementById('root');
       root.innerHTML = '';
@@ -671,30 +628,24 @@
     }
     function renderPlay() {
       const gs = gameState;
-      // Main container
       const main = document.createElement('div');
       main.style.minHeight = "100vh";
       main.style.display = "flex";
       main.style.flexDirection = "column";
       main.style.alignItems = "stretch";
       main.style.justifyContent = "flex-start";
-
-      // Topbar
       const topbar = document.createElement('div');
       topbar.className = "topbar";
       topbar.innerHTML = `
         <div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
         <div class="info-bar">
-          <span><b>Mana:</b> ${gs.mana} <span style="color:#0ff;">💠</span></span>
+          <span><b>Mana:</b> ${gs.mana} <span style="color:#18e6e6;">💠</span></span>
           <span><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
-          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#0ff;">⬛</span></span>
+          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#18e6e6;">⬛</span></span>
         </div>`;
       main.appendChild(topbar);
-
-      // Main game area
       const gameMain = document.createElement('div');
       gameMain.className = "game-main";
-      // Board
       const boardWrap = document.createElement('div');
       boardWrap.className = 'board-wrap';
       const boardDiv = document.createElement('div');
@@ -710,13 +661,14 @@
             cellDiv.classList.add("quantum");
             if (cell.visible) cellDiv.classList.add("visible");
           }
-          // Last move highlight
           if ((gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) ||
               (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c)) {
             cellDiv.classList.add("last-move");
           }
+          if (flipQueue.some(x=>x.r===r&&x.c===c)) {
+            cellDiv.classList.add("flipping");
+          }
           cellDiv.onclick = ()=>handleCellClick(r,c);
-          // Quantum marker
           if (typeof cell==='object' && cell.quantum) {
             cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
           }
@@ -733,8 +685,6 @@
       }
       boardWrap.appendChild(boardDiv);
       gameMain.appendChild(boardWrap);
-
-      // Spells
       const spellsDiv = document.createElement('div');
       spellsDiv.className = 'spell-bar';
       if (spellsOwned.length === 0) {
@@ -765,20 +715,14 @@
         });
       }
       gameMain.appendChild(spellsDiv);
-
-      // Spell info
       const spellInfo = document.createElement('div');
       spellInfo.className = 'spell-info';
       spellInfo.innerText = "(Select a spell to use it on your next move.)";
       gameMain.appendChild(spellInfo);
-
       main.appendChild(gameMain);
-
-      // Winner overlay
       if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
       return main;
     }
-    // --- Game Logic ---
     function countBoard(board, val) {
       let n=0;
       for (let r=0;r<BOARD_SIZE;r++)
@@ -794,7 +738,7 @@
         board,
         mana: INIT_MANA,
         aiMana: INIT_MANA,
-        turn: 0, // 0=player, 1=ai
+        turn: 0,
         movesLeft: MAX_MOVES,
         winner: null,
         skip: false,
@@ -817,8 +761,7 @@
         if (!cell.visible) return;
         cell = cell.states[0];
       }
-      if (cell!==1) return; // can only flip AI squares
-      // Handle spell use
+      if (cell!==1) return;
       if (gs.spellOn) {
         const spellKey = gs.spellOn;
         if (!spellsOwned.includes(spellKey)) return;
@@ -859,7 +802,6 @@
           return;
         }
       }
-      // Standard flip
       flip(gs.board, r, c, 0);
       gs.movesLeft--;
       gs.turn = 1;
@@ -877,13 +819,17 @@
     }
     function flip(board, r, c, color) {
       const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
+      flipQueue = [];
       for (const [dr,dc] of dirs) {
         let nr=r+dr,nc=c+dc;
         if (nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE) {
           if (typeof board[nr][nc]==='object'&&board[nr][nc].quantum) board[nr][nc]=board[nr][nc].trueState;
           else board[nr][nc]=color;
+          flipQueue.push({r:nr, c:nc});
         }
       }
+      render();
+      setTimeout(()=>{ flipQueue = []; render(); }, 350);
     }
     function handleCollapseSpell() {
       const gs = gameState;
@@ -986,7 +932,6 @@
         }
       }
     }
-    // Overlay
     function showOverlay(msg, cb) {
       overlay=[msg, cb];
       render();
