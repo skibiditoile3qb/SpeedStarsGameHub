@@ -150,12 +150,27 @@
       width: 100vw;
       padding: 2vh 2vw 0 2vw;
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
       color: #0ff;
-      font-size: 1.1em;
+      font-size: 1.3em;
       z-index: 2;
       text-shadow: 0 0 6px #0ff;
+      font-weight:bold;
+    }
+    .moves-center {
+      flex: 0 0 auto;
+      margin: 0 20px;
+      font-size: 1.25em;
+      letter-spacing:2px;
+      color: #0ff;
+      text-shadow:0 0 8px #0ff;
+      background:rgba(0,0,0,0.30);
+      padding: 6px 22px;
+      border-radius:12px;
+      border:2px solid #0ff8;
+      box-shadow: 0 0 15px #0ff5;
+      font-weight:bold;
     }
     .info-bar {
       width:100vw;
@@ -352,6 +367,65 @@
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
 
+    // --- Random Events ---
+    const RANDOM_EVENTS = [
+      {
+        name: "Flip Random Row",
+        run(gs) {
+          const row = Math.floor(Math.random() * BOARD_SIZE);
+          for (let c = 0; c < BOARD_SIZE; c++)
+            flip(gs.board, row, c, Math.random() < 0.5 ? 0 : 1);
+          showOverlay(`Random Event: A mysterious force flips all of row ${row+1}!`);
+        }
+      },
+      {
+        name: "Flip Random Column",
+        run(gs) {
+          const col = Math.floor(Math.random() * BOARD_SIZE);
+          for (let r = 0; r < BOARD_SIZE; r++)
+            flip(gs.board, r, col, Math.random() < 0.5 ? 0 : 1);
+          showOverlay(`Random Event: Lightning strikes column ${col+1} and flips it!`);
+        }
+      },
+      {
+        name: "Color Surge",
+        run(gs) {
+          // Convert 6 random tiles to a random color
+          for(let i=0;i<6;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE);
+            gs.board[r][c] = Math.random()<0.5?0:1;
+          }
+          showOverlay("Random Event: Color Surge! 6 random tiles have shifted color.");
+        }
+      },
+      {
+        name: "Mana Burst",
+        run(gs) {
+          gs.mana += 15;
+          gs.aiMana += 15;
+          showOverlay("Random Event: Mana Burst! Both players gain 15 mana.");
+        }
+      },
+      {
+        name: "Quantum Storm",
+        run(gs) {
+          // Turn 4 random AI squares into quantum pieces
+          for(let i=0;i<4;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE/2) + BOARD_SIZE/2; // right half
+            if (gs.board[r][c] === 1) {
+              let states = [0,1];
+              if (Math.random()<0.5) states.push(1);
+              const trueState = states[Math.floor(Math.random()*states.length)];
+              gs.board[r][c] = {quantum:true,states,trueState,visible:false};
+            }
+          }
+          showOverlay("Random Event: Quantum Storm! Some AI squares split into quantum states.");
+        }
+      }
+    ];
+
     // ----------- Rendering -----------
     function render() {
       const root = document.getElementById('root');
@@ -383,7 +457,7 @@
       by.style.marginTop = "53px";
       by.style.fontSize = "1.1em";
       by.style.color = "#0ff";
-      by.innerText = "by copilot | neon vanilla JS demo";
+      by.innerHTML = 'by <b>skibiditoile3qb</b> | neon vanilla JS demo';
       content.appendChild(by);
       panel.appendChild(content);
       return panel;
@@ -471,6 +545,7 @@
           <li><b>Spells:</b> Buy spells in the Shop, then select a spell in-game to use its effect!</li>
           <li><b>End:</b> When moves run out, whoever has more squares of their color wins and gets 10 coins!</li>
           <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves. AI/Player cannot repeat the other's last move.</li>
+          <li><b>Random Events:</b> Every 5 moves, a random event may occur!</li>
         </ol>
       `;
       content.appendChild(backBtn());
@@ -501,7 +576,8 @@
         spellOn: null,
         usedSkip: false,
         lastPlayerMove: null,  // {r,c}
-        lastAIMove: null       // {r,c}
+        lastAIMove: null,      // {r,c}
+        movesPlayed: 0
       };
       screen = "play";
       render();
@@ -513,8 +589,7 @@
       // Top bar
       panel.innerHTML = `
         <div class="board-topbar">
-          <button class="back-btn" style="margin:0 0 0 -10px;" onclick="screen='menu';render();">Home</button>
-          <div><b>Moves Left:</b> ${gs.movesLeft}</div>
+          <span class="moves-center"><b>Moves Left:</b> ${gs.movesLeft}</span>
         </div>
         <div class="info-bar">
           <span style="margin-right:14px;"><b>Mana:</b> ${gs.mana} <span style="color:#0ff;">💠</span></span>
@@ -588,7 +663,7 @@
       panel.appendChild(spellInfo);
 
       // Winner overlay
-      if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; render(); });
+      if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
       return panel;
     }
     // -- Helper functions for Play
@@ -624,6 +699,8 @@
           gs.turn = 1;
           gs.quantumPieces.push({r,c});
           gs.lastPlayerMove = {r,c};
+          gs.movesPlayed++;
+          checkRandomEvent(gs);
           render();
           setTimeout(()=>aiMove(gs),900);
           return;
@@ -641,6 +718,8 @@
           gs.movesLeft--;
           gs.turn = 1;
           gs.lastPlayerMove = {r,c};
+          gs.movesPlayed++;
+          checkRandomEvent(gs);
           render();
           setTimeout(()=>aiMove(gs),900);
           return;
@@ -652,6 +731,8 @@
       gs.turn = 1;
       gs.mana += MANA_REGEN;
       gs.lastPlayerMove = {r,c};
+      gs.movesPlayed++;
+      checkRandomEvent(gs);
       if (gs.movesLeft<=0) {
         const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
         endGame(w>bl?1:w<bl?0:null);
@@ -679,6 +760,8 @@
       gs.spellOn = null;
       gs.movesLeft--;
       gs.turn = 1;
+      gs.movesPlayed++;
+      checkRandomEvent(gs);
       render();
       setTimeout(()=>aiMove(gs),900);
     }
@@ -691,6 +774,8 @@
       gs.spellOn = null;
       gs.movesLeft--;
       gs.turn = 1;
+      gs.movesPlayed++;
+      checkRandomEvent(gs);
       render();
       setTimeout(()=>aiMove(gs),900);
     }
@@ -698,12 +783,13 @@
       const gs = gameState;
       gs.winner = playerWon ? "You win! +10 coins" : playerWon===null ? "Draw!" : "AI wins!";
       if (playerWon) coins += 10;
+      overlay = [gs.winner, () => { screen="menu"; overlay = null; render(); }];
       render();
     }
     // --- AI MOVE ---
     function aiMove(gs) {
       if (gs.winner) return;
-      if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; render(); return; }
+      if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
       const moves=[];
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
@@ -751,12 +837,24 @@
       gs.aiMana+=MANA_REGEN;
       gs.turn=0;
       gs.lastAIMove = {r:move.r,c:move.c};
+      gs.movesPlayed++;
+      checkRandomEvent(gs);
       if (gs.movesLeft<=0) {
         const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
         endGame(w>bl?1:w<bl?0:null);
         return;
       }
       render();
+    }
+    // ----------- Random Event check --------
+    function checkRandomEvent(gs) {
+      if (!gs.winner && gs.movesPlayed > 0 && gs.movesPlayed % 5 === 0) {
+        // 50% chance each event time
+        if (Math.random() < 0.5) {
+          const event = RANDOM_EVENTS[Math.floor(Math.random()*RANDOM_EVENTS.length)];
+          event.run(gs);
+        }
+      }
     }
     // ----------- Overlay -----------
     function showOverlay(msg, cb) {
