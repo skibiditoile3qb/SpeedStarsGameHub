@@ -948,18 +948,12 @@ function flip(board, r, c, color) {
 for (const [dr,dc] of dirs) {
   let nr = r + dr, nc = c + dc;
   if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-    const oldColor = typeof board[nr][nc] === 'object' && board[nr][nc].quantum 
-      ? board[nr][nc].trueState : board[nr][nc];
-    
-    // Calculate what the new color will be BEFORE changing the board
-    const newColor = 1 - oldColor;  // Toggle: 0→1, 1→0
-    
-    // Now actually change the board
-    if (typeof board[nr][nc] === 'object' && board[nr][nc].quantum) {
-      board[nr][nc] = newColor;
-    } else {
-      board[nr][nc] = newColor;
-    }
+ const oldCell = board[nr][nc];
+const oldColor = typeof oldCell === 'object' && oldCell.quantum 
+  ? oldCell.trueState : oldCell;
+
+const newColor = 1 - oldColor;
+board[nr][nc] = newColor;
     
     flipCells.push({ r: nr, c: nc, oldColor, newColor });
   }
