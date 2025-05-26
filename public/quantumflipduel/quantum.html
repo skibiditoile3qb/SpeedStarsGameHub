@@ -496,7 +496,7 @@
     let screen = "intro";
     let gameState = null;
     let overlay = null;
-    let aiSpellsOwned = SPELLS.map(s => s.key);
+  
     
     const SPELLS = [
       {
@@ -528,6 +528,7 @@
         mana: 35
       }
     ];
+      let aiSpellsOwned = SPELLS.map(s => s.key);
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
     const RANDOM_EVENTS = [
