@@ -154,38 +154,30 @@
       60% { box-shadow: 0 0 22px #f00a, 0 0 18px #f00b;}
       100% { box-shadow: 0 0 18px #f003, 0 0 10px #f00b, 0 0 5px #f00;}
     }
-    .board-cell:active, .board-cell.flipping {
-      transform: scale(1.18) rotate(-2deg);
-      z-index: 2;
-      filter: brightness(1.25);
-      transition: transform 0.15s, filter 0.12s;
-    }
-    .board-cell.flipping {
-      animation: flipEffect 0.34s cubic-bezier(.53,2.3,.44,.98);
-    }
-    @keyframes flipEffect {
-      0% { transform: scale(1) rotate(0deg);}
-      45% { transform: scale(1.26) rotate(4deg);}
-      100% { transform: scale(1) rotate(0deg);}
-    }
+ 
+ @keyframes flipColor {
+  0% { background: var(--start-color); }
+  50% { background: var(--start-color); }
+  51% { background: var(--end-color); }
+  100% { background: var(--end-color); }
+}
 
-    .board-cell-inner {
-      width: 100%; height: 100%;
-      border-radius: 8px;
-      transition: background 0.22s, color 0.22s, transform 0.36s cubic-bezier(.53,2.3,.44,.98);
-      transform-style: preserve-3d;
-      will-change: transform;
-      backface-visibility: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .board-cell.flipping .board-cell-inner {
-      animation: flip3d 0.36s cubic-bezier(.53,2.3,.44,.98);
-    }
-    @keyframes flip3d {
-      0%   { transform: rotateY(0deg);}
-      50%  { transform: rotateY(90deg);}
-      100% { transform: rotateY(0deg);}
-    }
+   .board-cell-inner {
+  width: 100%; height: 100%;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  transform-style: preserve-3d;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+.board-cell.flipping .board-cell-inner {
+  animation: inherit;
+}
+   @keyframes flip3d {
+  0% { transform: scaleX(1); }
+  50% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
     .board-cell:hover {
       filter: brightness(1.12);
       border-color: #ff0;
@@ -499,7 +491,7 @@
     let screen = "intro";
     let gameState = null;
     let overlay = null;
-    let flipQueue = [];
+    
     const SPELLS = [
       {
         key: "quantum",
@@ -793,9 +785,7 @@
         cellDiv.classList.add("last-move");
       }
       
-      if (flipQueue.some(x=>x.r===r&&x.c===c)) {
-        cellDiv.classList.add("flipping");
-      }
+     
       
       cellDiv.onclick = ()=>handleCellClick(r,c);
       const cellInner = document.createElement('div');
@@ -951,24 +941,44 @@
       render();
       setTimeout(()=>aiMove(gs),900);
     }
-  function flip(board, r, c, color) {
+function flip(board, r, c, color) {
   const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
-  flipQueue = [];
+  const flipCells = [];
+  
   for (const [dr,dc] of dirs) {
     let nr = r + dr, nc = c + dc;
     if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+      const oldColor = typeof board[nr][nc] === 'object' && board[nr][nc].quantum 
+        ? board[nr][nc].trueState : board[nr][nc];
+      
       if (typeof board[nr][nc] === 'object' && board[nr][nc].quantum)
         board[nr][nc] = board[nr][nc].trueState;
       else
         board[nr][nc] = color;
-      flipQueue.push({ r: nr, c: nc });
+      
+      flipCells.push({ r: nr, c: nc, oldColor, newColor: color });
     }
   }
-  render();
-  setTimeout(() => { 
-    flipQueue = []; 
-    render(); 
-  }, 360);
+  
+  // Trigger 3D flip animations with cascade
+  flipCells.forEach((cell, i) => {
+    setTimeout(() => {
+      const cellEl = document.querySelector(`.board-cell:nth-child(${cell.r * BOARD_SIZE + cell.c + 1}) .board-cell-inner`);
+      if (cellEl) {
+        const startColor = cell.oldColor === 0 ? '#fff' : '#20242b';
+        const endColor = cell.newColor === 0 ? '#fff' : '#20242b';
+        
+        cellEl.style.setProperty('--start-color', startColor);
+        cellEl.style.setProperty('--end-color', endColor);
+        cellEl.style.animation = 'flip3d 0.3s ease-out, flipColor 0.3s ease-out';
+        
+        setTimeout(() => {
+          cellEl.style.animation = '';
+          render();
+        }, 300);
+      }
+    }, i * 50);
+  });
 }
     function handleCollapseSpell() {
       const gs = gameState;
