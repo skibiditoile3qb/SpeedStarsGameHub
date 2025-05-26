@@ -933,7 +933,7 @@ for (let r = 0; r < BOARD_SIZE; r++) {
   for (let bc = 0; bc < BOARD_SIZE; bc++) {
     if (typeof gs.board[br][bc] === 'object' && gs.board[br][bc].type === 'boost') {
       if (gs.board[br][bc].owner === 0 && gs.turn === 0) {
-        gs.mana += 5; // Player gets boost
+        gs.mana += 10; // Player gets boost
       } else if (gs.board[br][bc].owner === 1 && gs.turn === 1) {
         gs.aiMana += 5; // AI gets boost
       }
