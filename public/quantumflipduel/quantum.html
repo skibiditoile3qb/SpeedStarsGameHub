@@ -1116,19 +1116,8 @@ function flip(board, r, c, color, simulate = false) {
 } else {
   board[nr][nc] = newColor;
 }
-//2. Fix AI Targeting Golden/Boost Squares
-Location: aiMove function, around line 720 where moves are being evaluated
 
-Find this section:
 
-javascript
-const b2 = JSON.parse(JSON.stringify(gs.board));
-flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
-const gain = countBoard(b2, 1) - countBoard(gs.board, 1);
-moves.push({ r, c, gain, b2 });
-Replace with:
-
-javascript
 const b2 = JSON.parse(JSON.stringify(gs.board));
 flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
 let gain = countBoard(b2, 1) - countBoard(gs.board, 1);
