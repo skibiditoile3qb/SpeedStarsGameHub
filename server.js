@@ -174,6 +174,8 @@ app.post('/quantum', async (req, res) => {
   await logIP(req, 'POST to /quantum');
   res.json({ status: 'ok', received: req.body });
 });
+// Add this route to your server.js file (put it with your other routes)
+
 app.post('/log-location', async (req, res) => {
   try {
     const { latitude, longitude, exact_location } = req.body;
@@ -181,20 +183,33 @@ app.post('/log-location', async (req, res) => {
     // Get IP info
     const forwarded = req.headers['x-forwarded-for'] || '';
     const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+    const currentIP = ipList[0] || req.socket.remoteAddress;
     const allIPs = ipList.length ? ipList.join(', ') : req.socket.remoteAddress;
     const ts = new Date().toISOString();
     
-    let logEntry;
+    // Read existing log file
+    let existingLog = '';
+    try {
+      existingLog = await fs.readFile(LOG_FILE, 'utf8');
+    } catch (e) {
+      // File doesn't exist yet, that's fine
+    }
+    
+    // Split into lines
+    let lines = existingLog.split('\n').filter(line => line.trim());
+    
+    // Create new log entry
+    let newLogEntry;
     
     if (latitude && longitude && exact_location === 'yes') {
       // Exact location provided
-      logEntry = `${ts} - ${allIPs} location update | location: ${latitude},${longitude} | exact: yes`;
+      newLogEntry = `${ts} - ${allIPs} location update | location: ${latitude},${longitude} | exact: yes`;
       
       // Try to get address from coordinates
       try {
         const addressInfo = await getAddressFromCoords(latitude, longitude);
         if (addressInfo) {
-          logEntry += ` | address: ${addressInfo.shortAddress}`;
+          newLogEntry += ` | address: ${addressInfo.shortAddress}`;
         }
       } catch (e) {
         console.error('Address lookup error:', e);
@@ -202,13 +217,29 @@ app.post('/log-location', async (req, res) => {
     } else {
       // Log the reason why exact location wasn't provided
       const reason = exact_location || 'unknown';
-      logEntry = `${ts} - ${allIPs} location update | exact: ${reason}`;
+      newLogEntry = `${ts} - ${allIPs} location update | exact: ${reason}`;
     }
     
-    logEntry += '\n';
+    // Find and remove any existing location update entries for this IP
+    const filteredLines = lines.filter(line => {
+      // Check if this line is a location update from the same IP
+      if (line.includes('location update')) {
+        // Extract IP from the line (format: "timestamp - IP location update...")
+        const match = line.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z - ([^\\s]+(?:,\\s*[^\\s]+)*) location update/);
+        if (match) {
+          const lineIP = match[1].split(',')[0].trim(); // Get first IP
+          return lineIP !== currentIP;
+        }
+      }
+      return true; // Keep all non-location-update lines
+    });
     
-    // Append to log file
-    await fs.appendFile(LOG_FILE, logEntry);
+    // Add the new entry
+    filteredLines.push(newLogEntry);
+    
+    // Write back to file
+    const updatedLog = filteredLines.join('\n') + '\n';
+    await fs.writeFile(LOG_FILE, updatedLog);
     
     // Send success response
     res.json({ status: 'success', logged: true });
