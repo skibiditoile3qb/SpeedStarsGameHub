@@ -115,7 +115,7 @@
       box-sizing: border-box;
       font-size: 1.15em;
       cursor: pointer;
-      background: #191b22;
+      background: #07090d;
       position: relative;
       user-select: none;
       box-shadow: 0 1px 2.5px #0005;
@@ -131,7 +131,7 @@
       box-shadow: 0 0 5px #dbeafe77;
     }
     .board-cell.ai {
-      background: #20242b;
+      background: #07090d;
       border: 2.5px solid #18e6e6;
       box-shadow: 0 0 5px #18e6e655;
     }
@@ -941,39 +941,40 @@
       render();
       setTimeout(()=>aiMove(gs),900);
     }
-function flip(board, r, c, color) {
+function flip(board, r, c, color, simulate = false) {
   const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
   const flipCells = [];
   
-for (const [dr,dc] of dirs) {
-  let nr = r + dr, nc = c + dc;
-  if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
- const oldCell = board[nr][nc];
-const oldColor = typeof oldCell === 'object' && oldCell.quantum 
-  ? oldCell.trueState : oldCell;
-
-const newColor = 1 - oldColor;
-board[nr][nc] = newColor;
-    
-    flipCells.push({ r: nr, c: nc, oldColor, newColor });
+  for (const [dr,dc] of dirs) {
+    let nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+      const oldCell = board[nr][nc];
+      const oldColor = typeof oldCell === 'object' && oldCell.quantum 
+        ? oldCell.trueState : oldCell;
+      const newColor = 1 - oldColor;
+      board[nr][nc] = newColor;
+      flipCells.push({ r: nr, c: nc, oldColor, newColor });
+    }
   }
-}
-  
+  if (simulate) return; // Skip animation if simulation
+
   // Trigger 3D flip animations with cascade
   flipCells.forEach((cell, i) => {
     setTimeout(() => {
-    const cellEl = document.querySelector(`.board-cell:nth-child(${cell.r * BOARD_SIZE + cell.c + 1}) .board-cell-inner`);
+      const cellEl = document.querySelector(`.board-cell:nth-child(${cell.r * BOARD_SIZE + cell.c + 1}) .board-cell-inner`);
       if (cellEl) {
-        const startColor = cell.oldColor === 0 ? '#fff' : '#20242b';
-        const endColor = cell.newColor === 0 ? '#fff' : '#20242b';
-        
-        cellEl.style.setProperty('--start-color', startColor);
-        cellEl.style.setProperty('--end-color', endColor);
+        // Step 1: Instantly set to background color
+        cellEl.style.background = "#10131a";
+
+        // Step 2: Animate flip from background to new color
+        cellEl.style.setProperty('--start-color', "#10131a");
+        cellEl.style.setProperty('--end-color', cell.newColor === 0 ? '#fff' : '#07090d');
         cellEl.style.animation = 'flip3d 0.3s ease-out, flipColor 0.3s ease-out';
-        
+
+        // Step 3: At end of animation, set to final color
         setTimeout(() => {
+          cellEl.style.background = cell.newColor === 0 ? '#fff' : '#07090d';
           cellEl.style.animation = '';
-          
         }, 300);
       }
     }, i * 50);
@@ -1015,63 +1016,68 @@ board[nr][nc] = newColor;
       render();
     }
     function aiMove(gs) {
-      if (gs.winner) return;
-      if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
-      const moves=[];
-      for (let r=0;r<BOARD_SIZE;r++)
-        for (let c=0;c<BOARD_SIZE;c++)
-          if (gs.board[r][c]===0) {
-            if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
-            const b2 = JSON.parse(JSON.stringify(gs.board));
-            flip(b2,r,c,1);
-            const gain = countBoard(b2,1)-countBoard(gs.board,1);
-            moves.push({r,c,gain,b2});
-          }
-      let move=null;
-      if (moves.length===0) { gs.turn=0; render(); return; }
-      let sortedMoves=[...moves].sort((a,b)=>b.gain-a.gain);
-      if (difficulty===0) {
-        let top=sortedMoves.slice(0,25); move=top[Math.floor(Math.random()*top.length)];
-      } else if (difficulty===1) {
-        let top=sortedMoves.slice(0,15); move=top[Math.floor(Math.random()*top.length)];
-      } else if (difficulty===2) {
-        let top=sortedMoves.slice(0,3); move=top[Math.floor(Math.random()*top.length)];
-      } else if (difficulty===3) {
-        let best=-Infinity;
-        for (const m of sortedMoves.slice(0,6)) {
-          let bestReply=-Infinity;
-          for (let rr=0;rr<BOARD_SIZE;rr++) for (let cc=0;cc<BOARD_SIZE;cc++)
-            if (m.b2[rr][cc]===1) {
-              if (m.r===rr && m.c===cc) continue;
-              let b3=JSON.parse(JSON.stringify(m.b2));
-              flip(b3,rr,cc,0);
-              let v=countBoard(b3,1)-countBoard(m.b2,1);
-              if (v>bestReply) bestReply=v;
-            }
-          let value = m.gain-(bestReply||0);
-          if (value>best) { best=value; move=m; }
+  if (gs.winner) return;
+  if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
+  const moves=[];
+  for (let r=0;r<BOARD_SIZE;r++)
+    for (let c=0;c<BOARD_SIZE;c++)
+      if (gs.board[r][c]===0) {
+        if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
+        const b2 = JSON.parse(JSON.stringify(gs.board));
+        flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
+        const gain = countBoard(b2,1) - countBoard(gs.board,1);
+        moves.push({r,c,gain,b2});
+      }
+  let move = null;
+  if (moves.length === 0) { gs.turn = 0; render(); return; }
+  let sortedMoves = [...moves].sort((a,b)=>b.gain-a.gain);
+  if (difficulty === 0) {
+    let top = sortedMoves.slice(0,25); move = top[Math.floor(Math.random() * top.length)];
+  } else if (difficulty === 1) {
+    let top = sortedMoves.slice(0,15); move = top[Math.floor(Math.random() * top.length)];
+  } else if (difficulty === 2) {
+    let top = sortedMoves.slice(0,3); move = top[Math.floor(Math.random() * top.length)];
+  } else if (difficulty === 3) {
+    let best = -Infinity;
+    for (const m of sortedMoves.slice(0,6)) {
+      let bestReply = -Infinity;
+      for (let rr=0; rr<BOARD_SIZE; rr++) for (let cc=0; cc<BOARD_SIZE; cc++)
+        if (m.b2[rr][cc] === 1) {
+          if (m.r === rr && m.c === cc) continue;
+          let b3 = JSON.parse(JSON.stringify(m.b2));
+          flip(b3, rr, cc, 0, true); // SIMULATE
+          let v = countBoard(b3,1) - countBoard(m.b2,1);
+          if (v > bestReply) bestReply = v;
         }
-      }
-      if (!move) move=sortedMoves[0];
-      if (!move) { gs.turn=0; render(); return; }
-      gs.board = move.b2;
-      for (let r=0;r<BOARD_SIZE;r++)
-        for (let c=0;c<BOARD_SIZE;c++)
-          if (typeof gs.board[r][c]==='object'&&gs.board[r][c].quantum&&!gs.board[r][c].visible)
-            gs.board[r][c].visible=true;
-      gs.movesLeft--;
-      gs.aiMana+=MANA_REGEN;
-      gs.turn=0;
-      gs.lastAIMove = {r:move.r,c:move.c};
-      gs.movesPlayed++;
-      checkRandomEvent(gs);
-      if (gs.movesLeft<=0) {
-        const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
-        endGame(w>bl?1:w<bl?0:null);
-        return;
-      }
-      render();
+      let value = m.gain - (bestReply || 0);
+      if (value > best) { best = value; move = m; }
     }
+  }
+  if (!move) move = sortedMoves[0];
+  if (!move) { gs.turn = 0; render(); return; }
+
+  // Animate the real move only
+  flip(gs.board, move.r, move.c, 1, false);
+
+  // Reveal quantum pieces
+  for (let r=0; r<BOARD_SIZE; r++)
+    for (let c=0; c<BOARD_SIZE; c++)
+      if (typeof gs.board[r][c] === 'object' && gs.board[r][c].quantum && !gs.board[r][c].visible)
+        gs.board[r][c].visible = true;
+
+  gs.movesLeft--;
+  gs.aiMana += MANA_REGEN;
+  gs.turn = 0;
+  gs.lastAIMove = {r:move.r, c:move.c};
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  if (gs.movesLeft <= 0) {
+    const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
+    endGame(w > bl ? 1 : w < bl ? 0 : null);
+    return;
+  }
+  setTimeout(render, 350); // Wait for animation before rendering board update
+}
     function checkRandomEvent(gs) {
       if (!gs.winner && gs.movesPlayed > 0 && gs.movesPlayed % 5 === 0) {
         if (Math.random() < 0.5) {
