@@ -144,9 +144,15 @@
       border-style: solid;
     }
     .board-cell.last-move {
-      outline: 2.5px solid #f00 !important;
-      z-index: 2;
-      box-shadow: 0 0 10px #f08a;
+      outline: 3px solid #f00 !important;
+      z-index: 10;
+      box-shadow: 0 0 18px #f003, 0 0 10px #f00b, 0 0 5px #f00;
+      animation: lastMovePulse 0.8s cubic-bezier(.53,2,.44,.98) alternate;
+    }
+    @keyframes lastMovePulse {
+      0% { box-shadow: 0 0 0px #f003;}
+      60% { box-shadow: 0 0 22px #f00a, 0 0 18px #f00b;}
+      100% { box-shadow: 0 0 18px #f003, 0 0 10px #f00b, 0 0 5px #f00;}
     }
     .board-cell:active, .board-cell.flipping {
       transform: scale(1.18) rotate(-2deg);
@@ -164,22 +170,22 @@
     }
 
     .board-cell-inner {
-  width: 100%; height: 100%;
-  border-radius: 8px;
-  transition: background 0.22s, color 0.22s, transform 0.36s cubic-bezier(.53,2.3,.44,.98);
-  transform-style: preserve-3d;
-  will-change: transform;
-  backface-visibility: hidden;
-  display: flex; align-items: center; justify-content: center;
-}
-.board-cell.flipping .board-cell-inner {
-  animation: flip3d 0.36s cubic-bezier(.53,2.3,.44,.98);
-}
-@keyframes flip3d {
-  0%   { transform: rotateY(0deg);}
-  50%  { transform: rotateY(90deg);}
-  100% { transform: rotateY(0deg);}
-}
+      width: 100%; height: 100%;
+      border-radius: 8px;
+      transition: background 0.22s, color 0.22s, transform 0.36s cubic-bezier(.53,2.3,.44,.98);
+      transform-style: preserve-3d;
+      will-change: transform;
+      backface-visibility: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .board-cell.flipping .board-cell-inner {
+      animation: flip3d 0.36s cubic-bezier(.53,2.3,.44,.98);
+    }
+    @keyframes flip3d {
+      0%   { transform: rotateY(0deg);}
+      50%  { transform: rotateY(90deg);}
+      100% { transform: rotateY(0deg);}
+    }
     .board-cell:hover {
       filter: brightness(1.12);
       border-color: #ff0;
@@ -305,9 +311,6 @@
       display:block;
       font-family:inherit;
     }
-
-
-
     .menu-btn:hover { background: #18e6e6; color: #fff;}
     .back-btn {
       padding: 13px 36px;
@@ -410,6 +413,80 @@
       .moves-counter { font-size: 1.1em;}
       .info-bar { font-size: 0.9em; gap: 16px;}
     }
+
+    /* --- Intro and crazy animation --- */
+    .intro-logo {
+      font-size: 3.4em;
+      letter-spacing: 0.14em;
+      margin-bottom: 16px;
+      color: #18e6e6;
+      text-shadow: 
+        0 1px 0 #fff5,
+        0 0 20px #0ff6,
+        0 0 34px #44f8,
+        0 0 2px #fff;
+      animation: logoPop 1.2s cubic-bezier(.65,2,.22,.99);
+    }
+    @keyframes logoPop {
+      0% { transform: scale(0.6) rotateY(60deg) skewX(10deg); opacity: 0;}
+      40% { transform: scale(1.2) rotateY(-18deg); opacity: 1;}
+      70% { transform: scale(1) rotateY(5deg);}
+      100% { transform: scale(1) rotateY(0);}
+    }
+    .intro-desc {
+      font-size: 1.2em;
+      max-width: 540px;
+      margin: 0 auto 42px auto;
+      color: #bff;
+      text-shadow: 0 1px 0 #fff3, 0 0 10px #0ff4;
+      animation: fadeinDesc 1.5s cubic-bezier(.46,2.1,.34,.98);
+    }
+    @keyframes fadeinDesc {
+      0% { opacity: 0; transform: translateY(42px);}
+      70% { opacity: 1; transform: translateY(-7px);}
+      100% { opacity: 1; transform: translateY(0);}
+    }
+    .intro-btns {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 48px;
+      gap: 13px;
+      animation: btnsPop 1.7s cubic-bezier(.53,2,.44,.98);
+    }
+    @keyframes btnsPop {
+      0% { opacity: 0; transform: scale(0.7);}
+      60% { opacity: 1; transform: scale(1.12);}
+      100% { opacity: 1; transform: scale(1);}
+    }
+    .intro-splash {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      background: radial-gradient(ellipse at 60% 50%, #232b39 0%, #10131a 100%);
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      animation: introBg 1.6s cubic-bezier(.53,2,.44,.98);
+    }
+    @keyframes introBg {
+      0% { opacity: 0.2;}
+      80% { opacity: 1;}
+      100% { opacity: 1;}
+    }
+    .intro-credits {
+      color: #0ff;
+      margin-top: 50px;
+      font-size: 1.1em;
+      opacity: 0.7;
+      letter-spacing: 1.4px;
+    }
   </style>
 </head>
 <body>
@@ -418,7 +495,7 @@
     let coins = 0;
     let spellsOwned = [];
     let difficulty = 0;
-    let screen = "menu";
+    let screen = "intro";
     let gameState = null;
     let overlay = null;
     let flipQueue = [];
@@ -510,9 +587,32 @@
       }
     ];
 
+    // --- INTRO SPLASH ---
+    function renderIntro() {
+      const panel = document.createElement('div');
+      panel.className = "intro-splash";
+      panel.innerHTML = `
+        <div class="intro-logo">QUANTUM FLIP</div>
+        <div class="intro-desc">
+          <b>Flip, cast, and outwit the AI in this 3D-animated quantum puzzle-battle!</b><br>
+          <span style="color:#fff;">Unleash spells, split reality, and claim every tile.<br>
+          <span style="color:#18e6e6;">One move, infinite futures.</span>
+        </div>
+        <div class="intro-btns">
+          <button class="menu-btn" onclick="screen='menu';render();">Enter Game</button>
+        </div>
+        <div class="intro-credits">by <b>skibiditoile3qb</b> | vanilla JS | 2025</div>
+      `;
+      return panel;
+    }
+
     function render() {
       const root = document.getElementById('root');
       root.innerHTML = '';
+      if (screen === "intro") {
+        root.appendChild(renderIntro());
+        return;
+      }
       if (screen === "play") {
         root.appendChild(renderPlay());
       } else if (screen === "menu") {
@@ -671,6 +771,12 @@
       boardWrap.className = 'board-wrap';
       const boardDiv = document.createElement('div');
       boardDiv.className = "board";
+
+      // -- Only one last-move highlight, for the current player's previous move --
+      let lastMove = (gs.turn === 0 && gs.lastAIMove) ? gs.lastAIMove
+                      : (gs.turn === 1 && gs.lastPlayerMove) ? gs.lastPlayerMove
+                      : null;
+
       for (let r=0; r<BOARD_SIZE; r++) {
         for (let c=0; c<BOARD_SIZE; c++) {
           const cell = gs.board[r][c];
@@ -682,8 +788,7 @@
             cellDiv.classList.add("quantum");
             if (cell.visible) cellDiv.classList.add("visible");
           }
-          if ((gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) ||
-              (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c)) {
+          if (lastMove && lastMove.r===r && lastMove.c===c) {
             cellDiv.classList.add("last-move");
           }
           if (flipQueue.some(x=>x.r===r&&x.c===c)) {
@@ -691,14 +796,11 @@
           }
           cellDiv.onclick = ()=>handleCellClick(r,c);
           const cellInner = document.createElement('div');
-cellInner.className = 'board-cell-inner';
-if (typeof cell==='object' && cell.quantum) {
-  cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
-}
-cellDiv.appendChild(cellInner);
+          cellInner.className = 'board-cell-inner';
           if (typeof cell==='object' && cell.quantum) {
-            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
+            cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
           }
+          cellDiv.appendChild(cellInner);
           if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
             cellDiv.style.opacity = 0.45;
             cellDiv.title = "Can't play in the same spot as the AI's last move!";
@@ -712,6 +814,7 @@ cellDiv.appendChild(cellInner);
       }
       boardWrap.appendChild(boardDiv);
       gameMain.appendChild(boardWrap);
+
       const spellsDiv = document.createElement('div');
       spellsDiv.className = 'spell-bar';
       if (spellsOwned.length === 0) {
@@ -783,8 +886,6 @@ cellDiv.appendChild(cellInner);
       const gs = gameState;
       if (gs.winner||gs.turn!==0) return;
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
-        gs.lastPlayerMove = null;
-        gs.lastAIMove = null;
       let cell = gs.board[r][c];
       if (typeof cell==='object' && cell.quantum) {
         if (!cell.visible) return;
