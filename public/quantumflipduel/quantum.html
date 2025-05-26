@@ -1107,6 +1107,7 @@ function handleCellClick(r, c) {
   }
 }
 function flip(board, r, c, color, simulate = false) {
+  const gs = gameState;
   const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
   const flipCells = [];
 
