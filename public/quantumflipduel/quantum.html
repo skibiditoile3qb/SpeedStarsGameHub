@@ -857,10 +857,10 @@ for (let r = 0; r < BOARD_SIZE; r++) {
   if (gs.winner && !overlay) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
   return main;
 }
-    window.addEventListener('keydown', (e) => {
+   window.addEventListener('keydown', (e) => {
   if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') { // Ctrl + Shift + C
     coins += 2000;
-    console.log('💰 Dev Coins Added: 2000 (Total:', player.coins, ')');
+    console.log('💰 Dev Coins Added: 2000 (Total:', coins, ')');
   }
 });
  function countBoard(board, val) {
@@ -869,7 +869,7 @@ for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c=0;c<BOARD_SIZE;c++)
       if (
         board[r][c]===val ||
-       (board[r][c] && typeof board[r][c]==='object' && board[r][c].quantum && board[r][c].visible && board[r][c].states.includes(val)) ||
+       (board[r][c] && typeof board[r][c]==='object' && board[r][c].quantum && board[r][c].visible && board[r][c].trueState === val)||
         (typeof board[r][c]==='object' && board[r][c].type === 'mana' && board[r][c].owner === val)
       ) n++;
   return n;
@@ -913,11 +913,11 @@ for (let r = 0; r < BOARD_SIZE; r++) {
       if (gs.winner||gs.turn!==0) return;
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
 let cell = gs.board[r][c];
-if (typeof cell==='object' && cell.quantum) {
+if (cell && typeof cell==='object' && cell.quantum) {
   if (!cell.visible) return;
-  cell = cell.states[0];
+  cell = cell.trueState; // Use trueState, not states[0]
 }
-
+if (cell === null || cell === undefined) return;
 // --- Mana tile logic ---
 if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana' && gs.board[r][c].owner === 1) {
   gs.mana += 5; // or scale if you want
@@ -996,10 +996,20 @@ function flip(board, r, c, color, simulate = false) {
     let nr = r + dr, nc = c + dc;
     if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
       const oldCell = board[nr][nc];
-      const oldColor = typeof oldCell === 'object' && oldCell.quantum 
-        ? oldCell.trueState : oldCell;
-      const newColor = 1 - oldColor;
-      board[nr][nc] = newColor;
+      let oldColor;
+if (typeof oldCell === 'object' && oldCell.quantum) {
+  oldColor = oldCell.trueState;
+} else if (typeof oldCell === 'object' && oldCell.type === 'mana') {
+  oldColor = oldCell.owner;
+} else {
+  oldColor = oldCell;
+}
+const newColor = 1 - oldColor;
+     if (typeof oldCell === 'object' && oldCell.type === 'mana') {
+  board[nr][nc] = { type: 'mana', owner: newColor };
+} else {
+  board[nr][nc] = newColor;
+}
       flipCells.push({ r: nr, c: nc, oldColor, newColor });
     }
   }
@@ -1137,10 +1147,12 @@ for (let r=0; r<BOARD_SIZE; r++)
   for (let c=0; c<BOARD_SIZE; c++) {
     const cell = gs.board[r][c];
     // Null-safe: Only check properties if cell is not null
-    if (
-      cell === 0 ||
-      (cell && typeof cell === 'object' && cell.type === 'mana' && cell.owner === 0)
-    ) {
+   let canMove = false;
+if (cell === 0) canMove = true;
+else if (cell && typeof cell === 'object' && cell.type === 'mana' && cell.owner === 0) canMove = true;
+else if (cell && typeof cell === 'object' && cell.quantum && cell.visible && cell.trueState === 0) canMove = true;
+
+if (canMove) {
       if (gs.lastPlayerMove && gs.lastPlayerMove.r === r && gs.lastPlayerMove.c === c) continue;
       const b2 = JSON.parse(JSON.stringify(gs.board));
       flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
