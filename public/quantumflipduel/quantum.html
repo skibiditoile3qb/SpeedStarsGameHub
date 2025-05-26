@@ -135,6 +135,11 @@
       border: 2.5px solid #18e6e6;
       box-shadow: 0 0 5px #18e6e655;
     }
+    .board-cell.mana-tile {
+  background: linear-gradient(135deg, #00f0ff 60%, #fff 100%);
+  border: 2.5px solid #18e6e6;
+  box-shadow: 0 0 8px #18e6e6cc;
+}
     .board-cell.quantum {
       background: repeating-linear-gradient(45deg, #3ff 0 5px, #fff 6px 14px);
       border: 2.5px dashed #44f;
@@ -491,6 +496,7 @@
     let screen = "intro";
     let gameState = null;
     let overlay = null;
+    let aiSpellsOwned = SPELLS.map(s => s.key);
     
     const SPELLS = [
       {
@@ -754,6 +760,7 @@
     <div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
     <div class="info-bar">
       <span><b>Mana:</b> ${gs.mana} <span style="color:#18e6e6;">💠</span></span>
+      <span><b>AI Mana:</b> ${gs.aiMana} <span style="color:#0ff;">💠</span></span>
       <span><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
       <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#18e6e6;">⬛</span></span>
     </div>`;
@@ -768,44 +775,46 @@
   // Show last move of the opponent only
   let lastMove = (gs.turn === 0) ? gs.lastAIMove : gs.lastPlayerMove;
 
-  for (let r=0; r<BOARD_SIZE; r++) {
-    for (let c=0; c<BOARD_SIZE; c++) {
-      const cell = gs.board[r][c];
-      const cellDiv = document.createElement('div');
-      cellDiv.className = "board-cell";
-      
-      if (cell===0) cellDiv.classList.add("player");
-      else if (cell===1) cellDiv.classList.add("ai");
-      else if (typeof cell==='object' && cell.quantum) {
-        cellDiv.classList.add("quantum");
-        if (cell.visible) cellDiv.classList.add("visible");
-      }
-      
-      if (lastMove && lastMove.r===r && lastMove.c===c) {
-        cellDiv.classList.add("last-move");
-      }
-      
-     
-      
-      cellDiv.onclick = ()=>handleCellClick(r,c);
-      const cellInner = document.createElement('div');
-      cellInner.className = 'board-cell-inner';
-      if (typeof cell==='object' && cell.quantum) {
-        cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
-      }
-      cellDiv.appendChild(cellInner);
-      
-      if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
-        cellDiv.style.opacity = 0.45;
-        cellDiv.title = "Can't play in the same spot as the AI's last move!";
-      }
-      if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
-        cellDiv.style.opacity = 0.45;
-        cellDiv.title = "Can't play in the same spot as the player's last move!";
-      }
-      boardDiv.appendChild(cellDiv);
+for (let r = 0; r < BOARD_SIZE; r++) {
+  for (let c = 0; c < BOARD_SIZE; c++) {
+    const cell = gs.board[r][c];
+    const cellDiv = document.createElement('div');
+    cellDiv.className = "board-cell";
+    const cellInner = document.createElement('div');
+    cellInner.className = 'board-cell-inner';
+
+    if (cell === 0) {
+      cellDiv.classList.add("player");
+    } else if (cell === 1) {
+      cellDiv.classList.add("ai");
+    } else if (typeof cell === 'object' && cell.type === 'mana') {
+      cellDiv.classList.add("mana-tile");
+      cellInner.innerHTML = '<span style="font-size:1.3em;">💧</span>';
+    } else if (typeof cell === 'object' && cell.quantum) {
+      cellDiv.classList.add("quantum");
+      if (cell.visible) cellDiv.classList.add("visible");
+      cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
     }
+
+    if (lastMove && lastMove.r === r && lastMove.c === c) {
+      cellDiv.classList.add("last-move");
+    }
+
+    cellDiv.onclick = () => handleCellClick(r, c);
+
+    cellDiv.appendChild(cellInner);
+
+    if (gs.turn === 0 && gs.lastAIMove && gs.lastAIMove.r === r && gs.lastAIMove.c === c) {
+      cellDiv.style.opacity = 0.45;
+      cellDiv.title = "Can't play in the same spot as the AI's last move!";
+    }
+    if (gs.turn === 1 && gs.lastPlayerMove && gs.lastPlayerMove.r === r && gs.lastPlayerMove.c === c) {
+      cellDiv.style.opacity = 0.45;
+      cellDiv.title = "Can't play in the same spot as the player's last move!";
+    }
+    boardDiv.appendChild(cellDiv);
   }
+}
   boardWrap.appendChild(boardDiv);
   gameMain.appendChild(boardWrap);
 
@@ -853,45 +862,76 @@
     console.log('💰 Dev Coins Added: 2000 (Total:', player.coins, ')');
   }
 });
-    function countBoard(board, val) {
-      let n=0;
-      for (let r=0;r<BOARD_SIZE;r++)
-        for (let c=0;c<BOARD_SIZE;c++)
-          if (board[r][c]===val||(typeof board[r][c]==='object'&&board[r][c].quantum&&board[r][c].visible&&board[r][c].states.includes(val))) n++;
-      return n;
-    }
+ function countBoard(board, val) {
+  let n=0;
+  for (let r=0;r<BOARD_SIZE;r++)
+    for (let c=0;c<BOARD_SIZE;c++)
+      if (
+        board[r][c]===val ||
+        (typeof board[r][c]==='object' && board[r][c].quantum && board[r][c].visible && board[r][c].states.includes(val)) ||
+        (typeof board[r][c]==='object' && board[r][c].type === 'mana' && board[r][c].owner === val)
+      ) n++;
+  return n;
+}
+
     function startGame() {
-      let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
-      for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) 
-        if (c<BOARD_SIZE/2) board[r][c]=0; // left half player, right half AI
-      gameState = {
-        board,
-        mana: INIT_MANA,
-        aiMana: INIT_MANA,
-        turn: 0,
-        movesLeft: MAX_MOVES,
-        winner: null,
-        skip: false,
-        quantumPieces: [],
-        spellOn: null,
-        usedSkip: false,
-        lastPlayerMove: null,
-        lastAIMove: null,
-        movesPlayed: 0
-      };
-      screen = "play";
-      render();
+  let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
+  for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) 
+    if (c<BOARD_SIZE/2) board[r][c]=0; // left half player, right half AI
+
+  // --- Add 5 random mana tiles ---
+  for (let i = 0; i < 5; i++) {
+    let mr = Math.floor(Math.random() * BOARD_SIZE);
+    let mc = Math.floor(Math.random() * BOARD_SIZE);
+    if (typeof board[mr][mc] !== 'object') {
+      board[mr][mc] = { type: 'mana', owner: board[mr][mc] };
     }
+  }
+
+  gameState = {
+    board,
+    mana: INIT_MANA,
+    aiMana: INIT_MANA,
+    turn: 0,
+    movesLeft: MAX_MOVES,
+    winner: null,
+    skip: false,
+    quantumPieces: [],
+    spellOn: null,
+    usedSkip: false,
+    lastPlayerMove: null,
+    lastAIMove: null,
+    movesPlayed: 0
+  };
+  screen = "play";
+  render();
+}
+
     function handleCellClick(r,c) {
       const gs = gameState;
       if (gs.winner||gs.turn!==0) return;
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
-      let cell = gs.board[r][c];
-      if (typeof cell==='object' && cell.quantum) {
-        if (!cell.visible) return;
-        cell = cell.states[0];
-      }
-      if (cell!==1) return;
+let cell = gs.board[r][c];
+if (typeof cell==='object' && cell.quantum) {
+  if (!cell.visible) return;
+  cell = cell.states[0];
+}
+
+// --- Mana tile logic ---
+if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana' && gs.board[r][c].owner === 1) {
+  gs.mana += 5; // or scale if you want
+  gs.board[r][c] = 0; // convert to player tile
+  gs.movesLeft--;
+  gs.turn = 1;
+  gs.lastPlayerMove = {r, c};
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  render();
+  setTimeout(()=>aiMove(gs),900);
+  return;
+}
+
+if (cell!==1) return;
       if (gs.spellOn) {
         const spellKey = gs.spellOn;
         if (!spellsOwned.includes(spellKey)) return;
@@ -1024,16 +1064,89 @@ function flip(board, r, c, color, simulate = false) {
     function aiMove(gs) {
   if (gs.winner) return;
   if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
-  const moves=[];
-  for (let r=0;r<BOARD_SIZE;r++)
-    for (let c=0;c<BOARD_SIZE;c++)
-      if (gs.board[r][c]===0) {
-        if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
-        const b2 = JSON.parse(JSON.stringify(gs.board));
-        flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
-        const gain = countBoard(b2,1) - countBoard(gs.board,1);
-        moves.push({r,c,gain,b2});
+      let possibleSpells = SPELLS.filter(s => aiSpellsOwned.includes(s.key) && gs.aiMana >= s.mana);
+if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a spell
+  let spell = possibleSpells[Math.floor(Math.random() * possibleSpells.length)];
+  if (spell.key === "collapse") {
+    // Collapse all quantum pieces
+    for (let r = 0; r < BOARD_SIZE; r++)
+      for (let c = 0; c < BOARD_SIZE; c++)
+        if (typeof gs.board[r][c] === 'object' && gs.board[r][c].quantum)
+          gs.board[r][c] = gs.board[r][c].trueState;
+    gs.aiMana -= spell.mana;
+    gs.movesLeft--;
+    gs.turn = 0;
+    gs.lastAIMove = null;
+    gs.movesPlayed++;
+    checkRandomEvent(gs);
+    render();
+    setTimeout(render, 350);
+    return;
+  }
+  if (spell.key === "skip") {
+    // AI skips player's next turn
+    gs.aiMana -= spell.mana;
+    gs.skip = true;
+    gs.usedSkip = true;
+    gs.movesLeft--;
+    gs.turn = 0;
+    gs.lastAIMove = null;
+    gs.movesPlayed++;
+    checkRandomEvent(gs);
+    render();
+    setTimeout(render, 350);
+    return;
+  }
+  if (spell.key === "fireball") {
+    // Fireball: pick a random 4x4 area with at least one player tile
+    
+    let found = false;
+    for (let tries = 0; tries < 10 && !found; tries++) {
+      let r = Math.floor(Math.random() * (BOARD_SIZE - 3));
+      let c = Math.floor(Math.random() * (BOARD_SIZE - 3));
+      for (let dr = 0; dr < 4; dr++)
+        for (let dc = 0; dc < 4; dc++)
+          if (gs.board[r+dr][c+dc] === 0) found = true;
+      if (found) {
+        for (let dr = 0; dr < 4; dr++)
+          for (let dc = 0; dc < 4; dc++) {
+            let nr = r + dr, nc = c + dc;
+            if (typeof gs.board[nr][nc] === 'object' && gs.board[nr][nc].quantum)
+              gs.board[nr][nc] = gs.board[nr][nc].trueState;
+            else
+              gs.board[nr][nc] = 1;
+          }
+        gs.aiMana -= spell.mana;
+        gs.movesLeft--;
+        gs.turn = 0;
+        gs.lastAIMove = {r: r+2, c: c+2}; // Center of fireball
+        gs.movesPlayed++;
+        checkRandomEvent(gs);
+        render();
+        setTimeout(render, 350);
+        
+        return;
       }
+    }
+  }
+  // Quantum spell not used by AI for now (could add logic if you want)
+}
+  const moves=[];
+ for (let r=0;r<BOARD_SIZE;r++)
+  for (let c=0;c<BOARD_SIZE;c++) {
+    const cell = gs.board[r][c];
+    // AI can flip player tiles (0) OR player-owned mana tiles
+    if (
+      cell === 0 ||
+      (typeof cell === 'object' && cell.type === 'mana' && cell.owner === 0)
+    ) {
+      if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
+      const b2 = JSON.parse(JSON.stringify(gs.board));
+      flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
+      const gain = countBoard(b2,1) - countBoard(gs.board,1);
+      moves.push({r,c,gain,b2});
+    }
+  }
   let move = null;
   if (moves.length === 0) { gs.turn = 0; render(); return; }
   let sortedMoves = [...moves].sort((a,b)=>b.gain-a.gain);
