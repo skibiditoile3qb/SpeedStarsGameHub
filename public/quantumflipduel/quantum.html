@@ -804,9 +804,17 @@ for (let r = 0; r < BOARD_SIZE; r++) {
     } else if (typeof cell === 'object' && cell.type === 'mana') {
       cellDiv.classList.add("mana-tile");
       cellInner.innerHTML = '<span style="font-size:1.3em;">💧</span>';
-    } else if (typeof cell === 'object' && cell.quantum) {
-      cellDiv.classList.add("quantum");
-      } else if (typeof cell === 'object' && cell.type === 'boost') {
+   } else if (typeof cell === 'object' && cell.quantum) {
+  cellDiv.classList.add("quantum");
+  if (cell.visible) cellDiv.classList.add("visible");
+  
+  // Show boost icon if it's a quantum boost tile
+  if (cell.type === 'boost') {
+    cellInner.innerHTML = '<span style="position:absolute;left:2px;top:2px;font-size:0.8em;color:#ffd700;text-shadow:0 0 5px #ffd700;">⚡</span><span style="position:absolute;right:2px;bottom:2px;font-size:0.9em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>';
+  } else {
+    cellInner.innerHTML = '<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>';
+  }
+} else if (typeof cell === 'object' && cell.type === 'boost') {
   cellDiv.classList.add("boost-tile");
   cellInner.innerHTML = '<span style="font-size:1.3em;">⚡</span>';
       
@@ -958,7 +966,11 @@ if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana' && gs.b
   gs.movesPlayed++;
   checkRandomEvent(gs);
   render(); // This will re-render and remove the mana icon
-  setTimeout(()=>aiMove(gs),900);
+  if (gs && !gs.winner) {
+  setTimeout(()=> {
+    if (gs && !gs.winner) aiMove(gs);
+  }, 900);
+}
   return;
 }
 
@@ -966,34 +978,51 @@ if (cell!==1) return;
       if (gs.spellOn) {
         const spellKey = gs.spellOn;
         if (!spellsOwned.includes(spellKey)) return;
-       if (spellKey==="quantum") {
-  // Apply quantum to 3x3 area
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      let nr = r + dr, nc = c + dc;
-      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-        // Only quantumize AI tiles
-        if (gs.board[nr][nc] === 1) {
-          let states = [0, 1];
-          if (Math.random() < 0.5) states.push(1);
-          const trueState = states[Math.floor(Math.random() * states.length)];
-          gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
-          gs.quantumPieces.push({r: nr, c: nc});
+      if (spellKey==="quantum") {
+  // Check if player also has boost spell and enough mana for combo
+  const boostSpell = SPELLS.find(s => s.key === "booster");
+  const canCombo = spellsOwned.includes("booster") && gs.mana >= (SPELLS.find(s=>s.key==="quantum").mana + boostSpell.mana);
+  
+  if (canCombo && Math.random() < 0.3) { // 30% chance for combo if possible
+    // Quantum + Boost combo: place hidden boost in center, quantumize around it
+    gs.board[r][c] = {type: 'boost', owner: 0, quantum: true, states: [0,1], trueState: 0, visible: false};
+    
+    // Apply quantum to 3x3 area around the hidden boost
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        let nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE && !(dr === 0 && dc === 0)) {
+          // Quantumize both AI and player tiles
+          if (gs.board[nr][nc] === 1 || gs.board[nr][nc] === 0) {
+            let states = [0, 1];
+            if (Math.random() < 0.5) states.push(gs.board[nr][nc] === 1 ? 1 : 0);
+            const trueState = states[Math.floor(Math.random() * states.length)];
+            gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
+            gs.quantumPieces.push({r: nr, c: nc});
+          }
         }
       }
     }
+    gs.mana -= (SPELLS.find(s=>s.key==="quantum").mana + boostSpell.mana);
+  } else {
+    // Regular quantum spell - now affects both AI and player tiles
+    for (let dr = -1; dr <= 1; dr++) {
+      for (let dc = -1; dc <= 1; dc++) {
+        let nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+          // Quantumize both AI and player tiles
+          if (gs.board[nr][nc] === 1 || gs.board[nr][nc] === 0) {
+            let states = [0, 1];
+            if (Math.random() < 0.5) states.push(gs.board[nr][nc] === 1 ? 1 : 0);
+            const trueState = states[Math.floor(Math.random() * states.length)];
+            gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
+            gs.quantumPieces.push({r: nr, c: nc});
+          }
+        }
+      }
+    }
+    gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
   }
-  gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
-  gs.spellOn = null;
-  gs.movesLeft--;
-  gs.turn = 1;
-  gs.lastPlayerMove = {r,c};
-  gs.movesPlayed++;
-  checkRandomEvent(gs);
-  render();
-  setTimeout(()=>aiMove(gs),900);
-  return;
-}
         if (spellKey==="fireball") {
           for (let dr=0;dr<4;dr++) for (let dc=0;dc<4;dc++) {
             let nr=r+dr-1, nc=c+dc-1;
@@ -1010,7 +1039,11 @@ if (cell!==1) return;
           gs.movesPlayed++;
           checkRandomEvent(gs);
           render();
-          setTimeout(()=>aiMove(gs),900);
+if (gs && !gs.winner) {
+  setTimeout(()=> {
+    if (gs && !gs.winner) aiMove(gs);
+  }, 900);
+}
           return;
         }
         if (spellKey==="booster") {
@@ -1023,7 +1056,11 @@ if (cell!==1) return;
   gs.movesPlayed++;
   checkRandomEvent(gs);
   render();
-  setTimeout(()=>aiMove(gs),900);
+ if (gs && !gs.winner) {
+  setTimeout(()=> {
+    if (gs && !gs.winner) aiMove(gs);
+  }, 900);
+}
   return;
 }
       }
@@ -1040,7 +1077,11 @@ if (cell!==1) return;
         return;
       }
       render();
-      setTimeout(()=>aiMove(gs),900);
+      if (gs && !gs.winner) {
+  setTimeout(()=> {
+    if (gs && !gs.winner) aiMove(gs);
+  }, 900);
+}
     }
 function flip(board, r, c, color, simulate = false) {
   const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
@@ -1062,11 +1103,92 @@ function flip(board, r, c, color, simulate = false) {
 
       const newColor = 1 - oldColor;
 
-      if (oldCell?.type === 'mana') {
-        board[nr][nc] = newColor; // Remove mana status when flipped
-      } else {
-        board[nr][nc] = newColor;
+     if (oldCell && typeof oldCell === 'object') {
+  if (oldCell.type === 'mana') {
+    board[nr][nc] = newColor; // Remove mana status when flipped
+  } else if (oldCell.type === 'boost') {
+    board[nr][nc] = newColor; // Remove boost status when flipped, make normal tile
+  } else if (oldCell.quantum) {
+    board[nr][nc] = newColor; // Quantum becomes normal tile
+  } else {
+    board[nr][nc] = newColor;
+  }
+} else {
+  board[nr][nc] = newColor;
+}
+2. Fix AI Targeting Golden/Boost Squares
+Location: aiMove function, around line 720 where moves are being evaluated
+
+Find this section:
+
+javascript
+const b2 = JSON.parse(JSON.stringify(gs.board));
+flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
+const gain = countBoard(b2, 1) - countBoard(gs.board, 1);
+moves.push({ r, c, gain, b2 });
+Replace with:
+
+javascript
+const b2 = JSON.parse(JSON.stringify(gs.board));
+flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
+let gain = countBoard(b2, 1) - countBoard(gs.board, 1);
+
+// AI prioritizes boost tiles on Hard+ difficulty
+if (difficulty >= 2) {
+  // Check if this move targets a boost tile
+  if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'boost' && gs.board[r][c].owner === 0) {
+    gain += 5; // Extra priority for player's boost tiles
+  }
+  
+  // Check adjacent cells for boost tiles that would be affected
+  const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+  for (const [dr, dc] of dirs) {
+    let nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+      if (typeof gs.board[nr][nc] === 'object' && gs.board[nr][nc].type === 'boost' && gs.board[nr][nc].owner === 0) {
+        gain += 3; // Bonus for affecting player boost tiles
       }
+    }
+  }
+}
+
+moves.push({ r, c, gain, b2 });
+3. Quantum + Boost Combo Spell
+Location: handleCellClick function, find the quantum spell section (around line 470)
+
+After this block:
+
+javascript
+if (spellKey==="quantum") {
+  // Apply quantum to 3x3 area
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      let nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+        // Only quantumize AI tiles
+        if (gs.board[nr][nc] === 1) {
+          let states = [0, 1];
+          if (Math.random() < 0.5) states.push(1);
+          const trueState = states[Math.floor(Math.random() * states.length)];
+          gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
+          gs.quantumPieces.push({r: nr, c: nc});
+        }
+      }
+    }
+  }
+Replace the entire quantum block with:
+
+javascript
+if (spellKey==="quantum") {
+  // Check if player also has boost spell and enough mana for combo
+  const boostSpell = SPELLS.find(s => s.key === "booster");
+  const canCombo = spellsOwned.includes("booster") && gs.mana >= (SPELLS.find(s=>s.key==="quantum").mana + boostSpell.mana);
+  
+  if (canCombo && Math.random() < 0.3) { // 30% chance for combo if possible
+    // Quantum + Boost combo: place hidden boost in center, quantumize around it
+    gs.board[r][c] = {type: 'boost', owner: 0, quant
+
+
 
       flipCells.push({ r: nr, c: nc, oldColor, newColor });
     }
@@ -1107,7 +1229,11 @@ function flip(board, r, c, color, simulate = false) {
       gs.movesPlayed++;
       checkRandomEvent(gs);
       render();
-      setTimeout(()=>aiMove(gs),900);
+      if (gs && !gs.winner) {
+  setTimeout(()=> {
+    if (gs && !gs.winner) aiMove(gs);
+  }, 900);
+}
     }
    function handleSkipSpell() {
   const gs = gameState;
@@ -1167,7 +1293,12 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
     gs.movesPlayed++;
     checkRandomEvent(gs);
     render();
-    setTimeout(render, 350);
+    if (gs && !gs.winner) {
+  setTimeout(() => {
+    if (gs && !gs.winner) render();
+  }, 350);
+}
+
     return;
   }
   if (spell.key === "skip") {
@@ -1181,7 +1312,12 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
     gs.movesPlayed++;
     checkRandomEvent(gs);
     render();
-    setTimeout(render, 350);
+    if (gs && !gs.winner) {
+  setTimeout(() => {
+    if (gs && !gs.winner) render();
+  }, 350);
+}
+
     return;
   }
   if (spell.key === "fireball") {
@@ -1210,7 +1346,12 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
         gs.movesPlayed++;
         checkRandomEvent(gs);
         render();
-        setTimeout(render, 350);
+      if (gs && !gs.winner) {
+  setTimeout(() => {
+    if (gs && !gs.winner) render();
+  }, 350);
+}
+
         
         return;
       }
@@ -1230,10 +1371,30 @@ else if (cell && typeof cell === 'object' && cell.quantum && cell.visible && cel
 
 if (canMove) {
       if (gs.lastPlayerMove && gs.lastPlayerMove.r === r && gs.lastPlayerMove.c === c) continue;
-      const b2 = JSON.parse(JSON.stringify(gs.board));
-      flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
-      const gain = countBoard(b2, 1) - countBoard(gs.board, 1);
-      moves.push({ r, c, gain, b2 });
+     const b2 = JSON.parse(JSON.stringify(gs.board));
+flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
+let gain = countBoard(b2, 1) - countBoard(gs.board, 1);
+
+// AI prioritizes boost tiles on Hard+ difficulty
+if (difficulty >= 2) {
+  // Check if this move targets a boost tile
+  if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'boost' && gs.board[r][c].owner === 0) {
+    gain += 5; // Extra priority for player's boost tiles
+  }
+  
+  // Check adjacent cells for boost tiles that would be affected
+  const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
+  for (const [dr, dc] of dirs) {
+    let nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+      if (typeof gs.board[nr][nc] === 'object' && gs.board[nr][nc].type === 'boost' && gs.board[nr][nc].owner === 0) {
+        gain += 3; // Bonus for affecting player boost tiles
+      }
+    }
+  }
+}
+
+moves.push({ r, c, gain, b2 });
     }
   }
   let move = null;
@@ -1284,7 +1445,12 @@ if (canMove) {
     endGame(w > bl ? 1 : w < bl ? 0 : null);
     return;
   }
-  setTimeout(render, 350); // Wait for animation before rendering board update
+ if (gs && !gs.winner) {
+  setTimeout(() => {
+    if (gs && !gs.winner) render();
+  }, 350);
+}
+
 }
     function checkRandomEvent(gs) {
       if (!gs.winner && gs.movesPlayed > 0 && gs.movesPlayed % 5 === 0) {
