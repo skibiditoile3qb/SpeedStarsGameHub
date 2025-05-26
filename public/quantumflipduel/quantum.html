@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -115,52 +118,33 @@
       box-sizing: border-box;
       font-size: 1.15em;
       cursor: pointer;
-      background: transparent;
+      background: #191b22;
       position: relative;
       user-select: none;
       box-shadow: 0 1px 2.5px #0005;
       overflow: hidden;
       z-index: 1;
-      transition: border 0.15s;
+      transition: background 0.22s, border 0.15s, box-shadow 0.12s, filter 0.18s, transform 0.23s;
+      filter: brightness(1);
       animation: none !important;
-      perspective: 700px;
     }
-    .board-cell-inner {
-      width: 100%;
-      height: 100%;
-      border-radius: 8px;
-      transition: background 0.22s, color 0.22s, transform 0.35s cubic-bezier(.53,2.3,.44,.98);
-      transform-style: preserve-3d;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: inherit;
-    }
-    .board-cell.flipping .board-cell-inner {
-      animation: flip3d 0.35s cubic-bezier(.53,2.3,.44,.98);
-    }
-    @keyframes flip3d {
-      0%   { transform: rotateY(0deg);}
-      45%  { transform: rotateY(90deg);}
-      55%  { transform: rotateY(90deg);}
-      100% { transform: rotateY(0deg);}
-    }
-    .board-cell.player .board-cell-inner {
+    .board-cell.player {
       background: #fff;
-      color: #111;
+      border: 2.5px solid #dbeafe;
+      box-shadow: 0 0 5px #dbeafe77;
     }
-    .board-cell.ai .board-cell-inner {
+    .board-cell.ai {
       background: #20242b;
-      color: #18e6e6;
+      border: 2.5px solid #18e6e6;
+      box-shadow: 0 0 5px #18e6e655;
     }
-    .board-cell.quantum .board-cell-inner {
+    .board-cell.quantum {
       background: repeating-linear-gradient(45deg, #3ff 0 5px, #fff 6px 14px);
-      color: #44f;
+      border: 2.5px dashed #44f;
     }
-    .board-cell.quantum.visible .board-cell-inner {
+    .board-cell.quantum.visible {
       background: linear-gradient(120deg,#0ff,#44f 60%);
-      color: #44f;
+      border-style: solid;
     }
     .board-cell.last-move {
       outline: 2.5px solid #f00 !important;
@@ -168,8 +152,18 @@
       box-shadow: 0 0 10px #f08a;
     }
     .board-cell:active, .board-cell.flipping {
+      transform: scale(1.18) rotate(-2deg);
       z-index: 2;
-      filter: brightness(1.15);
+      filter: brightness(1.25);
+      transition: transform 0.15s, filter 0.12s;
+    }
+    .board-cell.flipping {
+      animation: flipEffect 0.34s cubic-bezier(.53,2.3,.44,.98);
+    }
+    @keyframes flipEffect {
+      0% { transform: scale(1) rotate(0deg);}
+      45% { transform: scale(1.26) rotate(4deg);}
+      100% { transform: scale(1) rotate(0deg);}
     }
     .board-cell:hover {
       filter: brightness(1.12);
@@ -411,29 +405,107 @@
     let overlay = null;
     let flipQueue = [];
     const SPELLS = [
-      { key: "quantum", name: "Quantum Split", desc: `A single move, many futures.\nSplits a piece into 2-3 possible states; opponent sees all, but only one is real—revealed when targeted.`, cost: 30, mana: 20 },
-      { key: "collapse", name: "Waveform Collapse", desc: `Everything becomes... definite.\nCollapses all superpositioned pieces on the board to their actual states. Good for revealing enemy tricks or final strikes.`, cost: 20, mana: 50 },
-      { key: "fireball", name: "Fireball", desc: `Casts a fireball in a 4x4 area, flipping all squares inside.`, cost: 18, mana: 40 },
-      { key: "skip", name: "Skip", desc: `Skips the opponent's move, giving you two in a row.`, cost: 25, mana: 35 }
+      {
+        key: "quantum",
+        name: "Quantum Split",
+        desc: `A single move, many futures.\nSplits a piece into 2-3 possible states; opponent sees all, but only one is real—revealed when targeted.`,
+        cost: 30,
+        mana: 20
+      },
+      {
+        key: "collapse",
+        name: "Waveform Collapse",
+        desc: `Everything becomes... definite.\nCollapses all superpositioned pieces on the board to their actual states. Good for revealing enemy tricks or final strikes.`,
+        cost: 20,
+        mana: 50
+      },
+      {
+        key: "fireball",
+        name: "Fireball",
+        desc: `Casts a fireball in a 4x4 area, flipping all squares inside.`,
+        cost: 18,
+        mana: 40
+      },
+      {
+        key: "skip",
+        name: "Skip",
+        desc: `Skips the opponent's move, giving you two in a row.`,
+        cost: 25,
+        mana: 35
+      }
     ];
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
     const RANDOM_EVENTS = [
-      { name: "Flip Random Row", run(gs) { const row = Math.floor(Math.random() * BOARD_SIZE); for (let c = 0; c < BOARD_SIZE; c++) flip(gs.board, row, c, Math.random() < 0.5 ? 0 : 1); showOverlay(`Random Event: A mysterious force flips all of row ${row+1}!`); } },
-      { name: "Flip Random Column", run(gs) { const col = Math.floor(Math.random() * BOARD_SIZE); for (let r = 0; r < BOARD_SIZE; r++) flip(gs.board, r, col, Math.random() < 0.5 ? 0 : 1); showOverlay(`Random Event: Lightning strikes column ${col+1} and flips it!`); } },
-      { name: "Color Surge", run(gs) { for(let i=0;i<6;i++) { let r = Math.floor(Math.random()*BOARD_SIZE); let c = Math.floor(Math.random()*BOARD_SIZE); gs.board[r][c] = Math.random()<0.5?0:1; } showOverlay("Random Event: Color Surge! 6 random tiles have shifted color."); } },
-      { name: "Mana Burst", run(gs) { gs.mana += 15; gs.aiMana += 15; showOverlay("Random Event: Mana Burst! Both players gain 15 mana."); } },
-      { name: "Quantum Storm", run(gs) { for(let i=0;i<4;i++) { let r = Math.floor(Math.random()*BOARD_SIZE); let c = Math.floor(Math.random()*BOARD_SIZE/2) + BOARD_SIZE/2; if (gs.board[r][c] === 1) { let states = [0,1]; if (Math.random()<0.5) states.push(1); const trueState = states[Math.floor(Math.random()*states.length)]; gs.board[r][c] = {quantum:true,states,trueState,visible:false}; } } showOverlay("Random Event: Quantum Storm! Some AI squares split into quantum states."); } }
+      {
+        name: "Flip Random Row",
+        run(gs) {
+          const row = Math.floor(Math.random() * BOARD_SIZE);
+          for (let c = 0; c < BOARD_SIZE; c++)
+            flip(gs.board, row, c, Math.random() < 0.5 ? 0 : 1);
+          showOverlay(`Random Event: A mysterious force flips all of row ${row+1}!`);
+        }
+      },
+      {
+        name: "Flip Random Column",
+        run(gs) {
+          const col = Math.floor(Math.random() * BOARD_SIZE);
+          for (let r = 0; r < BOARD_SIZE; r++)
+            flip(gs.board, r, col, Math.random() < 0.5 ? 0 : 1);
+          showOverlay(`Random Event: Lightning strikes column ${col+1} and flips it!`);
+        }
+      },
+      {
+        name: "Color Surge",
+        run(gs) {
+          for(let i=0;i<6;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE);
+            gs.board[r][c] = Math.random()<0.5?0:1;
+          }
+          showOverlay("Random Event: Color Surge! 6 random tiles have shifted color.");
+        }
+      },
+      {
+        name: "Mana Burst",
+        run(gs) {
+          gs.mana += 15;
+          gs.aiMana += 15;
+          showOverlay("Random Event: Mana Burst! Both players gain 15 mana.");
+        }
+      },
+      {
+        name: "Quantum Storm",
+        run(gs) {
+          for(let i=0;i<4;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE/2) + BOARD_SIZE/2;
+            if (gs.board[r][c] === 1) {
+              let states = [0,1];
+              if (Math.random()<0.5) states.push(1);
+              const trueState = states[Math.floor(Math.random()*states.length)];
+              gs.board[r][c] = {quantum:true,states,trueState,visible:false};
+            }
+          }
+          showOverlay("Random Event: Quantum Storm! Some AI squares split into quantum states.");
+        }
+      }
     ];
 
     function render() {
       const root = document.getElementById('root');
       root.innerHTML = '';
-      if (screen === "play") root.appendChild(renderPlay());
-      else if (screen === "menu") root.appendChild(renderMenu());
-      else if (screen === "settings") root.appendChild(renderSettings());
-      else if (screen === "shop") root.appendChild(renderShop());
-      else if (screen === "tutorial") root.appendChild(renderTutorial());
+      if (screen === "play") {
+        root.appendChild(renderPlay());
+      } else if (screen === "menu") {
+        root.appendChild(renderMenu());
+      } else if (screen === "settings") {
+        root.appendChild(renderSettings());
+      } else if (screen === "shop") {
+        root.appendChild(renderShop());
+      } else if (screen === "tutorial") {
+        root.appendChild(renderTutorial());
+      }
       if (overlay) root.appendChild(renderOverlay(...overlay));
     }
     function renderMenu() {
@@ -441,8 +513,12 @@
       panel.className = "fullscreen-panel";
       const content = document.createElement('div');
       content.className = "panel-content";
-      content.innerHTML = `<h1>Quantum Flip</h1>
-        <div style="margin:16px 0 40px 0;"><span class="coin" style="font-size:2.2em;">Coins: ${coins} 🪙</span></div>`;
+      content.innerHTML = `
+        <h1>Quantum Flip</h1>
+        <div style="margin:16px 0 40px 0;">
+          <span class="coin" style="font-size:2.2em;">Coins: ${coins} 🪙</span>
+        </div>
+      `;
       content.appendChild(menuBtn("Play", ()=>startGame()));
       content.appendChild(menuBtn("Tutorial", ()=>{screen="tutorial"; render();}));
       content.appendChild(menuBtn("Shop", ()=>{screen="shop"; render();}));
@@ -451,7 +527,7 @@
       by.style.marginTop = "53px";
       by.style.fontSize = "1.1em";
       by.style.color = "#0ff";
-      by.innerHTML = 'by <b>skibiditoile3qb</b> | vanilla JS';
+      by.innerHTML = 'by <b>skibiditoile3qb</b> | neon vanilla JS demo';
       content.appendChild(by);
       panel.appendChild(content);
       return panel;
@@ -469,12 +545,19 @@
       const content = document.createElement('div');
       content.className = "panel-content";
       content.innerHTML = `<h2>Settings</h2>
-        <div style="margin-bottom:24px"><b>AI Difficulty:</b><br>
+        <div style="margin-bottom:24px">
+          <b>AI Difficulty:</b>
+          <br>
           <select class="difficulty-select" id="diffsel">
             ${DIFFICULTY_LEVELS.map((d,i)=>`<option value="${i}"${i==difficulty?' selected':''}>${d}</option>`).join('')}
           </select>
-        </div>`;
-      setTimeout(()=>{document.getElementById('diffsel').onchange = e=>{difficulty = +e.target.value;};},10);
+        </div>
+      `;
+      setTimeout(()=>{
+        document.getElementById('diffsel').onchange = e=>{
+          difficulty = +e.target.value;
+        };
+      },10);
       content.appendChild(backBtn());
       panel.appendChild(content);
       return panel;
@@ -484,16 +567,22 @@
       panel.className = "fullscreen-panel";
       const content = document.createElement('div');
       content.className = "panel-content";
-      content.innerHTML = `<div style="margin-bottom:14px;"><b>Coins:</b> <span class="coin">${coins} 🪙</span></div>
+      content.innerHTML = `<div style="margin-bottom:14px;">
+        <b>Coins:</b> <span class="coin">${coins} 🪙</span>
+      </div>
       <h2>Shop</h2>`;
       SPELLS.forEach(spell=>{
         const owned = spellsOwned.includes(spell.key);
         const spellDiv = document.createElement('div');
         spellDiv.className = 'shop-spell'+(owned?' owned':'');
-        spellDiv.innerHTML = `<div class="spell-title">${spell.name}</div>
+        spellDiv.innerHTML = `
+          <div class="spell-title">${spell.name}</div>
           <div class="spell-desc">${spell.desc}</div>
-          <div><span class="spell-cost">${spell.cost} 🪙</span>
-            <span style="margin-left:12px; color:#0ff;">Use: ${spell.mana} mana</span></div>`;
+          <div>
+            <span class="spell-cost">${spell.cost} 🪙</span>
+            <span style="margin-left:12px; color:#0ff;">Use: ${spell.mana} mana</span>
+          </div>
+        `;
         const btn = document.createElement('button');
         btn.innerText = owned ? "Owned" : "Buy";
         btn.disabled = owned || coins < spell.cost;
@@ -517,16 +606,18 @@
       content.className = "panel-content";
       content.style.textAlign = "left";
       content.style.maxWidth = "650px";
-      content.innerHTML = `<h2>Tutorial</h2>
+      content.innerHTML = `
+        <h2>Tutorial</h2>
         <ol>
-          <li><b>The Goal:</b> Flip as many tiles to your color (white) as possible before 70-move countdown ends.</li>
+          <li><b>The Goal:</b> Flip as many tiles to your color (white-neon) as possible before 70-move countdown ends.</li>
           <li><b>Turns:</b> You and the AI take turns. Each turn, click any <b>AI (aqua)</b> square; it and all adjacent squares (not corners) flip.</li>
           <li><b>Mana:</b> Each turn you regain 8 mana. Spells cost mana to cast.</li>
           <li><b>Spells:</b> Buy spells in the Shop, then select a spell in-game to use its effect!</li>
           <li><b>End:</b> When moves run out, whoever has more squares of their color wins and gets 10 coins!</li>
-          <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves. You can't play where the last move was played (red outline).</li>
+          <li><b>AI:</b> The higher the difficulty, the smarter the AI's moves. AI/Player cannot repeat the other's last move.</li>
           <li><b>Random Events:</b> Every 5 moves, a random event may occur!</li>
-        </ol>`;
+        </ol>
+      `;
       content.appendChild(backBtn());
       panel.appendChild(content);
       return panel;
@@ -548,7 +639,8 @@
       main.style.justifyContent = "flex-start";
       const topbar = document.createElement('div');
       topbar.className = "topbar";
-      topbar.innerHTML = `<div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
+      topbar.innerHTML = `
+        <div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
         <div class="info-bar">
           <span><b>Mana:</b> ${gs.mana} <span style="color:#18e6e6;">💠</span></span>
           <span><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
@@ -561,35 +653,36 @@
       boardWrap.className = 'board-wrap';
       const boardDiv = document.createElement('div');
       boardDiv.className = "board";
-      // Only one red outline: last move played by anyone
-      let lastMove = gs.lastAIMove;
-      if(gs.turn === 0 && gs.lastPlayerMove) lastMove = gs.lastPlayerMove;
-      else if(gs.turn === 1 && gs.lastAIMove) lastMove = gs.lastAIMove;
       for (let r=0; r<BOARD_SIZE; r++) {
         for (let c=0; c<BOARD_SIZE; c++) {
           const cell = gs.board[r][c];
           const cellDiv = document.createElement('div');
           cellDiv.className = "board-cell";
-          const cellInner = document.createElement('div');
-          cellInner.className = "board-cell-inner";
           if (cell===0) cellDiv.classList.add("player");
           else if (cell===1) cellDiv.classList.add("ai");
           else if (typeof cell==='object' && cell.quantum) {
             cellDiv.classList.add("quantum");
             if (cell.visible) cellDiv.classList.add("visible");
           }
-          if (lastMove && lastMove.r===r && lastMove.c===c) cellDiv.classList.add("last-move");
-          if (flipQueue.some(x=>x.r===r&&x.c===c)) cellDiv.classList.add("flipping");
+          if ((gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) ||
+              (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c)) {
+            cellDiv.classList.add("last-move");
+          }
+          if (flipQueue.some(x=>x.r===r&&x.c===c)) {
+            cellDiv.classList.add("flipping");
+          }
           cellDiv.onclick = ()=>handleCellClick(r,c);
           if (typeof cell==='object' && cell.quantum) {
-            cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
+            cellDiv.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
           }
-          // Disallow playing on last move
-          if ((lastMove && lastMove.r === r && lastMove.c === c)) {
+          if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
             cellDiv.style.opacity = 0.45;
-            cellDiv.title = "Can't play in the same spot as the last move!";
+            cellDiv.title = "Can't play in the same spot as the AI's last move!";
           }
-          cellDiv.appendChild(cellInner);
+          if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
+            cellDiv.style.opacity = 0.45;
+            cellDiv.title = "Can't play in the same spot as the player's last move!";
+          }
           boardDiv.appendChild(cellDiv);
         }
       }
@@ -630,7 +723,7 @@
       spellInfo.innerText = "(Select a spell to use it on your next move.)";
       gameMain.appendChild(spellInfo);
       main.appendChild(gameMain);
-      if (gs.winner) showOverlay(gs.winner, () => { overlay = null; screen="menu"; render(); });
+      if (gs.winner) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
       return main;
     }
     function countBoard(board, val) {
@@ -643,7 +736,7 @@
     function startGame() {
       let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
       for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) 
-        if (c<BOARD_SIZE/2) board[r][c]=0;
+        if (c<BOARD_SIZE/2) board[r][c]=0; // left half player, right half AI
       gameState = {
         board,
         mana: INIT_MANA,
@@ -659,16 +752,13 @@
         lastAIMove: null,
         movesPlayed: 0
       };
-      overlay = null;
       screen = "play";
       render();
     }
     function handleCellClick(r,c) {
       const gs = gameState;
       if (gs.winner||gs.turn!==0) return;
-      let lastMove = gs.lastAIMove;
-      if(gs.turn === 0 && gs.lastPlayerMove) lastMove = gs.lastPlayerMove;
-      if (lastMove && lastMove.r===r && lastMove.c===c) return;
+      if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
       let cell = gs.board[r][c];
       if (typeof cell==='object' && cell.quantum) {
         if (!cell.visible) return;
@@ -776,19 +866,17 @@
       const gs = gameState;
       gs.winner = playerWon ? "You win! +10 coins" : playerWon===null ? "Draw!" : "AI wins!";
       if (playerWon) coins += 10;
-      overlay = [gs.winner, () => { overlay = null; screen="menu"; render(); }];
+      overlay = [gs.winner, () => { screen="menu"; overlay = null; render(); }];
       render();
     }
     function aiMove(gs) {
       if (gs.winner) return;
       if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
-      let lastMove = gs.lastPlayerMove;
-      if(gs.turn === 1 && gs.lastPlayerMove) lastMove = gs.lastPlayerMove;
-      if(gs.turn === 0 && gs.lastAIMove) lastMove = gs.lastAIMove;
       const moves=[];
       for (let r=0;r<BOARD_SIZE;r++)
         for (let c=0;c<BOARD_SIZE;c++)
-          if (gs.board[r][c]===0 && !(lastMove && lastMove.r===r && lastMove.c===c)) {
+          if (gs.board[r][c]===0) {
+            if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
             const b2 = JSON.parse(JSON.stringify(gs.board));
             flip(b2,r,c,1);
             const gain = countBoard(b2,1)-countBoard(gs.board,1);
@@ -808,7 +896,8 @@
         for (const m of sortedMoves.slice(0,6)) {
           let bestReply=-Infinity;
           for (let rr=0;rr<BOARD_SIZE;rr++) for (let cc=0;cc<BOARD_SIZE;cc++)
-            if (m.b2[rr][cc]===1 && !(m.r===rr && m.c===cc)) {
+            if (m.b2[rr][cc]===1) {
+              if (m.r===rr && m.c===cc) continue;
               let b3=JSON.parse(JSON.stringify(m.b2));
               flip(b3,rr,cc,0);
               let v=countBoard(b3,1)-countBoard(m.b2,1);
@@ -865,3 +954,20 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
