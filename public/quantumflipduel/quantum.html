@@ -187,7 +187,13 @@
       filter: brightness(1.12);
       border-color: #ff0;
       z-index: 2;
+      
     }
+    .board-cell.boost-tile {
+  background: linear-gradient(135deg, #ffd700 60%, #fff 100%);
+  border: 2.5px solid #ffed4e;
+  box-shadow: 0 0 8px #ffd700cc;
+}
     .spell-bar {
       width: 100vw;
       display: flex;
@@ -527,6 +533,13 @@
         cost: 25,
         mana: 35
       }
+      {
+  key: "booster",
+  name: "Boost Tile",
+  desc: `Places a permanent boost tile that gives +5 mana per turn.\nLasts until enemy flips it.`,
+  cost: 35,
+  mana: 60
+}
     ];
     let aiSpellsOwned = SPELLS.map(s => s.key);
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
@@ -793,9 +806,14 @@ for (let r = 0; r < BOARD_SIZE; r++) {
       cellInner.innerHTML = '<span style="font-size:1.3em;">💧</span>';
     } else if (typeof cell === 'object' && cell.quantum) {
       cellDiv.classList.add("quantum");
+      } else if (typeof cell === 'object' && cell.type === 'boost') {
+  cellDiv.classList.add("boost-tile");
+  cellInner.innerHTML = '<span style="font-size:1.3em;">⚡</span>';
+      
       if (cell.visible) cellDiv.classList.add("visible");
-      cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
-    }
+   
+  cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
+    } 
 
     if (lastMove && lastMove.r === r && lastMove.c === c) {
       cellDiv.classList.add("last-move");
@@ -899,6 +917,7 @@ for (let r = 0; r < BOARD_SIZE; r++) {
     skip: false,
     quantumPieces: [],
     spellOn: null,
+    skipNextAI: false,
     usedSkip: false,
     lastPlayerMove: null,
     lastAIMove: null,
@@ -910,6 +929,17 @@ for (let r = 0; r < BOARD_SIZE; r++) {
 
     function handleCellClick(r,c) {
       const gs = gameState;
+      for (let br = 0; br < BOARD_SIZE; br++) {
+  for (let bc = 0; bc < BOARD_SIZE; bc++) {
+    if (typeof gs.board[br][bc] === 'object' && gs.board[br][bc].type === 'boost') {
+      if (gs.board[br][bc].owner === 0 && gs.turn === 0) {
+        gs.mana += 5; // Player gets boost
+      } else if (gs.board[br][bc].owner === 1 && gs.turn === 1) {
+        gs.aiMana += 5; // AI gets boost
+      }
+    }
+  }
+}
       if (gs.winner||gs.turn!==0) return;
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
 let cell = gs.board[r][c];
@@ -920,14 +950,14 @@ if (cell && typeof cell==='object' && cell.quantum) {
 if (cell === null || cell === undefined) return;
 // --- Mana tile logic ---
 if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana' && gs.board[r][c].owner === 1) {
-  gs.mana += 5; // or scale if you want
+  gs.mana += 15; // Bigger boost
   gs.board[r][c] = 0; // convert to player tile
   gs.movesLeft--;
   gs.turn = 1;
   gs.lastPlayerMove = {r, c};
   gs.movesPlayed++;
   checkRandomEvent(gs);
-  render();
+  render(); // This will re-render and remove the mana icon
   setTimeout(()=>aiMove(gs),900);
   return;
 }
@@ -936,23 +966,34 @@ if (cell!==1) return;
       if (gs.spellOn) {
         const spellKey = gs.spellOn;
         if (!spellsOwned.includes(spellKey)) return;
-        if (spellKey==="quantum") {
-          let states=[0,1];
-          if (Math.random()<0.5) states.push(1);
-          const trueState = states[Math.floor(Math.random()*states.length)];
-          gs.board[r][c] = {quantum:true,states,trueState,visible:false};
-          gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
-          gs.spellOn = null;
-          gs.movesLeft--;
-          gs.turn = 1;
-          gs.quantumPieces.push({r,c});
-          gs.lastPlayerMove = {r,c};
-          gs.movesPlayed++;
-          checkRandomEvent(gs);
-          render();
-          setTimeout(()=>aiMove(gs),900);
-          return;
+       if (spellKey==="quantum") {
+  // Apply quantum to 3x3 area
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      let nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+        // Only quantumize AI tiles
+        if (gs.board[nr][nc] === 1) {
+          let states = [0, 1];
+          if (Math.random() < 0.5) states.push(1);
+          const trueState = states[Math.floor(Math.random() * states.length)];
+          gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
+          gs.quantumPieces.push({r: nr, c: nc});
         }
+      }
+    }
+  }
+  gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
+  gs.spellOn = null;
+  gs.movesLeft--;
+  gs.turn = 1;
+  gs.lastPlayerMove = {r,c};
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  render();
+  setTimeout(()=>aiMove(gs),900);
+  return;
+}
         if (spellKey==="fireball") {
           for (let dr=0;dr<4;dr++) for (let dc=0;dc<4;dc++) {
             let nr=r+dr-1, nc=c+dc-1;
@@ -972,6 +1013,19 @@ if (cell!==1) return;
           setTimeout(()=>aiMove(gs),900);
           return;
         }
+        if (spellKey==="booster") {
+  gs.board[r][c] = {type: 'boost', owner: 0}; // Player-owned boost tile
+  gs.mana -= SPELLS.find(s=>s.key===spellKey).mana;
+  gs.spellOn = null;
+  gs.movesLeft--;
+  gs.turn = 1;
+  gs.lastPlayerMove = {r,c};
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  render();
+  setTimeout(()=>aiMove(gs),900);
+  return;
+}
       }
       flip(gs.board, r, c, 0);
       gs.movesLeft--;
@@ -1006,7 +1060,8 @@ if (typeof oldCell === 'object' && oldCell.quantum) {
 }
 const newColor = 1 - oldColor;
      if (typeof oldCell === 'object' && oldCell.type === 'mana') {
-  board[nr][nc] = { type: 'mana', owner: newColor };
+  board[nr][nc] = newColor; // Remove mana status when flipped
+}
 } else {
   board[nr][nc] = newColor;
 }
@@ -1051,20 +1106,19 @@ const newColor = 1 - oldColor;
       render();
       setTimeout(()=>aiMove(gs),900);
     }
-    function handleSkipSpell() {
-      const gs = gameState;
-      if (!spellsOwned.includes("skip")||gs.mana<SPELLS.find(s=>s.key==="skip").mana||gs.usedSkip) return;
-      gs.mana -= SPELLS.find(s=>s.key==="skip").mana;
-      gs.skip = true;
-      gs.usedSkip = true;
-      gs.spellOn = null;
-      gs.movesLeft--;
-      gs.turn = 1;
-      gs.movesPlayed++;
-      checkRandomEvent(gs);
-      render();
-      setTimeout(()=>aiMove(gs),900);
-    }
+   function handleSkipSpell() {
+  const gs = gameState;
+  if (!spellsOwned.includes("skip")||gs.mana<SPELLS.find(s=>s.key==="skip").mana||gs.usedSkip) return;
+  gs.mana -= SPELLS.find(s=>s.key==="skip").mana;
+  gs.skipNextAI = true; // Skip AI's next turn
+  gs.usedSkip = true;
+  gs.spellOn = null;
+  gs.movesLeft--;
+  gs.turn = 0; // Stay player's turn
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  render();
+}
     function endGame(playerWon) {
       const gs = gameState;
       gs.winner = playerWon ? "You win! +10 coins" : playerWon===null ? "Draw!" : "AI wins!";
@@ -1073,7 +1127,26 @@ const newColor = 1 - oldColor;
       render();
     }
     function aiMove(gs) {
+      
   if (gs.winner) return;
+
+  if (gs.skipNextAI) { 
+    gs.skipNextAI = false; 
+    gs.turn = 0; // Back to player
+    render(); 
+    return; 
+  }
+      for (let br = 0; br < BOARD_SIZE; br++) {
+  for (let bc = 0; bc < BOARD_SIZE; bc++) {
+    if (typeof gs.board[br][bc] === 'object' && gs.board[br][bc].type === 'boost') {
+      if (gs.board[br][bc].owner === 0 && gs.turn === 0) {
+        gs.mana += 5; // Player gets boost
+      } else if (gs.board[br][bc].owner === 1 && gs.turn === 1) {
+        gs.aiMana += 5; // AI gets boost
+      }
+    }
+  }
+}
   if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
       let possibleSpells = SPELLS.filter(s => aiSpellsOwned.includes(s.key) && gs.aiMana >= s.mana);
 if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a spell
