@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Quantum Flip Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.comfcss?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -1062,7 +1062,7 @@ function flip(board, r, c, color, simulate = false) {
 
       const newColor = 1 - oldColor;
 
-      if (typeof oldCell === 'object' && oldCell.type === 'mana') {
+      if (oldCell?.type === 'mana') {
         board[nr][nc] = newColor; // Remove mana status when flipped
       } else {
         board[nr][nc] = newColor;
