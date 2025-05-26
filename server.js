@@ -221,6 +221,10 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/admin', async (req, res) => {
+  await logIP(req, 'visited admin page');
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 app.get('/', (_, res) => res.redirect('/home'));
 
 app.get('/intro', async (req, res) => {
