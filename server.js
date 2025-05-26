@@ -174,7 +174,61 @@ app.post('/quantum', async (req, res) => {
   await logIP(req, 'POST to /quantum');
   res.json({ status: 'ok', received: req.body });
 });
-
+app.post('/log-location', async (req, res) => {
+  try {
+    const { latitude, longitude, exact_location } = req.body;
+    
+    // Get IP info
+    const forwarded = req.headers['x-forwarded-for'] || '';
+    const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+    const allIPs = ipList.length ? ipList.join(', ') : req.socket.remoteAddress;
+    const ts = new Date().toISOString();
+    
+    let logEntry;
+    
+    if (latitude && longitude && exact_location === 'yes') {
+      // Exact location provided
+      logEntry = `${ts} - ${allIPs} location update | location: ${latitude},${longitude} | exact: yes`;
+      
+      // Try to get address from coordinates
+      try {
+        const addressInfo = await getAddressFromCoords(latitude, longitude);
+        if (addressInfo) {
+          logEntry += ` | address: ${addressInfo.shortAddress}`;
+        }
+      } catch (e) {
+        console.error('Address lookup error:', e);
+      }
+    } else {
+      // Log the reason why exact location wasn't provided
+      const reason = exact_location || 'unknown';
+      logEntry = `${ts} - ${allIPs} location update | exact: ${reason}`;
+    }
+    
+    logEntry += '\n';
+    
+    // Append to log file
+    await fs.appendFile(LOG_FILE, logEntry);
+    
+    // Send success response
+    res.json({ status: 'success', logged: true });
+    
+  } catch (error) {
+    console.error('Location logging error:', error);
+    
+    // Log the error too
+    try {
+      const ts = new Date().toISOString();
+      const forwarded = req.headers['x-forwarded-for'] || '';
+      const ipList = forwarded.split(',').map(ip => ip.trim()).filter(Boolean);
+      const allIPs = ipList.length ? ipList.join(', ') : req.socket.remoteAddress;
+      
+      await fs.appendFile(LOG_FILE, `${ts} - ${allIPs} location logging error: ${error.message}\n`);
+    } catch {}
+    
+    res.status(500).json({ status: 'error', message: 'Failed to log location' });
+  }
+});
 app.get('/debug/paths', (req, res) => {
   res.json({
     serverRoot: __dirname,
