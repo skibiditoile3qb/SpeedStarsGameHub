@@ -1054,7 +1054,7 @@ function flip(board, r, c, color, simulate = false) {
 
  if (oldCell && typeof oldCell === 'object' && oldCell.quantum) {
         oldColor = oldCell.trueState;
-      } else if (typeof oldCell === 'object' && oldCell.type === 'mana') {
+} else if (oldCell && typeof oldCell === 'object' && oldCell.type === 'mana') {
         oldColor = oldCell.owner;
       } else {
         oldColor = oldCell;
