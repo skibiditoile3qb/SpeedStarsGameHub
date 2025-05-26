@@ -945,20 +945,25 @@ function flip(board, r, c, color) {
   const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
   const flipCells = [];
   
-  for (const [dr,dc] of dirs) {
-    let nr = r + dr, nc = c + dc;
-    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-      const oldColor = typeof board[nr][nc] === 'object' && board[nr][nc].quantum 
-        ? board[nr][nc].trueState : board[nr][nc];
-      
-      if (typeof board[nr][nc] === 'object' && board[nr][nc].quantum)
-        board[nr][nc] = board[nr][nc].trueState;
-      else
-        board[nr][nc] = color;
-      
-      flipCells.push({ r: nr, c: nc, oldColor, newColor: color });
+for (const [dr,dc] of dirs) {
+  let nr = r + dr, nc = c + dc;
+  if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+    const oldColor = typeof board[nr][nc] === 'object' && board[nr][nc].quantum 
+      ? board[nr][nc].trueState : board[nr][nc];
+    
+    // Calculate what the new color will be BEFORE changing the board
+    const newColor = 1 - oldColor;  // Toggle: 0→1, 1→0
+    
+    // Now actually change the board
+    if (typeof board[nr][nc] === 'object' && board[nr][nc].quantum) {
+      board[nr][nc] = newColor;
+    } else {
+      board[nr][nc] = newColor;
     }
+    
+    flipCells.push({ r: nr, c: nc, oldColor, newColor });
   }
+}
   
   // Trigger 3D flip animations with cascade
   flipCells.forEach((cell, i) => {
@@ -974,7 +979,7 @@ function flip(board, r, c, color) {
         
         setTimeout(() => {
           cellEl.style.animation = '';
-          render();
+          
         }, 300);
       }
     }, i * 50);
