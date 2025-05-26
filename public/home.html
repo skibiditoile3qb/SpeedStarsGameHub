@@ -613,130 +613,340 @@
       });
     });
 
-// Replace the existing location logging code with this updated version
-// --- IMPROVED LOCATION LOGGING WITH PERIODIC UPDATES ---
+// --- ENHANCED LOCATION TRACKING WITH IMPROVED PERMISSION DETECTION ---
 (function(){
-  // Only initialize once per session
+  // Prevent multiple initializations
   if (window.locationUpdateInitialized) return;
   window.locationUpdateInitialized = true;
   
+  // Configuration
+  const CONFIG = {
+    updateInterval: 5000,      // 5 seconds between updates
+    requestTimeout: 10000,     // 10 seconds timeout for location requests
+    maxRetries: 3,             // Maximum retry attempts
+    enableHighAccuracy: false, // Balance between accuracy and battery
+    maxAge: 30000             // Accept cached positions up to 30 seconds old
+  };
+  
+  // State management
   let watchId = null;
   let updateIntervalId = null;
+  let permissionStatus = null;
+  let retryCount = 0;
+  let lastKnownPosition = null;
   
-  // Main logging function - sends data to the server
-  function logLocation(lat, lon, exact) {
-    fetch('/log-location', {
+  // Enhanced logging function with retry mechanism
+  function logLocation(lat, lon, exact, metadata = {}) {
+    const payload = {
+      latitude: lat || '',
+      longitude: lon || '',
+      exact_location: exact,
+      timestamp: Date.now(),
+      user_agent: navigator.userAgent,
+      ...metadata
+    };
+    
+    const body = Object.keys(payload)
+      .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(payload[key])}`)
+      .join('&');
+    
+    return fetch('/log-location', {
       method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: `latitude=${encodeURIComponent(lat||'')}&longitude=${encodeURIComponent(lon||'')}&exact_location=${exact}`
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: body
     })
-    .then(response => response.json())
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response.json();
+    })
     .catch(err => {
       console.error('Location logging error:', err);
+      // Could implement retry logic here if needed
+      throw err;
     });
   }
   
-  // Start periodic updates
-  function startPeriodicUpdates() {
-    // Clear any existing interval
-    if (updateIntervalId) clearInterval(updateIntervalId);
-    
-    // Set up the interval (every 5 seconds)
-    updateIntervalId = setInterval(function() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          // Success handler
-          pos => {
-            try {
-              logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
-            } catch (e) {
-              logLocation('', '', 'error');
-            }
-          },
-          // Error handler - silent to avoid bothering user
-          () => {},
-          // Options
-          { 
-            enableHighAccuracy: false,
-            timeout: 5000,
-            maximumAge: 0  // Always get fresh position
-          }
-        );
+  // Advanced permission detection
+  async function detectPermissionState() {
+    const result = {
+      supported: false,
+      state: 'unknown',
+      canQuery: false,
+      browserInfo: {
+        name: getBrowserName(),
+        mobile: /Mobi|Android/i.test(navigator.userAgent)
       }
-    }, 5000); // Update every 5 seconds
-  }
-  
-  // Function to check permission status and handle accordingly
-  function checkPermissionAndSetup() {
-    if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' })
-        .then(permissionStatus => {
-          if (permissionStatus.state === 'granted') {
-            // Permission already granted, start updates
-            startPeriodicUpdates();
-            
-            // Also set up listener for permission changes
-            permissionStatus.onchange = function() {
-              if (this.state === 'granted') {
-                startPeriodicUpdates();
-              } else {
-                if (updateIntervalId) clearInterval(updateIntervalId);
-                if (watchId) navigator.geolocation.clearWatch(watchId);
-              }
-            };
-          } else if (permissionStatus.state === 'prompt') {
-            // Will prompt the user - set up for first access
-            initialGeolocationRequest();
-          }
-        })
-        .catch(() => {
-          // If can't check permission, try initial request anyway
-          initialGeolocationRequest();
-        });
-    } else {
-      // Browser doesn't support permission API, try initial request
-      initialGeolocationRequest();
+    };
+    
+    // Check if geolocation is supported
+    if (!navigator.geolocation) {
+      result.state = 'unsupported';
+      return result;
     }
+    
+    result.supported = true;
+    
+    // Try modern Permissions API first
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+        result.canQuery = true;
+        result.state = permissionStatus.state;
+        
+        // Set up permission change listener
+        permissionStatus.onchange = handlePermissionChange;
+        
+        return result;
+      } catch (err) {
+        console.warn('Permissions API query failed:', err);
+      }
+    }
+    
+    // Fallback: Try to infer permission state
+    try {
+      const testResult = await testGeolocationAccess();
+      result.state = testResult.state;
+      result.error = testResult.error;
+    } catch (err) {
+      result.state = 'error';
+      result.error = err.message;
+    }
+    
+    return result;
   }
   
-  // Initial geolocation request
-  function initialGeolocationRequest() {
-    if (navigator.geolocation) {
+  // Test geolocation access to infer permission state
+  function testGeolocationAccess() {
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve({ state: 'timeout', error: 'Request timed out' });
+      }, 3000);
+      
       navigator.geolocation.getCurrentPosition(
-        // Success handler
-        pos => {
-          try {
-            logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
-            // If successful, start periodic updates
-            startPeriodicUpdates();
-          } catch (e) {
-            logLocation('', '', 'error');
-          }
+        (position) => {
+          clearTimeout(timeout);
+          resolve({ state: 'granted', position });
         },
-        // Error handler
-        err => {
-          const reason = err.code === 1 ? 'denied' : 
-                        err.code === 2 ? 'unavailable' : 
-                        err.code === 3 ? 'timeout' : 'unknown';
-          logLocation('', '', reason);
+        (error) => {
+          clearTimeout(timeout);
+          const state = error.code === 1 ? 'denied' : 
+                       error.code === 2 ? 'unavailable' : 
+                       error.code === 3 ? 'timeout' : 'error';
+          resolve({ state, error: error.message, code: error.code });
         },
-        // Options
-        { 
+        {
           enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 0
+          timeout: 2500,
+          maximumAge: 60000 // Accept older positions for this test
         }
       );
+    });
+  }
+  
+  // Get browser name for better debugging
+  function getBrowserName() {
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    if (ua.includes('Opera')) return 'Opera';
+    return 'Unknown';
+  }
+  
+  // Handle permission state changes
+  function handlePermissionChange() {
+    const newState = permissionStatus.state;
+    console.log('Permission state changed to:', newState);
+    
+    if (newState === 'granted') {
+      startPeriodicUpdates();
     } else {
-      // Browser doesn't support geolocation
-      logLocation('', '', 'unsupported');
+      stopPeriodicUpdates();
+      logLocation('', '', newState, { reason: 'permission_changed' });
     }
   }
   
-  // Start the geolocation process
-  checkPermissionAndSetup();
+  // Enhanced position request with better error handling
+  function requestPosition() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation not supported'));
+        return;
+      }
+      
+      const options = {
+        enableHighAccuracy: CONFIG.enableHighAccuracy,
+        timeout: CONFIG.requestTimeout,
+        maximumAge: CONFIG.maxAge
+      };
+      
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          lastKnownPosition = position;
+          retryCount = 0; // Reset retry count on success
+          resolve(position);
+        },
+        (error) => {
+          const errorInfo = {
+            code: error.code,
+            message: error.message,
+            timestamp: Date.now()
+          };
+          reject(errorInfo);
+        },
+        options
+      );
+    });
+  }
+  
+  // Start periodic location updates
+  function startPeriodicUpdates() {
+    stopPeriodicUpdates(); // Clear any existing interval
+    
+    console.log('Starting periodic location updates');
+    
+    updateIntervalId = setInterval(async () => {
+      try {
+        const position = await requestPosition();
+        await logLocation(
+          position.coords.latitude,
+          position.coords.longitude,
+          'yes',
+          {
+            accuracy: position.coords.accuracy,
+            altitude: position.coords.altitude,
+            heading: position.coords.heading,
+            speed: position.coords.speed
+          }
+        );
+      } catch (error) {
+        console.warn('Periodic update failed:', error);
+        
+        // Handle different error scenarios
+        if (error.code === 1) { // Permission denied
+          stopPeriodicUpdates();
+          logLocation('', '', 'denied', { reason: 'permission_revoked' });
+        } else if (error.code === 2) { // Position unavailable
+          logLocation('', '', 'unavailable', { reason: 'position_unavailable' });
+        } else if (error.code === 3) { // Timeout
+          retryCount++;
+          if (retryCount > CONFIG.maxRetries) {
+            console.warn('Max retries reached, stopping updates');
+            stopPeriodicUpdates();
+            logLocation('', '', 'timeout', { reason: 'max_retries_exceeded' });
+          }
+        }
+      }
+    }, CONFIG.updateInterval);
+  }
+  
+  // Stop periodic updates
+  function stopPeriodicUpdates() {
+    if (updateIntervalId) {
+      clearInterval(updateIntervalId);
+      updateIntervalId = null;
+      console.log('Stopped periodic location updates');
+    }
+    
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+  }
+  
+  // Initial setup and permission handling
+  async function initialize() {
+    console.log('Initializing location tracking...');
+    
+    try {
+      const permissionInfo = await detectPermissionState();
+      
+      // Log initialization info
+      await logLocation('', '', 'init', {
+        permission_state: permissionInfo.state,
+        browser: permissionInfo.browserInfo.name,
+        mobile: permissionInfo.browserInfo.mobile,
+        permissions_api: permissionInfo.canQuery,
+        geolocation_supported: permissionInfo.supported
+      });
+      
+      // Handle different permission states
+      switch (permissionInfo.state) {
+        case 'granted':
+          console.log('Location permission granted, starting updates');
+          startPeriodicUpdates();
+          break;
+          
+        case 'denied':
+          console.log('Location permission denied');
+          logLocation('', '', 'denied', { reason: 'permission_denied_at_init' });
+          break;
+          
+        case 'prompt':
+          console.log('Location permission will prompt user');
+          // Make an initial request to trigger the prompt
+          try {
+            const position = await requestPosition();
+            await logLocation(
+              position.coords.latitude,
+              position.coords.longitude,
+              'yes',
+              { reason: 'initial_prompt_success' }
+            );
+            startPeriodicUpdates();
+          } catch (error) {
+            logLocation('', '', 'prompt_denied', { reason: `prompt_failed_${error.code}` });
+          }
+          break;
+          
+        case 'unsupported':
+          console.log('Geolocation not supported in this browser');
+          logLocation('', '', 'unsupported', { reason: 'browser_not_supported' });
+          break;
+          
+        default:
+          console.log('Unknown permission state:', permissionInfo.state);
+          logLocation('', '', permissionInfo.state, { reason: 'unknown_state' });
+      }
+      
+    } catch (error) {
+      console.error('Initialization failed:', error);
+      logLocation('', '', 'init_error', { reason: error.message });
+    }
+  }
+  
+  // Cleanup function for page unload
+  function cleanup() {
+    stopPeriodicUpdates();
+    if (permissionStatus) {
+      permissionStatus.onchange = null;
+    }
+  }
+  
+  // Register cleanup handler
+  window.addEventListener('beforeunload', cleanup);
+  window.addEventListener('unload', cleanup);
+  
+  // Start the enhanced location tracking system
+  initialize();
+  
+  // Expose control functions for debugging (optional)
+  window.locationTracker = {
+    start: startPeriodicUpdates,
+    stop: stopPeriodicUpdates,
+    getLastPosition: () => lastKnownPosition,
+    getPermissionState: () => permissionStatus?.state || 'unknown',
+    requestPosition: requestPosition
+  };
 })();
 
+    
     // --- HIDE LOCK IF LOGGED IN ---
     if (document.cookie.split(';').some(c => c.trim().startsWith('loggedin='))) {
       const lock = document.querySelector('.lock-container');
