@@ -847,6 +847,12 @@
   if (gs.winner && !overlay) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
   return main;
 }
+    window.addEventListener('keydown', (e) => {
+  if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') { // Ctrl + Shift + C
+    player.coins += 2000;
+    console.log('💰 Dev Coins Added: 2000 (Total:', player.coins, ')');
+  }
+});
     function countBoard(board, val) {
       let n=0;
       for (let r=0;r<BOARD_SIZE;r++)
