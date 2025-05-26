@@ -962,7 +962,7 @@ board[nr][nc] = newColor;
   // Trigger 3D flip animations with cascade
   flipCells.forEach((cell, i) => {
     setTimeout(() => {
-      const cellEl = document.querySelector(`.board-cell:nth-child(${cell.r * BOARD_SIZE + cell.c + 1}) .board-cell-inner`);
+    const cellEl = document.querySelector(`.board-cell:nth-child(${cell.r * BOARD_SIZE + cell.c + 1}) .board-cell-inner`);
       if (cellEl) {
         const startColor = cell.oldColor === 0 ? '#fff' : '#20242b';
         const endColor = cell.newColor === 0 ? '#fff' : '#20242b';
