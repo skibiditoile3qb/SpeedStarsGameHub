@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Quantum Flip Game 3D Flip Fix</title>
+  <title>Quantum Flip Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <link href="https://fonts.googleapis.com/css?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
@@ -10,8 +10,10 @@
       margin: 0; padding: 0;
       font-family: 'Orbitron', Arial, sans-serif;
       background: #10131a;
-      min-height: 100vh; min-width: 100vw;
-      width: 100vw; height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      width: 100vw;
+      height: 100vh;
       overflow-x: hidden;
       overflow-y: auto;
     }
@@ -121,57 +123,25 @@
       z-index: 1;
       transition: background 0.22s, border 0.15s, box-shadow 0.12s, filter 0.18s, transform 0.23s;
       filter: brightness(1);
-      perspective: 600px;
+      animation: none !important;
     }
-    .board-cell-inner {
-      width: 100%; height: 100%;
-      border-radius: 8px;
-      transition: background 0.22s, color 0.22s;
-      position: absolute;
-      top: 0; left: 0;
-      backface-visibility: hidden;
-      transform-style: preserve-3d;
-      display: flex; align-items: center; justify-content: center;
-      will-change: transform;
-      pointer-events:none;
+    .board-cell.player {
+      background: #fff;
+      border: 2.5px solid #dbeafe;
+      box-shadow: 0 0 5px #dbeafe77;
     }
-    .board-cell .front, .board-cell .back {
-      width: 100%; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 8px;
-      font-size: 1.25em;
-      position: absolute;
-      top: 0; left: 0;
-      backface-visibility: hidden;
-      transition: background 0.22s, color 0.22s;
-      font-weight: bold;
-      letter-spacing: 2px;
-      text-shadow: 0 0 8px #fff8, 0 0 2px #000;
+    .board-cell.ai {
+      background: #20242b;
+      border: 2.5px solid #18e6e6;
+      box-shadow: 0 0 5px #18e6e655;
     }
-    .board-cell .front { z-index: 2; }
-    .board-cell .back {
-      transform: rotateY(180deg);
-      z-index: 1;
+    .board-cell.quantum {
+      background: repeating-linear-gradient(45deg, #3ff 0 5px, #fff 6px 14px);
+      border: 2.5px dashed #44f;
     }
-    .player .front, .player .back { background: #fff; color: #232b39;}
-    .ai .front, .ai .back { background: #20242b; color: #18e6e6;}
-    .quantum .front, .quantum .back { background: repeating-linear-gradient(45deg, #3ff 0 5px, #fff 6px 14px); color: #44f;}
-    .quantum.visible .front, .quantum.visible .back { background: linear-gradient(120deg,#0ff,#44f 60%); color: #fff;}
-    .board-cell.flipping .board-cell-inner {
-      /* 3D flip animation using trig for realistic motion */
-      animation: insaneFlip3D 0.5s cubic-bezier(.77,1.5,.22,1.01);
-    }
-    @keyframes insaneFlip3D {
-      0%   { transform: rotateY(0deg) scale(1);}
-      10%  { transform: rotateY(18deg) scale(1.10);}
-      40%  { transform: rotateY(80deg) scale(1.16);}
-      49.5% { transform: rotateY(89deg) scale(1.2);}
-      50.5% { transform: rotateY(91deg) scale(1.2);}
-      60%  { transform: rotateY(100deg) scale(1.15);}
-      100% { transform: rotateY(180deg) scale(1);}
-    }
-    .board-cell.flipped .board-cell-inner {
-      transform: rotateY(180deg);
+    .board-cell.quantum.visible {
+      background: linear-gradient(120deg,#0ff,#44f 60%);
+      border-style: solid;
     }
     .board-cell.last-move {
       outline: 3px solid #f00 !important;
@@ -185,18 +155,344 @@
       100% { box-shadow: 0 0 18px #f003, 0 0 10px #f00b, 0 0 5px #f00;}
     }
     .board-cell:active, .board-cell.flipping {
+      transform: scale(1.18) rotate(-2deg);
       z-index: 2;
       filter: brightness(1.25);
       transition: transform 0.15s, filter 0.12s;
     }
-    /* ...rest of your CSS unchanged... */
-    /* (copy all your other CSS from previous code if needed) */
+    .board-cell.flipping {
+      animation: flipEffect 0.34s cubic-bezier(.53,2.3,.44,.98);
+    }
+    @keyframes flipEffect {
+      0% { transform: scale(1) rotate(0deg);}
+      45% { transform: scale(1.26) rotate(4deg);}
+      100% { transform: scale(1) rotate(0deg);}
+    }
+
+    .board-cell-inner {
+      width: 100%; height: 100%;
+      border-radius: 8px;
+      transition: background 0.22s, color 0.22s, transform 0.36s cubic-bezier(.53,2.3,.44,.98);
+      transform-style: preserve-3d;
+      will-change: transform;
+      backface-visibility: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .board-cell.flipping .board-cell-inner {
+      animation: flip3d 0.36s cubic-bezier(.53,2.3,.44,.98);
+    }
+    @keyframes flip3d {
+      0%   { transform: rotateY(0deg);}
+      50%  { transform: rotateY(90deg);}
+      100% { transform: rotateY(0deg);}
+    }
+    .board-cell:hover {
+      filter: brightness(1.12);
+      border-color: #ff0;
+      z-index: 2;
+    }
+    .spell-bar {
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 0 16px 0;
+      flex-wrap: wrap;
+      min-height: 52px;
+      position: relative;
+      z-index: 2;
+      background: none;
+    }
+    .spell-btn {
+      margin: 7px 11px 7px 0;
+      padding: 10px 30px;
+      background: #fff;
+      color: #222;
+      border: 2.5px solid #18e6e6;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1.15em;
+      box-shadow: 0 0 4px #18e6e655;
+      transition: background .13s, color .13s, border 0.12s;
+      outline: none;
+      letter-spacing: 1.2px;
+      text-shadow: none;
+      filter: none;
+    }
+    .spell-btn:disabled { background: #eee; color: #bbb; cursor: not-allowed; border:2.5px solid #bbb;}
+    .spell-btn.selected { outline: 2px solid #ff0; background: #232b39; color:#18e6e6; border:2.5px solid #ff0;}
+    .spell-info {
+      font-size: 1em;
+      color: #18e6e6;
+      margin: 4px 0 0 0;
+      text-align: center;
+      min-height: 28px;
+      font-family: inherit;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .no-spells {
+      color: #fc0;
+      font-weight: bold;
+      font-size: 1.12em;
+      margin-right: 14px;
+      text-shadow: none;
+      font-family:inherit;
+    }
+    .shop-link-btn {
+      background: #ff0;
+      color: #232b39;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1em;
+      box-shadow: none;
+      padding: 8px 24px;
+      margin-left: 14px;
+      transition: background .13s, color .13s;
+      outline: none;
+      font-family:inherit;
+    }
+    .shop-link-btn:hover { background: #18e6e6; color:#222;}
+    .fullscreen-panel {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #10131a;
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 1;
+    }
+    .panel-content {
+      width: 100vw;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 0 3vw;
+      text-align: center;
+      color: #fff;
+      margin-top: 4vh;
+      margin-bottom: 4vh;
+      z-index: 2;
+      background: #181f2a;
+      border-radius:20px;
+      box-shadow: 0 0 36px #0003;
+      border: 1.5px solid #232b39;
+    }
+    h1, h2 { color: #18e6e6; text-shadow: 0 0 7px #fff2; font-family: 'Orbitron', Arial, sans-serif; }
+    .coin {
+      color: #18e6e6;
+      font-weight: bold;
+      text-shadow: none;
+      font-size: 1.12em;
+    }
+    .menu-btn {
+      width: 320px;
+      max-width: 80vw;
+      margin: 18px auto;
+      padding: 18px 0;
+      font-size: 1.3em;
+      background: #fff;
+      color: #18e6e6;
+      border-radius: 10px;
+      border: 2px solid #18e6e6;
+      box-shadow: none;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: background .12s, color .12s;
+      text-shadow: none;
+      display:block;
+      font-family:inherit;
+    }
+    .menu-btn:hover { background: #18e6e6; color: #fff;}
+    .back-btn {
+      padding: 13px 36px;
+      margin-top: 32px;
+      background: #232b39;
+      color: #fff;
+      border: 2px solid #18e6e6;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1em;
+      font-weight: bold;
+      box-shadow: none;
+      transition: background .14s, color .14s;
+      font-family:inherit;
+    }
+    .back-btn:hover { background: #18e6e6; color: #222; }
+    .shop-spell {
+      border: 1.5px solid #18e6e6;
+      border-radius: 10px;
+      padding: 17px 6px 17px 12px;
+      margin: 13px 2px;
+      background: #181f2a;
+      text-align: left;
+      font-size: 1.08em;
+      box-shadow: none;
+      max-width: 530px;
+      margin-left:auto;
+      margin-right:auto;
+      font-family:inherit;
+      transition: background .12s, border .12s;
+    }
+    .shop-spell.owned { background: #e7ffe7; border-color:#bcb;}
+    .shop-spell .spell-title { font-weight: bold; font-size: 1.12em; color:#18e6e6;}
+    .shop-spell .spell-desc { font-size: 1em; color: #bff; white-space: pre-line; }
+    .shop-spell .spell-cost { color: #18e6e6; font-weight: bold; }
+    .shop-spell button {
+      margin-top: 7px;
+      background: #18e6e6;
+      color: #fff; border: none; border-radius: 7px;
+      padding: 8px 20px; cursor: pointer;
+      font-weight: bold;
+      float: right;
+      font-size:1em;
+      box-shadow: none;
+      transition: background .13s, color .13s;
+      font-family:inherit;
+    }
+    .shop-spell button:disabled { background: #bbb; color:#eee; cursor: not-allowed; }
+    .difficulty-select {
+      margin-top: 24px;
+      font-size: 1.12em;
+      padding: 10px 24px;
+      border-radius: 9px;
+      border: 1.5px solid #18e6e6;
+      background: #fff;
+      color:#18e6e6;
+      text-align:center;
+      font-family:inherit;
+    }
+    .overlay {
+      position: fixed;
+      left: 0; top: 0; width: 100vw; height: 100vh;
+      background: #000a;
+      z-index: 1000;
+      display: flex;
+      align-items: center; justify-content: center;
+    }
+    .overlay-inner {
+      background: #fff;
+      color: #181f2a;
+      padding: 44px 36px 34px 36px;
+      border-radius: 22px;
+      min-width: 320px;
+      box-shadow: 0 10px 60px #0003;
+      text-align: center;
+      font-size: 2em;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      font-family:inherit;
+      border: 2.5px solid #18e6e6;
+    }
+    .overlay-inner .small {
+      font-size: 1.08em;
+      margin-top: 30px;
+      color: #18e6e6;
+    }
+    @media (max-width: 800px) {
+      .board { max-width: 97vw; max-height: 97vw; }
+      .panel-content { max-width: 95vw;}
+      .shop-spell { max-width: 96vw;}
+    }
+    @media (max-width: 600px) {
+      .board { max-width: 99vw; max-height: 99vw; }
+      .panel-content { max-width: 99vw;}
+      .shop-spell { max-width: 99vw;}
+      .board-cell { font-size: 0.7em; }
+      .spell-btn { font-size: 0.7em; padding: 7px 10px;}
+      .moves-counter { font-size: 1.1em;}
+      .info-bar { font-size: 0.9em; gap: 16px;}
+    }
+
+    /* --- Intro and crazy animation --- */
+    .intro-logo {
+      font-size: 3.4em;
+      letter-spacing: 0.14em;
+      margin-bottom: 16px;
+      color: #18e6e6;
+      text-shadow: 
+        0 1px 0 #fff5,
+        0 0 20px #0ff6,
+        0 0 34px #44f8,
+        0 0 2px #fff;
+      animation: logoPop 1.2s cubic-bezier(.65,2,.22,.99);
+    }
+    @keyframes logoPop {
+      0% { transform: scale(0.6) rotateY(60deg) skewX(10deg); opacity: 0;}
+      40% { transform: scale(1.2) rotateY(-18deg); opacity: 1;}
+      70% { transform: scale(1) rotateY(5deg);}
+      100% { transform: scale(1) rotateY(0);}
+    }
+    .intro-desc {
+      font-size: 1.2em;
+      max-width: 540px;
+      margin: 0 auto 42px auto;
+      color: #bff;
+      text-shadow: 0 1px 0 #fff3, 0 0 10px #0ff4;
+      animation: fadeinDesc 1.5s cubic-bezier(.46,2.1,.34,.98);
+    }
+    @keyframes fadeinDesc {
+      0% { opacity: 0; transform: translateY(42px);}
+      70% { opacity: 1; transform: translateY(-7px);}
+      100% { opacity: 1; transform: translateY(0);}
+    }
+    .intro-btns {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 48px;
+      gap: 13px;
+      animation: btnsPop 1.7s cubic-bezier(.53,2,.44,.98);
+    }
+    @keyframes btnsPop {
+      0% { opacity: 0; transform: scale(0.7);}
+      60% { opacity: 1; transform: scale(1.12);}
+      100% { opacity: 1; transform: scale(1);}
+    }
+    .intro-splash {
+      width: 100vw;
+      height: 100vh;
+      min-height: 100vh;
+      min-width: 100vw;
+      background: radial-gradient(ellipse at 60% 50%, #232b39 0%, #10131a 100%);
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 5000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      animation: introBg 1.6s cubic-bezier(.53,2,.44,.98);
+    }
+    @keyframes introBg {
+      0% { opacity: 0.2;}
+      80% { opacity: 1;}
+      100% { opacity: 1;}
+    }
+    .intro-credits {
+      color: #0ff;
+      margin-top: 50px;
+      font-size: 1.1em;
+      opacity: 0.7;
+      letter-spacing: 1.4px;
+    }
+    
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script>
-    // --- GAME STATE ---
     let coins = 0;
     let spellsOwned = [];
     let difficulty = 0;
@@ -204,9 +500,6 @@
     let gameState = null;
     let overlay = null;
     let flipQueue = [];
-    let flipState = {};
-    let flippingCells = {}; // r-c: {progress: 0..1, from, to, startTime}
-
     const SPELLS = [
       {
         key: "quantum",
@@ -248,9 +541,71 @@
             flip(gs.board, row, c, Math.random() < 0.5 ? 0 : 1);
           showOverlay(`Random Event: A mysterious force flips all of row ${row+1}!`);
         }
+      },
+      {
+        name: "Flip Random Column",
+        run(gs) {
+          const col = Math.floor(Math.random() * BOARD_SIZE);
+          for (let r = 0; r < BOARD_SIZE; r++)
+            flip(gs.board, r, col, Math.random() < 0.5 ? 0 : 1);
+          showOverlay(`Random Event: Lightning strikes column ${col+1} and flips it!`);
+        }
+      },
+      {
+        name: "Color Surge",
+        run(gs) {
+          for(let i=0;i<6;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE);
+            gs.board[r][c] = Math.random()<0.5?0:1;
+          }
+          showOverlay("Random Event: Color Surge! 6 random tiles have shifted color.");
+        }
+      },
+      {
+        name: "Mana Burst",
+        run(gs) {
+          gs.mana += 15;
+          gs.aiMana += 15;
+          showOverlay("Random Event: Mana Burst! Both players gain 15 mana.");
+        }
+      },
+      {
+        name: "Quantum Storm",
+        run(gs) {
+          for(let i=0;i<4;i++) {
+            let r = Math.floor(Math.random()*BOARD_SIZE);
+            let c = Math.floor(Math.random()*BOARD_SIZE/2) + BOARD_SIZE/2;
+            if (gs.board[r][c] === 1) {
+              let states = [0,1];
+              if (Math.random()<0.5) states.push(1);
+              const trueState = states[Math.floor(Math.random()*states.length)];
+              gs.board[r][c] = {quantum:true,states,trueState,visible:false};
+            }
+          }
+          showOverlay("Random Event: Quantum Storm! Some AI squares split into quantum states.");
+        }
       }
-      // ... Add more if you wish ...
     ];
+
+    // --- INTRO SPLASH ---
+    function renderIntro() {
+      const panel = document.createElement('div');
+      panel.className = "intro-splash";
+      panel.innerHTML = `
+        <div class="intro-logo">QUANTUM FLIP</div>
+        <div class="intro-desc">
+          <b>Flip, cast, and outwit the AI in this 3D-animated quantum puzzle-battle!</b><br>
+          <span style="color:#fff;">Unleash spells, split reality, and claim every tile.<br>
+          <span style="color:#18e6e6;">One move, infinite futures.</span>
+        </div>
+        <div class="intro-btns">
+          <button class="menu-btn" onclick="screen='menu';render();">Enter Game</button>
+        </div>
+        <div class="intro-credits">by <b>skibiditoile3qb</b> | vanilla JS | 2025</div>
+      `;
+      return panel;
+    }
 
     function render() {
       const root = document.getElementById('root');
@@ -271,23 +626,6 @@
         root.appendChild(renderTutorial());
       }
       if (overlay) root.appendChild(renderOverlay(...overlay));
-    }
-    function renderIntro() {
-      const panel = document.createElement('div');
-      panel.className = "intro-splash";
-      panel.innerHTML = `
-        <div class="intro-logo">QUANTUM FLIP</div>
-        <div class="intro-desc">
-          <b>Flip, cast, and outwit the AI in this 3D-animated quantum puzzle-battle!</b><br>
-          <span style="color:#fff;">Unleash spells, split reality, and claim every tile.<br>
-          <span style="color:#18e6e6;">One move, infinite futures.</span>
-        </div>
-        <div class="intro-btns">
-          <button class="menu-btn" onclick="screen='menu';render();">Enter Game</button>
-        </div>
-        <div class="intro-credits">by <b>skibiditoile3qb</b> | vanilla JS | 2025</div>
-      `;
-      return panel;
     }
     function renderMenu() {
       const panel = document.createElement('div');
@@ -410,157 +748,115 @@
       btn.onclick = ()=>{screen="menu"; render();};
       return btn;
     }
+ function renderPlay() {
+  const gs = gameState;
+  const main = document.createElement('div');
+  main.style.minHeight = "100vh";
+  main.style.display = "flex";
+  main.style.flexDirection = "column";
+  main.style.alignItems = "stretch";
+  main.style.justifyContent = "flex-start";
+  const topbar = document.createElement('div');
+  topbar.className = "topbar";
+  topbar.innerHTML = `
+    <div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
+    <div class="info-bar">
+      <span><b>Mana:</b> ${gs.mana} <span style="color:#18e6e6;">💠</span></span>
+      <span><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
+      <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#18e6e6;">⬛</span></span>
+    </div>`;
+  main.appendChild(topbar);
+  const gameMain = document.createElement('div');
+  gameMain.className = "game-main";
+  const boardWrap = document.createElement('div');
+  boardWrap.className = 'board-wrap';
+  const boardDiv = document.createElement('div');
+  boardDiv.className = "board";
 
-    // --- FLIPPING LOGIC --- (true 3D, only 1 red outline, smooth win detection)
-    function renderPlay() {
-      const gs = gameState;
-      const main = document.createElement('div');
-      main.style.minHeight = "100vh";
-      main.style.display = "flex";
-      main.style.flexDirection = "column";
-      main.style.alignItems = "stretch";
-      main.style.justifyContent = "flex-start";
-      const topbar = document.createElement('div');
-      topbar.className = "topbar";
-      topbar.innerHTML = `
-        <div class="moves-counter"><b>Moves Left: ${gs.movesLeft}</b></div>
-        <div class="info-bar">
-          <span><b>Mana:</b> ${gs.mana} <span style="color:#18e6e6;">💠</span></span>
-          <span><b>Your:</b> ${countBoard(gs.board,0)} <span style="color:#fff;">⬜</span></span>
-          <span><b>AI:</b> ${countBoard(gs.board,1)} <span style="color:#18e6e6;">⬛</span></span>
-        </div>`;
-      main.appendChild(topbar);
-      const gameMain = document.createElement('div');
-      gameMain.className = "game-main";
-      const boardWrap = document.createElement('div');
-      boardWrap.className = 'board-wrap';
-      const boardDiv = document.createElement('div');
-      boardDiv.className = "board";
+  // Show last move of the opponent only
+  let lastMove = (gs.turn === 0) ? gs.lastAIMove : gs.lastPlayerMove;
 
-      let lastMove = (gs.turn === 0 && gs.lastAIMove) ? gs.lastAIMove
-                      : (gs.turn === 1 && gs.lastPlayerMove) ? gs.lastPlayerMove
-                      : null;
-      let lastMoveStr = lastMove ? `${lastMove.r}-${lastMove.c}` : null;
-
-      for (let r=0; r<BOARD_SIZE; r++) {
-        for (let c=0; c<BOARD_SIZE; c++) {
-          const cell = gs.board[r][c];
-          const cellDiv = document.createElement('div');
-          cellDiv.className = "board-cell";
-          let flipKey = `${r}-${c}`;
-          let isFlipping = flipKey in flippingCells;
-          let isFlipped = false;
-          let progress = 0;
-
-          // Red outline only on last move cell
-          if (lastMoveStr === flipKey) {
-            cellDiv.classList.add("last-move");
-          }
-
-          let value = typeof cell === "object" && cell.quantum ? cell.trueState : cell;
-          let frontVal = (value === 1) ? "ai" : "player";
-          let backVal = (value === 1) ? "player" : "ai";
-          let cellState = value === 1 ? "ai" : "player";
-          if (typeof cell==='object' && cell.quantum) {
-            cellDiv.classList.add("quantum");
-            if (cell.visible) cellDiv.classList.add("visible");
-          }
-          let flippingTo = flipState[flipKey] !== undefined ? flipState[flipKey] : value;
-
-          // Animate flipping using trig / 3D
-          let inner = document.createElement('div');
-          inner.className = "board-cell-inner";
-          let angle = 0;
-          if (isFlipping) {
-            progress = Math.min((Date.now() - flippingCells[flipKey].startTime) / 500, 1);
-            angle = Math.PI * progress; // 0 to 180deg
-            let scale = 1 + 0.2*Math.sin(angle/2);
-            inner.style.transform = `rotateY(${angle*180/Math.PI}deg) scale(${scale})`;
-            if (progress >= 1) {
-              // End flip: update state, remove flipping
-              delete flippingCells[flipKey];
-              setTimeout(render, 0); // trigger re-render
-            }
-            cellDiv.classList.add("flipping");
-            if (progress < 0.5) {
-              inner.innerHTML = `<div class="front">${typeof cell==='object'&&cell.quantum?'Q':''}</div>`;
-              cellDiv.classList.add(value===0?"player":"ai");
-            } else {
-              inner.innerHTML = `<div class="back">${typeof cell==='object'&&cell.quantum?'Q':''}</div>`;
-              cellDiv.classList.add(flipState[flipKey]===0?"player":"ai");
-            }
-          } else {
-            if (cellDiv.classList.contains("flipping")) cellDiv.classList.remove("flipping");
-            if (flippingTo === 0) {
-              cellDiv.classList.add("player","flipped");
-              inner.innerHTML = `<div class="back">${typeof cell==='object'&&cell.quantum?'Q':''}</div>`;
-              inner.style.transform = `rotateY(180deg)`;
-            } else {
-              cellDiv.classList.add("ai");
-              inner.innerHTML = `<div class="front">${typeof cell==='object'&&cell.quantum?'Q':''}</div>`;
-              inner.style.transform = `rotateY(0deg)`;
-            }
-          }
-          cellDiv.appendChild(inner);
-
-          // Block moves only if board still animating
-          cellDiv.onclick = ()=>{ if (Object.keys(flippingCells).length===0) handleCellClick(r,c); };
-
-          // Fade forbidden squares
-          if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
-            cellDiv.style.opacity = 0.45;
-            cellDiv.title = "Can't play in the same spot as the AI's last move!";
-          }
-          if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
-            cellDiv.style.opacity = 0.45;
-            cellDiv.title = "Can't play in the same spot as the player's last move!";
-          }
-          boardDiv.appendChild(cellDiv);
-        }
+  for (let r=0; r<BOARD_SIZE; r++) {
+    for (let c=0; c<BOARD_SIZE; c++) {
+      const cell = gs.board[r][c];
+      const cellDiv = document.createElement('div');
+      cellDiv.className = "board-cell";
+      
+      if (cell===0) cellDiv.classList.add("player");
+      else if (cell===1) cellDiv.classList.add("ai");
+      else if (typeof cell==='object' && cell.quantum) {
+        cellDiv.classList.add("quantum");
+        if (cell.visible) cellDiv.classList.add("visible");
       }
-      boardWrap.appendChild(boardDiv);
-      gameMain.appendChild(boardWrap);
-
-      // Spells bar, info, winner overlay, etc unchanged...
-      const spellsDiv = document.createElement('div');
-      spellsDiv.className = 'spell-bar';
-      if (spellsOwned.length === 0) {
-        const msg = document.createElement('span');
-        msg.className = "no-spells";
-        msg.innerText = "No spells owned!";
-        const shopBtn = document.createElement('button');
-        shopBtn.className = "shop-link-btn";
-        shopBtn.innerText = "Go to Shop";
-        shopBtn.onclick = ()=>{screen="shop"; render();}
-        spellsDiv.appendChild(msg);
-        spellsDiv.appendChild(shopBtn);
-      } else {
-        SPELLS.forEach(spell=>{
-          const owned = spellsOwned.includes(spell.key);
-          const btn = document.createElement('button');
-          btn.innerText = spell.name;
-          btn.className = "spell-btn"+(gs.spellOn===spell.key?' selected':'');
-          btn.disabled = !owned || gs.mana < spell.mana || (spell.key==="skip" && gs.usedSkip);
-          btn.onclick = ()=>{
-            if (!owned || gs.mana < spell.mana) return;
-            if (spell.key==="collapse") { handleCollapseSpell(); return; }
-            if (spell.key==="skip") { handleSkipSpell(); return; }
-            gs.spellOn = spell.key;
-            render();
-          };
-          spellsDiv.appendChild(btn);
-        });
+      
+      if (lastMove && lastMove.r===r && lastMove.c===c) {
+        cellDiv.classList.add("last-move");
       }
-      gameMain.appendChild(spellsDiv);
-      const spellInfo = document.createElement('div');
-      spellInfo.className = 'spell-info';
-      spellInfo.innerText = "(Select a spell to use it on your next move.)";
-      gameMain.appendChild(spellInfo);
-      main.appendChild(gameMain);
-      if (gs.winner && !overlay) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
-      return main;
+      
+      if (flipQueue.some(x=>x.r===r&&x.c===c)) {
+        cellDiv.classList.add("flipping");
+      }
+      
+      cellDiv.onclick = ()=>handleCellClick(r,c);
+      const cellInner = document.createElement('div');
+      cellInner.className = 'board-cell-inner';
+      if (typeof cell==='object' && cell.quantum) {
+        cellInner.innerHTML = `<span style="position:absolute;left:2px;top:2px;font-size:1.1em;color:#fff;text-shadow:0 0 10px #44f;font-weight:bold;">Q</span>`;
+      }
+      cellDiv.appendChild(cellInner);
+      
+      if (gs.turn===0 && gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) {
+        cellDiv.style.opacity = 0.45;
+        cellDiv.title = "Can't play in the same spot as the AI's last move!";
+      }
+      if (gs.turn===1 && gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) {
+        cellDiv.style.opacity = 0.45;
+        cellDiv.title = "Can't play in the same spot as the player's last move!";
+      }
+      boardDiv.appendChild(cellDiv);
     }
+  }
+  boardWrap.appendChild(boardDiv);
+  gameMain.appendChild(boardWrap);
 
+  const spellsDiv = document.createElement('div');
+  spellsDiv.className = 'spell-bar';
+  if (spellsOwned.length === 0) {
+    const msg = document.createElement('span');
+    msg.className = "no-spells";
+    msg.innerText = "No spells owned!";
+    const shopBtn = document.createElement('button');
+    shopBtn.className = "shop-link-btn";
+    shopBtn.innerText = "Go to Shop";
+    shopBtn.onclick = ()=>{screen="shop"; render();}
+    spellsDiv.appendChild(msg);
+    spellsDiv.appendChild(shopBtn);
+  } else {
+    SPELLS.forEach(spell=>{
+      const owned = spellsOwned.includes(spell.key);
+      const btn = document.createElement('button');
+      btn.innerText = spell.name;
+      btn.className = "spell-btn"+(gs.spellOn===spell.key?' selected':'');
+      btn.disabled = !owned || gs.mana < spell.mana || (spell.key==="skip" && gs.usedSkip);
+      btn.onclick = ()=>{
+        if (!owned || gs.mana < spell.mana) return;
+        if (spell.key==="collapse") { handleCollapseSpell(); return; }
+        if (spell.key==="skip") { handleSkipSpell(); return; }
+        gs.spellOn = spell.key;
+        render();
+      };
+      spellsDiv.appendChild(btn);
+    });
+  }
+  gameMain.appendChild(spellsDiv);
+  const spellInfo = document.createElement('div');
+  spellInfo.className = 'spell-info';
+  spellInfo.innerText = "(Select a spell to use it on your next move.)";
+  gameMain.appendChild(spellInfo);
+  main.appendChild(gameMain);
+  if (gs.winner && !overlay) showOverlay(gs.winner, () => { screen="menu"; overlay = null; render(); });
+  return main;
+}
     function countBoard(board, val) {
       let n=0;
       for (let r=0;r<BOARD_SIZE;r++)
@@ -572,8 +868,6 @@
       let board = Array.from({length:BOARD_SIZE},()=>Array(BOARD_SIZE).fill(1));
       for (let r=0;r<BOARD_SIZE;r++) for (let c=0;c<BOARD_SIZE;c++) 
         if (c<BOARD_SIZE/2) board[r][c]=0; // left half player, right half AI
-      flipState = {};
-      flippingCells = {};
       gameState = {
         board,
         mana: INIT_MANA,
@@ -592,32 +886,9 @@
       screen = "play";
       render();
     }
-    // --- FLIP LOGIC, always uses 3D animation ---
-    function flip(board, r, c, color) {
-      const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
-      for (const [dr,dc] of dirs) {
-        let nr=r+dr,nc=c+dc;
-        if (nr>=0&&nr<BOARD_SIZE&&nc>=0&&nc<BOARD_SIZE) {
-          let key = `${nr}-${nc}`;
-          let prev = typeof board[nr][nc]==='object'&&board[nr][nc].quantum ? board[nr][nc].trueState : board[nr][nc];
-          flipState[key] = color;
-          flippingCells[key] = {progress:0,from:prev,to:color,startTime:Date.now()};
-          setTimeout(()=>{ // finish after animation
-            if (typeof board[nr][nc]==='object'&&board[nr][nc].quantum)
-              board[nr][nc]=color;
-            else board[nr][nc]=color;
-            delete flippingCells[key];
-            render();
-          }, 500);
-        }
-      }
-      render();
-    }
-
-    // --- The rest of the logic (unchanged) ---
     function handleCellClick(r,c) {
       const gs = gameState;
-      if (gs.winner||gs.turn!==0||Object.keys(flippingCells).length>0) return;
+      if (gs.winner||gs.turn!==0) return;
       if (gs.lastAIMove && gs.lastAIMove.r===r && gs.lastAIMove.c===c) return;
       let cell = gs.board[r][c];
       if (typeof cell==='object' && cell.quantum) {
@@ -672,20 +943,33 @@
       gs.lastPlayerMove = {r,c};
       gs.movesPlayed++;
       checkRandomEvent(gs);
-
-      // --- Improved win detection ---
-      setTimeout(() => {
-        if (gs.movesLeft<=0 && !gs.winner) {
-          const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
-          if (w>bl) endGame(true);
-          else if (w<bl) endGame(false);
-          else endGame(null);
-        }
-      }, 510);
+      if (gs.movesLeft<=0) {
+        const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
+        endGame(w>bl?1:w<bl?0:null);
+        return;
+      }
       render();
       setTimeout(()=>aiMove(gs),900);
     }
-
+  function flip(board, r, c, color) {
+  const dirs = [[0,0],[-1,0],[1,0],[0,-1],[0,1]];
+  flipQueue = [];
+  for (const [dr,dc] of dirs) {
+    let nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+      if (typeof board[nr][nc] === 'object' && board[nr][nc].quantum)
+        board[nr][nc] = board[nr][nc].trueState;
+      else
+        board[nr][nc] = color;
+      flipQueue.push({ r: nr, c: nc });
+    }
+  }
+  render();
+  setTimeout(() => { 
+    flipQueue = []; 
+    render(); 
+  }, 360);
+}
     function handleCollapseSpell() {
       const gs = gameState;
       if (!spellsOwned.includes("collapse")||gs.mana<SPELLS.find(s=>s.key==="collapse").mana) return;
@@ -714,17 +998,15 @@
       render();
       setTimeout(()=>aiMove(gs),900);
     }
-
     function endGame(playerWon) {
       const gs = gameState;
-      if (gs.winner) return;
       gs.winner = playerWon ? "You win! +10 coins" : playerWon===null ? "Draw!" : "AI wins!";
       if (playerWon) coins += 10;
       overlay = [gs.winner, () => { screen="menu"; overlay = null; render(); }];
       render();
     }
     function aiMove(gs) {
-      if (gs.winner || Object.keys(flippingCells).length > 0) return;
+      if (gs.winner) return;
       if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
       const moves=[];
       for (let r=0;r<BOARD_SIZE;r++)
@@ -774,15 +1056,11 @@
       gs.lastAIMove = {r:move.r,c:move.c};
       gs.movesPlayed++;
       checkRandomEvent(gs);
-
-      setTimeout(() => {
-        if (gs.movesLeft<=0 && !gs.winner) {
-          const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
-          if (w>bl) endGame(true);
-          else if (w<bl) endGame(false);
-          else endGame(null);
-        }
-      }, 510);
+      if (gs.movesLeft<=0) {
+        const w = countBoard(gs.board,0), bl = countBoard(gs.board,1);
+        endGame(w>bl?1:w<bl?0:null);
+        return;
+      }
       render();
     }
     function checkRandomEvent(gs) {
@@ -808,16 +1086,7 @@
       div.innerHTML = `<div class="overlay-inner">${msg}<div class="small">(Click to continue)</div></div>`;
       return div;
     }
-
-    // --- Animate the 3D flip using requestAnimationFrame ---
-    function animate() {
-      if (Object.keys(flippingCells).length > 0) {
-        render();
-        requestAnimationFrame(animate);
-      }
-    }
-    window.onload = () => { render(); };
-
+    window.onload = render;
   </script>
 </body>
 </html>
