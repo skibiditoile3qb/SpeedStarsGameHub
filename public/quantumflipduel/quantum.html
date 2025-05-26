@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Quantum Flip Game</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.comfcss?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Orbitron:wght@700&display=swap" rel="stylesheet">
   <style>
     html, body {
       margin: 0; padding: 0;
@@ -1093,9 +1093,9 @@ function flip(board, r, c, color, simulate = false) {
       const oldCell = board[nr][nc];
       let oldColor;
 
- if (oldCell && typeof oldCell === 'object' && oldCell.quantum) {
+      if (oldCell && typeof oldCell === 'object' && oldCell.quantum) {
         oldColor = oldCell.trueState;
-} else if (oldCell && typeof oldCell === 'object' && oldCell.type === 'mana') {
+      } else if (oldCell && typeof oldCell === 'object' && oldCell.type === 'mana') {
         oldColor = oldCell.owner;
       } else {
         oldColor = oldCell;
@@ -1103,87 +1103,50 @@ function flip(board, r, c, color, simulate = false) {
 
       const newColor = 1 - oldColor;
 
-     if (oldCell && typeof oldCell === 'object') {
-  if (oldCell.type === 'mana') {
-    board[nr][nc] = newColor; // Remove mana status when flipped
-  } else if (oldCell.type === 'boost') {
-    board[nr][nc] = newColor; // Remove boost status when flipped, make normal tile
-  } else if (oldCell.quantum) {
-    board[nr][nc] = newColor; // Quantum becomes normal tile
-  } else {
-    board[nr][nc] = newColor;
-  }
-} else {
-  board[nr][nc] = newColor;
-}
-
-
-const b2 = JSON.parse(JSON.stringify(gs.board));
-flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
-let gain = countBoard(b2, 1) - countBoard(gs.board, 1);
-
-// AI prioritizes boost tiles on Hard+ difficulty
-if (difficulty >= 2) {
-  // Check if this move targets a boost tile
-  if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'boost' && gs.board[r][c].owner === 0) {
-    gain += 5; // Extra priority for player's boost tiles
-  }
-  
-  // Check adjacent cells for boost tiles that would be affected
-  const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-  for (const [dr, dc] of dirs) {
-    let nr = r + dr, nc = c + dc;
-    if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-      if (typeof gs.board[nr][nc] === 'object' && gs.board[nr][nc].type === 'boost' && gs.board[nr][nc].owner === 0) {
-        gain += 3; // Bonus for affecting player boost tiles
-      }
-    }
-  }
-}
-
-moves.push({ r, c, gain, b2 });
-3. Quantum + Boost Combo Spell
-Location: handleCellClick function, find the quantum spell section (around line 470)
-
-After this block:
-
-javascript
-if (spellKey==="quantum") {
-  // Apply quantum to 3x3 area
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let dc = -1; dc <= 1; dc++) {
-      let nr = r + dr, nc = c + dc;
-      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-        // Only quantumize AI tiles
-        if (gs.board[nr][nc] === 1) {
-          let states = [0, 1];
-          if (Math.random() < 0.5) states.push(1);
-          const trueState = states[Math.floor(Math.random() * states.length)];
-          gs.board[nr][nc] = {quantum: true, states, trueState, visible: false};
-          gs.quantumPieces.push({r: nr, c: nc});
+      if (oldCell && typeof oldCell === 'object') {
+        if (oldCell.type === 'mana') {
+          board[nr][nc] = newColor; // Remove mana status when flipped
+        } else if (oldCell.type === 'boost') {
+          board[nr][nc] = newColor; // Remove boost status when flipped
+        } else if (oldCell.quantum) {
+          board[nr][nc] = newColor; // Quantum becomes normal tile
+        } else {
+          board[nr][nc] = newColor;
         }
+      } else {
+        board[nr][nc] = newColor;
       }
-    }
-  }
-Replace the entire quantum block with:
-
-javascript
-if (spellKey==="quantum") {
-  // Check if player also has boost spell and enough mana for combo
-  const boostSpell = SPELLS.find(s => s.key === "booster");
-  const canCombo = spellsOwned.includes("booster") && gs.mana >= (SPELLS.find(s=>s.key==="quantum").mana + boostSpell.mana);
-  
-  if (canCombo && Math.random() < 0.3) { // 30% chance for combo if possible
-    // Quantum + Boost combo: place hidden boost in center, quantumize around it
-    gs.board[r][c] = {type: 'boost', owner: 0, quant
-
-
 
       flipCells.push({ r: nr, c: nc, oldColor, newColor });
     }
   }
 
-  if (simulate) return; // ✅ now safely inside the function
+  if (simulate) return;
+
+  // Animation stuff (assuming gs, difficulty, moves etc are globals accessible)
+  const b2 = JSON.parse(JSON.stringify(gs.board));
+  flip(b2, r, c, 1, true); // simulate flip on cloned board
+  let gain = countBoard(b2, 1) - countBoard(gs.board, 1);
+
+  if (difficulty >= 2) {
+    // Check if this move targets a boost tile
+    if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'boost' && gs.board[r][c].owner === 0) {
+      gain += 5; // Extra priority for player's boost tiles
+    }
+
+    // Check adjacent cells for boost tiles affected
+    const adjDirs = [[-1,0],[1,0],[0,-1],[0,1]];
+    for (const [dr, dc] of adjDirs) {
+      let nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
+        if (typeof gs.board[nr][nc] === 'object' && gs.board[nr][nc].type === 'boost' && gs.board[nr][nc].owner === 0) {
+          gain += 3; // Bonus for affecting player boost tiles
+        }
+      }
+    }
+  }
+
+  moves.push({ r, c, gain, b2 });
 
   // Trigger 3D flip animations with cascade
   flipCells.forEach((cell, i) => {
@@ -1205,6 +1168,7 @@ if (spellKey==="quantum") {
     }, i * 50);
   });
 }
+
 
     function handleCollapseSpell() {
       const gs = gameState;
