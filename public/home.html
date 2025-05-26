@@ -614,6 +614,7 @@
     });
 
 // --- IMPROVED LOCATION TRACKING WITH BETTER PERMISSION DETECTION ---
+// --- IMPROVED LOCATION TRACKING WITH BETTER PERMISSION DETECTION ---
 (function(){
   if (window.locationUpdateInitialized) return;
   window.locationUpdateInitialized = true;
@@ -635,7 +636,13 @@
     if (!navigator.geolocation) return;
     
     navigator.geolocation.getCurrentPosition(
-      pos => logLocation(pos.coords.latitude, pos.coords.longitude, 'yes'),
+      pos => {
+        logLocation(pos.coords.latitude, pos.coords.longitude, 'yes');
+        // Start periodic updates on first success (if not already running)
+        if (!updateIntervalId) {
+          startUpdates();
+        }
+      },
       err => {
         const reason = err.code === 1 ? 'denied' : 
                       err.code === 2 ? 'unavailable' : 
