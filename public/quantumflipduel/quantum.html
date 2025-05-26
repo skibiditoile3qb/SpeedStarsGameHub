@@ -496,7 +496,7 @@
     let screen = "intro";
     let gameState = null;
     let overlay = null;
-  
+    
     
     const SPELLS = [
       {
@@ -528,7 +528,7 @@
         mana: 35
       }
     ];
-      let aiSpellsOwned = SPELLS.map(s => s.key);
+    let aiSpellsOwned = SPELLS.map(s => s.key);
     const DIFFICULTY_LEVELS = ["Easy", "Medium", "Hard", "Extreme"];
     const BOARD_SIZE = 10, INIT_MANA = 100, MANA_REGEN = 8, MAX_MOVES = 70;
     const RANDOM_EVENTS = [
@@ -869,7 +869,7 @@ for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c=0;c<BOARD_SIZE;c++)
       if (
         board[r][c]===val ||
-        (typeof board[r][c]==='object' && board[r][c].quantum && board[r][c].visible && board[r][c].states.includes(val)) ||
+       (board[r][c] && typeof board[r][c]==='object' && board[r][c].quantum && board[r][c].visible && board[r][c].states.includes(val)) ||
         (typeof board[r][c]==='object' && board[r][c].type === 'mana' && board[r][c].owner === val)
       ) n++;
   return n;
@@ -1133,19 +1133,19 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
   // Quantum spell not used by AI for now (could add logic if you want)
 }
   const moves=[];
- for (let r=0;r<BOARD_SIZE;r++)
-  for (let c=0;c<BOARD_SIZE;c++) {
+for (let r=0; r<BOARD_SIZE; r++)
+  for (let c=0; c<BOARD_SIZE; c++) {
     const cell = gs.board[r][c];
-    // AI can flip player tiles (0) OR player-owned mana tiles
+    // Null-safe: Only check properties if cell is not null
     if (
       cell === 0 ||
-      (typeof cell === 'object' && cell.type === 'mana' && cell.owner === 0)
+      (cell && typeof cell === 'object' && cell.type === 'mana' && cell.owner === 0)
     ) {
-      if (gs.lastPlayerMove && gs.lastPlayerMove.r===r && gs.lastPlayerMove.c===c) continue;
+      if (gs.lastPlayerMove && gs.lastPlayerMove.r === r && gs.lastPlayerMove.c === c) continue;
       const b2 = JSON.parse(JSON.stringify(gs.board));
       flip(b2, r, c, 1, true); // SIMULATE: no animation, just logical flip
-      const gain = countBoard(b2,1) - countBoard(gs.board,1);
-      moves.push({r,c,gain,b2});
+      const gain = countBoard(b2, 1) - countBoard(gs.board, 1);
+      moves.push({ r, c, gain, b2 });
     }
   }
   let move = null;
