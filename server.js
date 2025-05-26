@@ -146,6 +146,21 @@ app.get('/login', (req, res) => {
     </form>
   `);
 });
+app.post('/admin/auth', async (req, res) => {
+  const { password } = req.body;
+
+  if (password !== ADMIN_PASS) {
+    return res.status(403).send('Incorrect password');
+  }
+
+  try {
+    const logData = await fs.readFile(path.join(__dirname, 'logs', 'ip-log.txt'), 'utf8');
+    res.send(logData);
+  } catch (err) {
+    console.error('Error reading ip-log.txt:', err);
+    res.status(500).send('Error reading log file');
+  }
+});
 
 // Serve static files for Quantum Flip Duel from /quantumflipduel
 app.use('/quantumflipduel', express.static(path.join(__dirname, 'public', 'quantumflipduel')));
