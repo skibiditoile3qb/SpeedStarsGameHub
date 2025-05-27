@@ -864,7 +864,7 @@ for (let r = 0; r < BOARD_SIZE; r++) {
       const btn = document.createElement('button');
       btn.innerText = spell.name;
       btn.className = "spell-btn"+(gs.spellOn===spell.key?' selected':'');
-      btn.disabled = !owned || gs.mana < spell.mana || (spell.key==="skip" && gs.usedSkip);
+      btn.disabled = !owned || gs.mana < spell.mana;
       btn.onclick = ()=>{
         if (!owned || gs.mana < spell.mana) return;
         if (spell.key==="collapse") { handleCollapseSpell(); return; }
@@ -960,22 +960,25 @@ function handleCellClick(r, c) {
   if (cell === null || cell === undefined) return;
 
   // --- Mana tile logic ---
-  if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana' && gs.board[r][c].owner === 1) {
-    gs.mana += 15; // Bigger boost
-    gs.board[r][c] = 0; // convert to player tile
-    gs.movesLeft--;
-    gs.turn = 1;
-    gs.lastPlayerMove = { r, c };
-    gs.movesPlayed++;
-    checkRandomEvent(gs);
-    render(); // This will re-render and remove the mana icon
-    if (gs && !gs.winner) {
-      setTimeout(() => {
-        if (gs && !gs.winner) aiMove(gs);
-      }, 900);
-    }
-    return;
+if (typeof gs.board[r][c] === 'object' && gs.board[r][c].type === 'mana') {
+  if (gs.board[r][c].owner !== gs.turn) return; // Only collect if it's the opponent's mana tile
+  if (gs.turn === 0) gs.mana += 15;
+  else gs.aiMana += 15;
+  gs.board[r][c] = gs.turn; // convert to current player's tile
+  gs.movesLeft--;
+  if (gs.turn === 0) gs.lastPlayerMove = { r, c };
+  else gs.lastAIMove = { r, c };
+  gs.turn = 1 - gs.turn;
+  gs.movesPlayed++;
+  checkRandomEvent(gs);
+  render();
+  if (gs && !gs.winner && gs.turn === 1) {
+    setTimeout(() => {
+      if (gs && !gs.winner) aiMove(gs);
+    }, 900);
   }
+  return;
+}
 
   if (cell !== 1) return;
 
@@ -1128,18 +1131,14 @@ function flip(board, r, c, color, simulate = false) {
       const newColor = 1 - oldColor;
 
       if (oldCell && typeof oldCell === 'object') {
-        if (oldCell.type === 'mana') {
-          board[nr][nc] = newColor; // Remove mana status when flipped
-        } else if (oldCell.type === 'boost') {
-          board[nr][nc] = newColor; // Remove boost status when flipped
-        } else if (oldCell.quantum) {
-          board[nr][nc] = newColor; // Quantum becomes normal tile
-        } else {
-          board[nr][nc] = newColor;
-        }
-      } else {
-        board[nr][nc] = newColor;
-      }
+  if (oldCell.type === 'mana' || oldCell.type === 'boost' || oldCell.quantum) {
+    board[nr][nc] = newColor; // Always become normal tile (number)
+  } else {
+    board[nr][nc] = newColor;
+  }
+} else {
+  board[nr][nc] = newColor;
+}
 
       flipCells.push({ r: nr, c: nc, oldColor, newColor });
     }
@@ -1214,16 +1213,12 @@ function flip(board, r, c, color, simulate = false) {
     }
    function handleSkipSpell() {
   const gs = gameState;
-  if (!spellsOwned.includes("skip")||gs.mana<SPELLS.find(s=>s.key==="skip").mana||gs.usedSkip) return;
-  gs.mana -= SPELLS.find(s=>s.key==="skip").mana;
-  gs.skipNextAI = true; // Skip AI's next turn
-  gs.usedSkip = true;
-  gs.spellOn = null;
-  gs.movesLeft--;
-  gs.turn = 0; // Stay player's turn
-  gs.movesPlayed++;
-  checkRandomEvent(gs);
-  render();
+if (!spellsOwned.includes("skip") || gs.mana < SPELLS.find(s => s.key === "skip").mana) return;
+gs.mana -= SPELLS.find(s => s.key === "skip").mana;
+gs.skipNextAI = true; // Skip AI's next turn
+gs.spellOn = null;
+// Do NOT decrement moves or increment movesPlayed here, those are handled on the actual move!
+render();
 }
     function endGame(playerWon) {
       const gs = gameState;
@@ -1236,12 +1231,13 @@ function flip(board, r, c, color, simulate = false) {
       
   if (gs.winner) return;
 
-  if (gs.skipNextAI) { 
-    gs.skipNextAI = false; 
-    gs.turn = 0; // Back to player
-    render(); 
-    return; 
-  }
+if (gs.skipNextAI) {
+  gs.skipNextAI = false;
+  gs.turn = 0; // Give turn back to player
+  render();
+  return;
+}
+// Remove all gs.skip logic from elsewhere
       for (let br = 0; br < BOARD_SIZE; br++) {
   for (let bc = 0; bc < BOARD_SIZE; bc++) {
     if (typeof gs.board[br][bc] === 'object' && gs.board[br][bc].type === 'boost') {
@@ -1253,7 +1249,7 @@ function flip(board, r, c, color, simulate = false) {
     }
   }
 }
-  if (gs.skip) { gs.skip=false; gs.turn=0; gs.usedSkip=true; gs.movesPlayed++; checkRandomEvent(gs); render(); return; }
+  
       let possibleSpells = SPELLS.filter(s => aiSpellsOwned.includes(s.key) && gs.aiMana >= s.mana);
 if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a spell
   let spell = possibleSpells[Math.floor(Math.random() * possibleSpells.length)];
@@ -1278,11 +1274,11 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
 
     return;
   }
-  if (spell.key === "skip") {
+if (spell.key === "skip") {
     // AI skips player's next turn
     gs.aiMana -= spell.mana;
-    gs.skip = true;
-    gs.usedSkip = true;
+    gs.skipNextPlayer = true; // <-- Use this new flag
+    gs.spellOn = null;
     gs.movesLeft--;
     gs.turn = 0;
     gs.lastAIMove = null;
@@ -1290,13 +1286,12 @@ if (possibleSpells.length > 0 && Math.random() < 0.33) { // 33% chance to cast a
     checkRandomEvent(gs);
     render();
     if (gs && !gs.winner) {
-  setTimeout(() => {
-    if (gs && !gs.winner) render();
-  }, 350);
-}
-
+      setTimeout(() => {
+        if (gs && !gs.winner) render();
+      }, 350);
+    }
     return;
-  }
+}
   if (spell.key === "fireball") {
     // Fireball: pick a random 4x4 area with at least one player tile
     
